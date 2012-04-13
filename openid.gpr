@@ -1,0 +1,15 @@
+with "aws";
+with "xmlada";
+
+project OpenID is
+   for Main use ("openid");
+
+   package Naming is
+      for Implementation ("Util.Log.Loggers.Traceback") use "util-log-loggers-traceback-gnat.adb";
+      for Implementation ("Util.Serialize.IO.XML.Get_Location") use "util-serialize-io-xml-get_location-xmlada-3.adb";
+   end Naming;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-lz");
+   end Linker;
+end OpenID;

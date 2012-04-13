@@ -1,0 +1,12 @@
+# use glob syntax.
+syntax: glob
+
+*.o
+*.ali
+*~
+b__*.ads
+b__*.adb
+b~*.ads
+b~*.adb
+
+openid
