@@ -18,8 +18,9 @@
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 
-with ASF.Clients;
-with ASF.Responses;
+with AWS.Client;
+with AWS.Messages;
+with AWS.Response;
 
 with Util.Strings;
 with Util.Encoders;
@@ -130,6 +131,7 @@ package body Security.Openid is
    --  ------------------------------
    --  Returns true if the given permission is stored in the user principal.
    --  ------------------------------
+   overriding
    function Has_Role (User : in Principal;
                       Role : in Permissions.Role_Type) return Boolean is
       pragma Unreferenced (User, Role);
@@ -140,6 +142,7 @@ package body Security.Openid is
    --  ------------------------------
    --  Get the principal name.
    --  ------------------------------
+   overriding
    function Get_Name (From : in Principal) return String is
    begin
       return Get_First_Name (From.Auth) & " " & Get_Last_Name (From.Auth);
@@ -193,21 +196,21 @@ package body Security.Openid is
    procedure Discover_XRDS (Realm  : in out Manager;
                             URI    : in String;
                             Result : out End_Point) is
-      Client : ASF.Clients.Client;
-      Reply  : ASF.Clients.Response;
+      use type AWS.Messages.Status_Code;
+      Reply  : AWS.Response.Data;
    begin
       Log.Info ("Discover XRDS on {0}", URI);
 
-      Client.Add_Header ("Accept", "application/xrds+xml");
-      Client.Do_Get (URL   => URI,
-                     Reply => Reply);
-      if Reply.Get_Status /= ASF.Responses.SC_OK then
+      Reply := AWS.Client.Get (URL => URI);
+
+      if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
          Log.Error ("Received error {0} when discovering XRDS on {1}",
-                    Util.Strings.Image (Reply.Get_Status), URI);
+                    AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)),
+                    URI);
          raise Service_Error with "Discovering XRDS of OpenID provider failed.";
       end if;
 
-      Manager'Class (Realm).Extract_XRDS (Content => Reply.Get_Body,
+      Manager'Class (Realm).Extract_XRDS (Content => AWS.Response.Message_Body (Reply),
                                           Result  => Result);
    end Discover_XRDS;
 
@@ -275,22 +278,22 @@ package body Security.Openid is
                         Result : out Association) is
       pragma Unreferenced (Realm);
 
+      use type AWS.Messages.Status_Code;
       Output : Unbounded_String;
       URI    : constant String := To_String (OP.URL);
       Params : constant String := Get_Association_Query;
-      Client : ASF.Clients.Client;
-      Reply  : ASF.Clients.Response;
+      Reply  : AWS.Response.Data;
       Pos, Last, N : Natural;
    begin
-      Client.Do_Post (URL   => URI,
-                      Data  => Params,
-                      Reply => Reply);
-      if Reply.Get_Status /= ASF.Responses.SC_OK then
+      Reply := AWS.Client.Post (URL  => URI,
+                                Data => Params);
+      if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
          Log.Error ("Received error {0} when creating assoication with {1}",
-                    Util.Strings.Image (Reply.Get_Status), URI);
+                    AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)),
+                    URI);
          raise Service_Error with "Cannot create association with OpenID provider.";
       end if;
-      Output := To_Unbounded_String (Reply.Get_Body);
+      Output := AWS.Response.Message_Body (Reply);
       Pos := 1;
       while Pos < Length (Output) loop
          N := Index (Output, ":", Pos);
