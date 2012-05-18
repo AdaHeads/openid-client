@@ -34,7 +34,7 @@ package body Security.Openid is
    Log : constant Util.Log.Loggers.Logger := Loggers.Create ("Security.Openid");
 
    procedure Extract_Profile (Prefix  : in String;
-                              Request : in ASF.Requests.Request'Class;
+                              Request : in AWS.Status.Data;
                               Result  : in out Authentication);
 
    function Extract (From      : String;
@@ -42,7 +42,7 @@ package body Security.Openid is
                      End_Tag   : String) return String;
 
    procedure Extract_Value (Into    : in out Unbounded_String;
-                            Request : in ASF.Requests.Request'Class;
+                            Request : in AWS.Status.Data;
                             Name    : in String);
 
    procedure Set_Result (Result  : in out Authentication;
@@ -378,16 +378,16 @@ package body Security.Openid is
    end Set_Result;
 
    procedure Extract_Value (Into    : in out Unbounded_String;
-                            Request : in ASF.Requests.Request'Class;
+                            Request : in AWS.Status.Data;
                             Name    : in String) is
    begin
       if Length (Into) = 0 then
-         Into := To_Unbounded_String (Request.Get_Parameter (Name));
+         Into := To_Unbounded_String (AWS.Status.Parameter (Request, Name));
       end if;
    end Extract_Value;
 
    procedure Extract_Profile (Prefix  : in String;
-                              Request : in ASF.Requests.Request'Class;
+                              Request : in AWS.Status.Data;
                               Result  : in out Authentication) is
    begin
       Extract_Value (Result.Email, Request, Prefix & ".email");
@@ -415,9 +415,9 @@ package body Security.Openid is
    --  ------------------------------
    procedure Verify (Realm   : in out Manager;
                      Assoc   : in Association;
-                     Request : in ASF.Requests.Request'Class;
+                     Request : in AWS.Status.Data;
                      Result  : out Authentication) is
-      Mode : constant String := Request.Get_Parameter ("openid.mode");
+      Mode : constant String := AWS.Status.Parameter (Request, "openid.mode");
    begin
       --  Step 1: verify the response status
       if Mode = "cancel" then
@@ -437,7 +437,7 @@ package body Security.Openid is
 
       --  OpenID Section: 11.1.  Verifying the Return URL
       declare
-         Value : constant String := Request.Get_Parameter ("openid.return_to");
+         Value : constant String := AWS.Status.Parameter (Request, "openid.return_to");
       begin
          if Value /= Realm.Return_To then
             Set_Result (Result, UNKNOWN, "openid.return_to URL does not match");
@@ -450,7 +450,7 @@ package body Security.Openid is
 
       --  OpenID Section: 11.3.  Checking the Nonce
       declare
-         Value : constant String := Request.Get_Parameter ("openid.response_nonce");
+         Value : constant String := AWS.Status.Parameter (Request, "openid.response_nonce");
       begin
          if Value = "" then
             Set_Result (Result, UNKNOWN, "openid.response_nonce is empty");
@@ -462,7 +462,7 @@ package body Security.Openid is
       Manager'Class (Realm).Verify_Signature (Assoc, Request, Result);
 
       declare
-         Value : constant String := Request.Get_Parameter ("openid.ns.sreg");
+         Value : constant String := AWS.Status.Parameter (Request, "openid.ns.sreg");
       begin
          --  Extract profile information
          if Value = "http://openid.net/extensions/sreg/1.1" then
@@ -471,7 +471,7 @@ package body Security.Openid is
       end;
 
       declare
-         Value : constant String := Request.Get_Parameter ("openid.ns.ax");
+         Value : constant String := AWS.Status.Parameter (Request, "openid.ns.ax");
       begin
          if Value = "http://openid.net/srv/ax/1.0" then
             Extract_Profile ("openid.ax.value", Request, Result);
@@ -479,7 +479,7 @@ package body Security.Openid is
       end;
 
       declare
-         Value : constant String := Request.Get_Parameter ("openid.ns.ext1");
+         Value : constant String := AWS.Status.Parameter (Request, "openid.ns.ext1");
       begin
          if Value = "http://openid.net/srv/ax/1.0" then
             Extract_Profile ("openid.ext1.value", Request, Result);
@@ -492,13 +492,13 @@ package body Security.Openid is
    --  ------------------------------
    procedure Verify_Signature (Realm   : in Manager;
                                Assoc   : in Association;
-                               Request : in ASF.Requests.Request'Class;
+                               Request : in AWS.Status.Data;
                                Result  : in out Authentication) is
       pragma Unreferenced (Realm);
 
       use type Util.Encoders.SHA1.Digest;
 
-      Signed : constant String := Request.Get_Parameter ("openid.signed");
+      Signed : constant String := AWS.Status.Parameter (Request, "openid.signed");
       Len    : constant Natural := Signed'Length;
       Sign   : Unbounded_String;
       Param  : Unbounded_String;
@@ -516,7 +516,7 @@ package body Security.Openid is
          end if;
          declare
             Name  : constant String := "openid." & To_String (Param);
-            Value : constant String := Request.Get_Parameter (Name);
+            Value : constant String := AWS.Status.Parameter (Request, Name);
          begin
             Append (Sign, Param);
             Append (Sign, ':');
@@ -528,7 +528,7 @@ package body Security.Openid is
 
       declare
          Decoder : constant Util.Encoders.Encoder := Util.Encoders.Create (Util.Encoders.BASE_64);
-         S       : constant String := Request.Get_Parameter ("openid.sig");
+         S       : constant String := AWS.Status.Parameter (Request, "openid.sig");
          Key     : constant String := Decoder.Decode (To_String (Assoc.Mac_Key));
 
          R : constant Util.Encoders.SHA1.Base64_Digest
@@ -548,12 +548,12 @@ package body Security.Openid is
    --  ------------------------------
    procedure Verify_Discovered (Realm   : in out Manager;
                                 Assoc   : in Association;
-                                Request : in ASF.Requests.Request'Class;
+                                Request : in AWS.Status.Data;
                                 Result  : out Authentication) is
       pragma Unreferenced (Realm, Assoc);
    begin
-      Result.Claimed_Id := To_Unbounded_String (Request.Get_Parameter ("openid.claimed_id"));
-      Result.Identity   := To_Unbounded_String (Request.Get_Parameter ("openid.identity"));
+      Result.Claimed_Id := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.claimed_id"));
+      Result.Identity   := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.identity"));
    end Verify_Discovered;
 
    function To_String (OP : End_Point) return String is

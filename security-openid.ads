@@ -19,7 +19,7 @@ with Ada.Strings.Unbounded;
 with Ada.Calendar;
 with Ada.Finalization;
 
-with ASF.Requests;
+with AWS.Status;
 with Security.Permissions;
 
 --  The <b>Security.Openid</b> package implements an authentication framework based
@@ -96,10 +96,12 @@ package Security.Openid is
    type Principal_Access is access all Principal'Class;
 
    --  Returns true if the given role is stored in the user principal.
+   overriding
    function Has_Role (User : in Principal;
                       Role : in Permissions.Role_Type) return Boolean;
 
    --  Get the principal name.
+   overriding
    function Get_Name (From : in Principal) return String;
 
    --  Get the user email address.
@@ -155,19 +157,19 @@ package Security.Openid is
    --  Verify the authentication result
    procedure Verify (Realm   : in out Manager;
                      Assoc   : in Association;
-                     Request : in ASF.Requests.Request'Class;
+                     Request : in AWS.Status.Data;
                      Result  : out Authentication);
 
    --  Verify the authentication result
    procedure Verify_Discovered (Realm   : in out Manager;
                                 Assoc   : in Association;
-                                Request : in ASF.Requests.Request'Class;
+                                Request : in AWS.Status.Data;
                                 Result  : out Authentication);
 
    --  Verify the signature part of the result
    procedure Verify_Signature (Realm   : in Manager;
                                Assoc   : in Association;
-                               Request : in ASF.Requests.Request'Class;
+                               Request : in AWS.Status.Data;
                                Result  : in out Authentication);
 
    --  Read the XRDS document from the URI and initialize the OpenID provider end point.
@@ -224,5 +226,4 @@ private
    type Principal is new Security.Permissions.Principal with record
       Auth : Authentication;
    end record;
-
 end Security.Openid;
