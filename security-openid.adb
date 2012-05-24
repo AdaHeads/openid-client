@@ -24,15 +24,14 @@ with AWS.Response;
 
 with Util.Strings;
 with Util.Encoders;
-with Util.Log.Loggers;
 with Util.Encoders.SHA1;
 with Util.Encoders.HMAC.SHA1;
+
+with Yolk.Log;
+
 package body Security.Openid is
 
    use Ada.Strings.Fixed;
-   use Util.Log;
-
-   Log : constant Util.Log.Loggers.Logger := Loggers.Create ("Security.Openid");
 
    procedure Extract_Profile (Prefix  : in String;
                               Request : in AWS.Status.Data;
@@ -196,17 +195,20 @@ package body Security.Openid is
    procedure Discover_XRDS (Realm  : in out Manager;
                             URI    : in String;
                             Result : out End_Point) is
+      use Yolk.Log;
       use type AWS.Messages.Status_Code;
       Reply  : AWS.Response.Data;
    begin
-      Log.Info ("Discover XRDS on {0}", URI);
+      Trace (Info ,"Discover XRDS on " & URI);
 
       Reply := AWS.Client.Get (URL => URI);
 
       if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
-         Log.Error ("Received error {0} when discovering XRDS on {1}",
-                    AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)),
-                    URI);
+         Trace (Error,
+                "Received error " &
+                  AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)) &
+                  " when discovering XRDS on " &
+                  URI);
          raise Service_Error with "Discovering XRDS of OpenID provider failed.";
       end if;
 
@@ -278,6 +280,7 @@ package body Security.Openid is
                         Result : out Association) is
       pragma Unreferenced (Realm);
 
+      use Yolk.Log;
       use type AWS.Messages.Status_Code;
       Output : Unbounded_String;
       URI    : constant String := To_String (OP.URL);
@@ -288,9 +291,11 @@ package body Security.Openid is
       Reply := AWS.Client.Post (URL  => URI,
                                 Data => Params);
       if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
-         Log.Error ("Received error {0} when creating assoication with {1}",
-                    AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)),
-                    URI);
+         Trace (Error,
+                "Received error " &
+                  AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)) &
+                  " when creating assoication with " &
+                  URI);
          raise Service_Error with "Cannot create association with OpenID provider.";
       end if;
       Output := AWS.Response.Message_Body (Reply);
@@ -329,7 +334,7 @@ package body Security.Openid is
          end;
          Pos := Last + 2;
       end loop;
-      Log.Debug ("Received end point {0}", To_String (Output));
+      Trace (Debug, "Received end point " & To_String (Output));
    end Associate;
 
    function Get_Authentication_URL (Realm : in Manager;
@@ -371,11 +376,12 @@ package body Security.Openid is
    procedure Set_Result (Result  : in out Authentication;
                          Status  : in Auth_Result;
                          Message : in String) is
+      use Yolk.Log;
    begin
       if Status /= AUTHENTICATED then
-         Log.Error ("OpenID verification failed: {0}", Message);
+         Trace (Error, "OpenID verification failed: " & Message);
       else
-         Log.Info ("OpenID verification: {0}", Message);
+         Trace (Info,  "OpenID verification: "        & Message);
       end if;
       Result.Status := Status;
    end Set_Result;
@@ -499,6 +505,7 @@ package body Security.Openid is
                                Result  : in out Authentication) is
       pragma Unreferenced (Realm);
 
+      use Yolk.Log;
       use type Util.Encoders.SHA1.Digest;
 
       Signed : constant String := AWS.Status.Parameter (Request, "openid.signed");
@@ -527,7 +534,7 @@ package body Security.Openid is
             Append (Sign, ASCII.LF);
          end;
       end loop;
-      Log.Info ("Signing: '{0}'", To_String (Sign));
+      Trace (Info, "Signing: '" & To_String (Sign) & "'");
 
       declare
          Decoder : constant Util.Encoders.Encoder := Util.Encoders.Create (Util.Encoders.BASE_64);
@@ -537,7 +544,7 @@ package body Security.Openid is
          R : constant Util.Encoders.SHA1.Base64_Digest
            := Util.Encoders.HMAC.SHA1.Sign_Base64 (Key, To_String (Sign));
       begin
-         Log.Info ("Signature: {0} - {1}", S, R);
+         Trace (Info, "Signature: " & S & " - " & R);
          if R /= S then
             Set_Result (Result, INVALID_SIGNATURE, "openid.response_nonce is empty");
          else

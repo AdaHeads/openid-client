@@ -48,7 +48,7 @@ package body Security.Controllers is
             return;
          end if;
       end loop;
-      Trace (Error,
+      Trace (Error, 
              "Maximum number of security factories is reached: " &
                Positive'Image (MAX_CONTROLLER_FACTORY));
       raise Program_Error
