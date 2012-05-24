@@ -40,7 +40,7 @@ package body Util.Log.Loggers is
    function Traceback (E : in Exception_Occurrence) return String;
 
    function Traceback (E : in Exception_Occurrence) return String is separate;
-   
+
    --  The log manager controls the configuration of loggers.
    --  The log appenders are shared by loggers and they are created by
    --  the log manager when a logger is created.

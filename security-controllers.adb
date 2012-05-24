@@ -48,9 +48,9 @@ package body Security.Controllers is
             return;
          end if;
       end loop;
-      Trace (Error, 
-	     "Maximum number of security factories is reached: " &
-	       Positive'Image (MAX_CONTROLLER_FACTORY));
+      Trace (Error,
+             "Maximum number of security factories is reached: " &
+               Positive'Image (MAX_CONTROLLER_FACTORY));
       raise Program_Error
         with "Too many security controller factory. Increase MAX_CONTROLLER_FACTORY.";
    end Register_Controller;
