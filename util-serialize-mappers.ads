@@ -19,7 +19,6 @@ with Ada.Strings.Unbounded;
 with Ada.Finalization;
 
 with Util.Beans.Objects;
-with Util.Log.Loggers;
 with Util.Serialize.Contexts;
 package Util.Serialize.Mappers is
 
@@ -103,7 +102,6 @@ package Util.Serialize.Mappers is
 
    --  Dump the mapping tree on the logger using the INFO log level.
    procedure Dump (Handler : in Mapper'Class;
-                   Log     : in Util.Log.Loggers.Logger'Class;
                    Prefix  : in String := "");
 
 private

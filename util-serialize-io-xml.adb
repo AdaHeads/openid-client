@@ -19,11 +19,12 @@
 with Unicode;
 with Unicode.CES.Utf8;
 
-with Util.Log.Loggers;
 with Util.Strings;
+
+with Yolk.Log;
+
 package body Util.Serialize.IO.XML is
 
-   use Util.Log;
    use Sax.Readers;
    use Sax.Exceptions;
    use Sax.Locators;
@@ -31,9 +32,6 @@ package body Util.Serialize.IO.XML is
    use Unicode;
    use Unicode.CES;
    use Ada.Strings.Unbounded;
-
-   --  The logger
-   Log : constant Loggers.Logger := Loggers.Create ("Util.Serialize.IO.XML");
 
    --  Return the location where the exception was raised.
    function Get_Location (Except : Sax.Exceptions.Sax_Parse_Exception'Class)
@@ -46,8 +44,9 @@ package body Util.Serialize.IO.XML is
    procedure Warning (Handler : in out Xhtml_Reader;
                       Except  : Sax.Exceptions.Sax_Parse_Exception'Class) is
       pragma Warnings (Off, Handler);
+      use Yolk.Log;
    begin
-      Log.Warn ("{0}", Get_Message (Except));
+      Trace (Warning, Get_Message (Except));
    end Warning;
 
    --  ------------------------------
@@ -138,9 +137,11 @@ package body Util.Serialize.IO.XML is
                             Atts          : in Sax.Attributes.Attributes'Class) is
       pragma Unreferenced (Namespace_URI, Qname);
 
+      use Yolk.Log;
+
       Attr_Count : Natural;
    begin
-      Log.Debug ("Start object {0}", Local_Name);
+      Trace (Debug, "Start object " & Local_Name);
 
       Handler.Handler.Start_Object (Local_Name);
       Attr_Count := Get_Length (Atts);
@@ -165,14 +166,15 @@ package body Util.Serialize.IO.XML is
                           Local_Name    : in Unicode.CES.Byte_Sequence := "";
                           Qname         : in Unicode.CES.Byte_Sequence := "") is
       pragma Unreferenced (Namespace_URI, Qname);
+      use Yolk.Log;
    begin
       Handler.Handler.Finish_Object (Local_Name);
       if Length (Handler.Text) > 0 then
-         Log.Debug ("Close object {0} -> {1}", Local_Name, To_String (Handler.Text));
+         Trace (Debug, "Close object " & Local_Name & " -> " & To_String (Handler.Text));
          Handler.Handler.Set_Member (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
          Set_Unbounded_String (Handler.Text, "");
       else
-         Log.Debug ("Close object {0}", Local_Name);
+         Trace (Debug, "Close object " & Local_Name);
          Handler.Handler.Set_Member (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
       end if;
    end End_Element;
@@ -213,8 +215,9 @@ package body Util.Serialize.IO.XML is
                                      Target  : in Unicode.CES.Byte_Sequence;
                                      Data    : in Unicode.CES.Byte_Sequence) is
       pragma Unreferenced (Handler);
+      use Yolk.Log;
    begin
-      Log.Error ("Processing instruction: {0}: {1}", Target, Data);
+      Trace (Error, "Processing instruction: " & Target & ": " & Data);
    end Processing_Instruction;
 
    --  ------------------------------
@@ -235,8 +238,9 @@ package body Util.Serialize.IO.XML is
    procedure Start_Cdata (Handler : in out Xhtml_Reader) is
       pragma Unmodified (Handler);
       pragma Unreferenced (Handler);
+      use Yolk.Log;
    begin
-      Log.Info ("Start CDATA");
+      Trace (Info, "Start CDATA");
    end Start_Cdata;
 
    --  ------------------------------
@@ -246,8 +250,9 @@ package body Util.Serialize.IO.XML is
    procedure End_Cdata (Handler : in out Xhtml_Reader) is
       pragma Unmodified (Handler);
       pragma Unreferenced (Handler);
+      use Yolk.Log;
    begin
-      Log.Info ("End CDATA");
+      Trace (Info, "End CDATA");
    end End_Cdata;
 
    --  ------------------------------
@@ -259,8 +264,9 @@ package body Util.Serialize.IO.XML is
                             System_Id : Unicode.CES.Byte_Sequence)
                             return Input_Sources.Input_Source_Access is
       pragma Unreferenced (Handler);
+      use Yolk.Log;
    begin
-      Log.Error ("Cannot resolve entity {0} - {1}", Public_Id, System_Id);
+      Trace (Error, "Cannot resolve entity " & Public_Id & " - " & System_Id);
       return null;
    end Resolve_Entity;
 

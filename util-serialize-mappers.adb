@@ -18,13 +18,10 @@
 
 with Util.Strings;
 with Ada.Unchecked_Deallocation;
+
+with Yolk.Log;
+
 package body Util.Serialize.Mappers is
-
-   use Util.Log;
-
-   --  The logger
-   Log : constant Loggers.Logger := Loggers.Create ("Util.Serialize.Mappers",
-                                                    Util.Log.WARN_LEVEL);
 
    --  -----------------------
    --  Execute the mapping operation on the object associated with the current context.
@@ -169,17 +166,18 @@ package body Util.Serialize.Mappers is
          end loop;
       end Copy;
 
+      use Yolk.Log;
    begin
-      Log.Info ("Mapping '{0}' for mapper X", Path);
+      Trace (Info, "Mapping '" & Path & "' for mapper X");
 
       --  Find or build the mapping tree.
       Into.Build_Path (Path, Last_Pos, Node);
 
       if Last_Pos < Path'Last then
-         Log.Warn ("Ignoring the end of mapping path {0}", Path);
+         Trace (Warning, "Ignoring the end of mapping path " & Path);
       end if;
       if Node.Mapper /= null then
-         Log.Warn ("Overriding the mapping {0} for mapper X", Path);
+         Trace (Warning, "Overriding the mapping " & Path & " for mapper X");
       end if;
       if Map.First_Child /= null then
          Copy (Node, Map.First_Child);
@@ -192,22 +190,23 @@ package body Util.Serialize.Mappers is
                           Path : in String;
                           Map  : in Mapping_Access) is
       use Ada.Strings.Unbounded;
+      use Yolk.Log;
       Node     : Mapper_Access;
       Last_Pos : Natural;
    begin
-      Log.Info ("Mapping {0}", Path);
+      Trace (Info, "Mapping " & Path);
 
       --  Find or build the mapping tree.
       Into.Build_Path (Path, Last_Pos, Node);
 
       if Last_Pos < Path'Last then
-         Log.Warn ("Ignoring the end of mapping path {0}", Path);
+         Trace (Warning, "Ignoring the end of mapping path " & Path);
       end if;
       if Node.Mapping /= null then
-         Log.Warn ("Overriding the mapping {0} for mapper X", Path);
+         Trace (Warning, "Overriding the mapping " & Path & " for mapper X");
       end if;
       if Length (Node.Name) = 0 then
-         Log.Warn ("Mapped name is empty in mapping path {0}", Path);
+         Trace (Warning, "Mapped name is empty in mapping path " & Path);
       elsif Element (Node.Name, 1) = '@' then
          Delete (Node.Name, 1, 1);
          Map.Is_Attribute := True;
@@ -271,7 +270,6 @@ package body Util.Serialize.Mappers is
    --  Dump the mapping tree on the logger using the INFO log level.
    --  -----------------------
    procedure Dump (Handler : in Mapper'Class;
-                   Log     : in Util.Log.Loggers.Logger'Class;
                    Prefix  : in String := "") is
       procedure Dump (Map : in Mapper'Class);
 
@@ -279,13 +277,15 @@ package body Util.Serialize.Mappers is
       --  Dump the mapping description
       --  -----------------------
       procedure Dump (Map : in Mapper'Class) is
+	 use Yolk.Log;
       begin
          if Map.Mapping /= null and then Map.Mapping.Is_Attribute then
-            Log.Info (" {0}@{1}", Prefix,
-                      Ada.Strings.Unbounded.To_String (Map.Mapping.Name));
+            Trace (Info,
+                   " " & Prefix & "@" & Ada.Strings.Unbounded.To_String (Map.Mapping.Name));
          else
-            Log.Info (" {0}/{1}", Prefix, Ada.Strings.Unbounded.To_String (Map.Name));
-            Dump (Map, Log, Prefix & "/" & Ada.Strings.Unbounded.To_String (Map.Name));
+            Trace (Info,
+                   " " & Prefix & "@" & Ada.Strings.Unbounded.To_String (Map.Name));
+            Dump (Map, Prefix & "/" & Ada.Strings.Unbounded.To_String (Map.Name));
          end if;
       end Dump;
    begin

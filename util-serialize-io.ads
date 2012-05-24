@@ -23,7 +23,6 @@ with Util.Streams;
 with Util.Streams.Buffered;
 with Util.Serialize.Contexts;
 with Util.Serialize.Mappers;
-with Util.Log.Loggers;
 with Util.Stacks;
 package Util.Serialize.IO is
 
@@ -73,10 +72,6 @@ package Util.Serialize.IO is
    --  Returns true if the <b>Parse</b> operation detected at least one error.
    function Has_Error (Handler : in Parser) return Boolean;
 
-   --  Set the error logger to report messages while parsing and reading the input file.
-   procedure Set_Logger (Handler : in out Parser;
-                         Logger  : in Util.Log.Loggers.Logger_Access);
-
    --  Start a new object associated with the given name.  This is called when
    --  the '{' is reached.  The reader must be updated so that the next
    --  <b>Set_Member</b> procedure will associate the name/value pair on the
@@ -116,8 +111,7 @@ package Util.Serialize.IO is
                           Mapper  : in Util.Serialize.Mappers.Mapper_Access);
 
    --  Dump the mapping tree on the logger using the INFO log level.
-   procedure Dump (Handler : in Parser'Class;
-                   Logger  : in Util.Log.Loggers.Logger'Class);
+   procedure Dump (Handler : in Parser'Class);
 
 private
 
@@ -154,9 +148,6 @@ private
 
       --  The file name to use when reporting errors.
       File           : Ada.Strings.Unbounded.Unbounded_String;
-
-      --  The logger which is used to report error messages when parsing an input file.
-      Error_Logger   : Util.Log.Loggers.Logger_Access := null;
    end record;
 
 end Util.Serialize.IO;

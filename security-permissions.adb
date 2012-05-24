@@ -20,25 +20,21 @@ with Ada.Unchecked_Deallocation;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Strings.Hash;
 
-with Util.Log.Loggers;
 with Util.Serialize.Mappers.Record_Mapper;
 
 with Security.Contexts;
 with Security.Controllers;
 with Security.Controllers.Roles;
 
+with Yolk.Log;
+
 --  The <b>Security.Permissions</b> package defines the different permissions that can be
 --  checked by the access control manager.
 package body Security.Permissions is
 
-   use Util.Log;
-
    --  ------------------------------
    --  Permission Manager
    --  ------------------------------
-
-   --  The logger
-   Log : constant Loggers.Logger := Loggers.Create ("Security.Permissions");
 
    --  A global map to translate a string to a permission index.
    package Permission_Maps is
@@ -81,14 +77,16 @@ package body Security.Permissions is
 
       procedure Add_Permission (Name  : in String;
                                 Index : out Permission_Index) is
+	 use Yolk.Log;
          Pos : constant Permission_Maps.Cursor := Map.Find (Name);
       begin
          if Permission_Maps.Has_Element (Pos) then
             Index := Permission_Maps.Element (Pos);
          else
             Index := Next_Index;
-            Log.Debug ("Creating permission index {1} for {0}",
-                       Name, Permission_Index'Image (Index));
+            Trace (Debug,
+		   "Creating permission index " & Name & " for " &
+                     Permission_Index'Image (Index));
             Map.Insert (Name, Index);
             Next_Index := Next_Index + 1;
          end if;
@@ -157,9 +155,10 @@ package body Security.Permissions is
    procedure Add_Permission (Manager    : in out Permission_Manager;
                              Name       : in String;
                              Permission : in Controller_Access) is
+      use Yolk.Log;
       Index : Permission_Index;
    begin
-      Log.Info ("Adding permission {0}", Name);
+      Trace (Info, "Adding permission " & Name);
 
       Add_Permission (Name, Index);
       if Index >= Manager.Last_Index then
@@ -269,9 +268,10 @@ package body Security.Permissions is
    --  ------------------------------
    function Find_Role (Manager : in Permission_Manager;
                        Name    : in String) return Role_Type is
+      use Yolk.Log;
       use type Ada.Strings.Unbounded.String_Access;
    begin
-      Log.Debug ("Searching role {0}", Name);
+      Trace (Debug, "Searching role " & Name);
 
       for I in Role_Type'First .. Manager.Next_Role loop
          exit when Manager.Names (I) = null;
@@ -280,7 +280,7 @@ package body Security.Permissions is
          end if;
       end loop;
 
-      Log.Debug ("Role {0} not found", Name);
+      Trace (Debug, "Role " & Name & " not found");
       raise Invalid_Name;
    end Find_Role;
 
@@ -290,13 +290,15 @@ package body Security.Permissions is
    procedure Create_Role (Manager : in out Permission_Manager;
                           Name    : in String;
                           Role    : out Role_Type) is
+      use Yolk.Log;
    begin
       Role := Manager.Next_Role;
-      Log.Info ("Role {0} is {1}", Name, Role_Type'Image (Role));
+      Trace (Info, "Role " & Name & " is " & Role_Type'Image (Role));
 
       if Manager.Next_Role = Role_Type'Last then
-         Log.Error ("Too many roles allocated.  Number of roles is {0}",
-                    Role_Type'Image (Role_Type'Last));
+         Trace (Error,
+		"Too many roles allocated.  Number of roles is " &
+		  Role_Type'Image (Role_Type'Last));
       else
          Manager.Next_Role := Manager.Next_Role + 1;
       end if;
@@ -433,6 +435,7 @@ package body Security.Permissions is
                           File    : in String) is
 
       use Util;
+      use Yolk.Log;
 
       Reader : Util.Serialize.IO.XML.Parser;
 
@@ -443,10 +446,9 @@ package body Security.Permissions is
       pragma Warnings (Off, Policy_Config);
       pragma Warnings (Off, Role_Config);
    begin
-      Log.Info ("Reading policy file {0}", File);
+      Trace (Info, "Reading policy file " & File);
 
       Reader.Parse (File);
-
    end Read_Policy;
 
    --  ------------------------------

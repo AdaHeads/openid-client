@@ -20,27 +20,21 @@ with Ada.Streams;
 with Ada.Streams.Stream_IO;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
+
+with Yolk.Log;
+
 package body Util.Serialize.IO is
-
-   --  use Util.Log;
-   use type Util.Log.Loggers.Logger_Access;
-
-   --  The logger'
-   Log : aliased constant Util.Log.Loggers.Logger := Util.Log.Loggers.Create ("Util.Serialize.IO",
-                                                                              Util.Log.WARN_LEVEL);
 
    --  ------------------------------
    --  Read the file and parse it using the JSON parser.
    --  ------------------------------
    procedure Parse (Handler : in out Parser;
                     File    : in String) is
+      use Yolk.Log;
       Stream     : aliased Util.Streams.Files.File_Stream;
       Buffer     : Util.Streams.Buffered.Buffered_Stream;
    begin
-      if Handler.Error_Logger = null then
-         Handler.Error_Logger := Log'Access;
-      end if;
-      Handler.Error_Logger.Info ("Reading file {0}", File);
+      Trace (Info, "Reading file " & File);
 
       Handler.File := Ada.Strings.Unbounded.To_Unbounded_String (File);
       Buffer.Initialize (Output => null,
@@ -68,9 +62,6 @@ package body Util.Serialize.IO is
                            Content : in String) is
       Stream : aliased Util.Streams.Buffered.Buffered_Stream;
    begin
-      if Handler.Error_Logger = null then
-         Handler.Error_Logger := Log'Access;
-      end if;
       Handler.File := Ada.Strings.Unbounded.To_Unbounded_String ("<inline>");
       Stream.Initialize (Content  => Content);
       Context_Stack.Clear (Handler.Stack);
@@ -91,15 +82,6 @@ package body Util.Serialize.IO is
    begin
       return Handler.Error_Flag;
    end Has_Error;
-
-   --  ------------------------------
-   --  Set the error logger to report messages while parsing and reading the input file.
-   --  ------------------------------
-   procedure Set_Logger (Handler : in out Parser;
-                         Logger  : in Util.Log.Loggers.Logger_Access) is
-   begin
-      Handler.Error_Logger := Logger;
-   end Set_Logger;
 
    --  ------------------------------
    --  Push the current context when entering in an element.
@@ -134,13 +116,14 @@ package body Util.Serialize.IO is
    procedure Start_Object (Handler : in out Parser;
                            Name    : in String) is
 
+      use Yolk.Log;
       use type Util.Serialize.Mappers.Mapper_Access;
 
       Current : constant Element_Context_Access := Context_Stack.Current (Handler.Stack);
       Next    : Element_Context_Access;
       Pos     : Positive;
    begin
-      Log.Debug ("Start object {0}", Name);
+      Trace (Debug, "Start object " & Name);
 
       Context_Stack.Push (Handler.Stack);
       Next := Context_Stack.Current (Handler.Stack);
@@ -178,9 +161,10 @@ package body Util.Serialize.IO is
    procedure Finish_Object (Handler : in out Parser;
                             Name    : in String) is
 
+      use Yolk.Log;
       use type Util.Serialize.Mappers.Mapper_Access;
    begin
-      Log.Debug ("Finish object {0}", Name);
+      Trace (Debug, "Finish object " & Name);
 
       declare
          Current : constant Element_Context_Access := Context_Stack.Current (Handler.Stack);
@@ -222,11 +206,12 @@ package body Util.Serialize.IO is
                          Name      : in String;
                          Value     : in Util.Beans.Objects.Object;
                          Attribute : in Boolean := False) is
+      use Yolk.Log;
       use Util.Serialize.Mappers;
 
       Current : constant Element_Context_Access := Context_Stack.Current (Handler.Stack);
    begin
-      Log.Debug ("Set member {0}", Name);
+      Trace (Debug, "Set member " & Name);
 
       if Current /= null then
 
@@ -275,10 +260,10 @@ package body Util.Serialize.IO is
    --  ------------------------------
    procedure Error (Handler : in out Parser;
                     Message : in String) is
+      use Yolk.Log;
    begin
-      Handler.Error_Logger.Error ("{0}: {1}",
-                                  Parser'Class (Handler).Get_Location,
-                                  Message);
+      Trace (Error,
+             Parser'Class (Handler).Get_Location & ": " & Message);
       Handler.Error_Flag := True;
    end Error;
 
@@ -292,10 +277,9 @@ package body Util.Serialize.IO is
    --  ------------------------------
    --  Dump the mapping tree on the logger using the INFO log level.
    --  ------------------------------
-   procedure Dump (Handler : in Parser'Class;
-                   Logger  : in Util.Log.Loggers.Logger'Class) is
+   procedure Dump (Handler : in Parser'Class) is
    begin
-      Util.Serialize.Mappers.Dump (Handler.Mapping_Tree, Logger, "Mapping ");
+      Util.Serialize.Mappers.Dump (Handler.Mapping_Tree, "Mapping ");
    end Dump;
 
 end Util.Serialize.IO;
