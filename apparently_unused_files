@@ -1,5 +1,5 @@
 #! /bin/zsh
-gnatmake -P openid 1>&2 || exit 1
+make 1>&2 || exit 1
 
 for f in *.ad?; do
    if [ ! -f ${f%.ad?}.ali ]; then
