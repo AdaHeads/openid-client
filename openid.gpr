@@ -3,7 +3,7 @@ with "xmlada";
 with "yolk";
 
 project OpenID is
-   for Main use ("security-openid");
+   for Main use ("security-openid", "openid_demo");
 
    package Naming is
       for Implementation ("Util.Log.Loggers.Traceback") use "util-log-loggers-traceback-gnat.adb";
