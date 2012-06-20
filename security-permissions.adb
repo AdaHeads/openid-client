@@ -534,19 +534,6 @@ package body Security.Permissions is
       end if;
    end Has_Permission;
 
-   --  ------------------------------
-   --  Register a set of functions in the namespace
-   --  xmlns:fn="http://code.google.com/p/ada-asf/auth"
-   --  Functions:
-   --    hasPermission(NAME)   --  Returns True if the permission NAME is granted
-   --  ------------------------------
-   procedure Set_Functions (Mapper : in out EL.Functions.Function_Mapper'Class) is
-   begin
-      Mapper.Set_Function (Name      => HAS_PERMISSION_FN,
-                           Namespace => AUTH_NAMESPACE_URI,
-                           Func      => Has_Permission'Access);
-   end Set_Functions;
-
 begin
    Policy_Mapping.Add_Mapping ("policy", FIELD_POLICY);
    Policy_Mapping.Add_Mapping ("policy/@id", FIELD_ID);

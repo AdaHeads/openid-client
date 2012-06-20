@@ -36,6 +36,7 @@ package Security.Controllers.Roles is
 
    --  Returns true if the user associated with the security context <b>Context</b> has
    --  one of the role defined in the <b>Handler</b>.
+   overriding
    function Has_Permission (Handler : in Role_Controller;
                             Context : in Security.Contexts.Security_Context'Class)
                             return Boolean;
