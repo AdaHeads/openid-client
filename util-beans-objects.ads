@@ -446,6 +446,7 @@ private
                           Value    : in Object_Value) return Long_Long_Integer;
 
    --  Convert the value into a float.
+   overriding
    function To_Long_Float (Type_Def : in Duration_Type_Def;
                            Value    : in Object_Value) return Long_Long_Float;
 

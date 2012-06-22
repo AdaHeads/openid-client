@@ -42,6 +42,7 @@ package Util.Streams.Texts is
                     Item   : in Long_Long_Integer);
 
    --  Write a string on the stream.
+   overriding
    procedure Write (Stream : in out Print_Stream;
                     Item   : in Ada.Strings.Unbounded.Unbounded_String);
 

@@ -33,6 +33,7 @@ package Util.Serialize.IO.XML is
    type Parser is new Serialize.IO.Parser with private;
 
    --  Parse the stream using the JSON parser.
+   overriding
    procedure Parse (Handler : in out Parser;
                     Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class);
 
@@ -46,6 +47,7 @@ package Util.Serialize.IO.XML is
                                      Value  : in Boolean);
 
    --  Get the current location (file and line) to report an error message.
+   overriding
    function Get_Location (Handler : in Parser) return String;
 
    type Xhtml_Reader is new Sax.Readers.Reader with private;
@@ -65,28 +67,34 @@ package Util.Serialize.IO.XML is
                            Value  : in String);
 
    --  Start a new XML object.
+   overriding
    procedure Start_Entity (Stream : in out Output_Stream;
                            Name   : in String);
 
    --  Terminates the current XML object.
+   overriding
    procedure End_Entity (Stream : in out Output_Stream;
                          Name   : in String);
 
    --  Write a XML name/value attribute.
+   overriding
    procedure Write_Attribute (Stream : in out Output_Stream;
                               Name   : in String;
                               Value  : in Util.Beans.Objects.Object);
 
    --  Write a XML name/value entity (see Write_Attribute).
+   overriding
    procedure Write_Entity (Stream : in out Output_Stream;
                            Name   : in String;
                            Value  : in Util.Beans.Objects.Object);
 
    --  Starts a XML array.
+   overriding
    procedure Start_Array (Stream : in out Output_Stream;
                           Length : in Ada.Containers.Count_Type);
 
    --  Terminates a XML array.
+   overriding
    procedure End_Array (Stream : in out Output_Stream);
 
    --  Return the location where the exception was raised.

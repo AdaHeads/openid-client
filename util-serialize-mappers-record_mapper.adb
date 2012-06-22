@@ -65,6 +65,7 @@ package body Util.Serialize.Mappers.Record_Mapper is
    --  Execute the mapping operation on the object associated with the current context.
    --  The object is extracted from the context and the <b>Execute</b> operation is called.
    --  -----------------------
+   overriding
    procedure Execute (Handler : in Mapper;
                       Map     : in Mapping'Class;
                       Ctx     : in out Util.Serialize.Contexts.Context'Class;
@@ -264,6 +265,7 @@ package body Util.Serialize.Mappers.Record_Mapper is
    --  -----------------------
    --  Clone the <b>Handler</b> instance and get a copy of that single object.
    --  -----------------------
+   overriding
    function Clone (Handler : in Mapper) return Util.Serialize.Mappers.Mapper_Access is
       Result : Mapper_Access := new Mapper;
    begin

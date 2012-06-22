@@ -301,6 +301,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Get the current location (file and line) to report an error message.
    --  ------------------------------
+   overriding
    function Get_Location (Handler : in Parser) return String is
       File : constant String := Util.Serialize.IO.Parser (Handler).Get_Location;
    begin
@@ -319,6 +320,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
 
    --  Parse the stream using the JSON parser.
+   overriding
    procedure Parse (Handler : in out Parser;
                     Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class) is
 
@@ -332,10 +334,12 @@ package body Util.Serialize.IO.XML is
       end record;
 
       --  Return the next character in the string.
+      overriding
       procedure Next_Char (From : in out Stream_Input;
                            C    : out Unicode.Unicode_Char);
 
       --  True if From is past the last character in the string.
+      overriding
       function Eof (From : in Stream_Input) return Boolean;
       procedure Fill (From : in out Stream_Input'Class);
 
@@ -364,6 +368,7 @@ package body Util.Serialize.IO.XML is
       end Fill;
 
       --  Return the next character in the string.
+      overriding
       procedure Next_Char (From : in out Stream_Input;
                            C    : out Unicode.Unicode_Char) is
       begin
@@ -374,6 +379,7 @@ package body Util.Serialize.IO.XML is
       end Next_Char;
 
       --  True if From is past the last character in the string.
+      overriding
       function Eof (From : in Stream_Input) return Boolean is
       begin
          if From.Index < From.Last then
@@ -439,6 +445,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Start a new XML object.
    --  ------------------------------
+   overriding
    procedure Start_Entity (Stream : in out Output_Stream;
                            Name   : in String) is
    begin
@@ -451,6 +458,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Terminates the current XML object.
    --  ------------------------------
+   overriding
    procedure End_Entity (Stream : in out Output_Stream;
                          Name   : in String) is
    begin
@@ -463,6 +471,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Write a XML name/value attribute.
    --  ------------------------------
+   overriding
    procedure Write_Attribute (Stream : in out Output_Stream;
                               Name   : in String;
                               Value  : in Util.Beans.Objects.Object) is
@@ -495,6 +504,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Write a XML name/value entity (see Write_Attribute).
    --  ------------------------------
+   overriding
    procedure Write_Entity (Stream : in out Output_Stream;
                            Name   : in String;
                            Value  : in Util.Beans.Objects.Object) is
@@ -530,6 +540,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Starts a XML array.
    --  ------------------------------
+   overriding
    procedure Start_Array (Stream : in out Output_Stream;
                           Length : in Ada.Containers.Count_Type) is
    begin
@@ -539,6 +550,7 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    --  Terminates a XML array.
    --  ------------------------------
+   overriding
    procedure End_Array (Stream : in out Output_Stream) is
    begin
       null;

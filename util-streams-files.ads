@@ -39,14 +39,17 @@ package Util.Streams.Files is
                      Form    : in String := "");
 
    --  Close the stream.
+   overriding
    procedure Close (Stream : in out File_Stream);
 
    --  Write the buffer array to the output stream.
+   overriding
    procedure Write (Stream : in out File_Stream;
                     Buffer : in Ada.Streams.Stream_Element_Array);
 
    --  Read into the buffer as many bytes as possible and return in
    --  <b>last</b> the position of the last byte read.
+   overriding
    procedure Read (Stream : in out File_Stream;
                    Into   : out Ada.Streams.Stream_Element_Array;
                    Last   : out Ada.Streams.Stream_Element_Offset);

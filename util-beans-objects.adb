@@ -136,6 +136,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Returns True
    --  ------------------------------
+   overriding
    function Is_Empty (Type_Def : in Null_Type;
                       Value    : in Object_Value) return Boolean is
       pragma Unreferenced (Type_Def, Value);
@@ -438,6 +439,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Get the base data type.
    --  ------------------------------
+   overriding
    function Get_Data_Type (Type_Def : in Wide_String_Type) return Data_Type is
       pragma Unreferenced (Type_Def);
    begin
@@ -682,10 +684,10 @@ package body Util.Beans.Objects is
    --  ------------------------------
    overriding
    function To_Long_Float (Type_Def : in Duration_Type_Def;
-                           Value    : in Object_Value) return Long_Float is
+                           Value    : in Object_Value) return Long_Long_Float is
       pragma Unreferenced (Type_Def);
    begin
-      return Long_Float (Value.Time_Value);
+      return Long_Long_Float (Value.Time_Value);
    end To_Long_Float;
 
    --  ------------------------------
@@ -717,6 +719,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Get the type name
    --  ------------------------------
+   overriding
    function Get_Name (Type_Def : in Bean_Type) return String is
       pragma Unreferenced (Type_Def);
    begin
@@ -726,6 +729,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Get the base data type.
    --  ------------------------------
+   overriding
    function Get_Data_Type (Type_Def : in Bean_Type) return Data_Type is
       pragma Unreferenced (Type_Def);
    begin
@@ -735,6 +739,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Convert the value into a string.
    --  ------------------------------
+   overriding
    function To_String (Type_Def : in Bean_Type;
                        Value    : in Object_Value) return String is
       pragma Unreferenced (Type_Def, Value);
@@ -745,6 +750,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Convert the value into an integer.
    --  ------------------------------
+   overriding
    function To_Long_Long (Type_Def : in Bean_Type;
                           Value    : in Object_Value) return Long_Long_Integer is
       pragma Unreferenced (Type_Def, Value);
@@ -755,6 +761,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Convert the value into a float.
    --  ------------------------------
+   overriding
    function To_Long_Float (Type_Def : in Bean_Type;
                            Value    : in Object_Value) return Long_Long_Float is
       pragma Unreferenced (Type_Def, Value);
@@ -765,6 +772,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Convert the value into a boolean.
    --  ------------------------------
+   overriding
    function To_Boolean (Type_Def : in Bean_Type;
                         Value    : in Object_Value) return Boolean is
       pragma Unreferenced (Type_Def);
@@ -776,6 +784,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Returns True if the value is empty.
    --  ------------------------------
+   overriding
    function Is_Empty (Type_Def : in Bean_Type;
                       Value    : in Object_Value) return Boolean is
       pragma Unreferenced (Type_Def);
@@ -801,6 +810,7 @@ package body Util.Beans.Objects is
    --  ------------------------------
    --  Convert the value into a string.
    --  ------------------------------
+   overriding
    function To_Long_Long (Type_Def : in Basic_Type;
                           Value    : in Object_Value) return Long_Long_Integer is
       pragma Unreferenced (Type_Def, Value);
@@ -1397,8 +1407,8 @@ package body Util.Beans.Objects is
    begin
       return Cmp (Left, Right);
    end ">=";
---   function "=" (Left, Right : Object) return Boolean;
 
+   overriding
    function "=" (Left, Right : Object) return Boolean is
       function Cmp is new Compare (Int_Comparator => "=",
                                    Time_Comparator => "=",

@@ -55,6 +55,7 @@ package body Util.Streams.Texts is
    --  ------------------------------
    --  Write a string on the stream.
    --  ------------------------------
+   overriding
    procedure Write (Stream : in out Print_Stream;
                     Item   : in Ada.Strings.Unbounded.Unbounded_String) is
    begin
