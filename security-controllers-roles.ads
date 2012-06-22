@@ -23,6 +23,7 @@ with Util.Beans.Objects;
 with Util.Serialize.IO.XML;
 
 package Security.Controllers.Roles is
+   pragma Elaborate_Body (Security.Controllers.Roles);
 
    --  ------------------------------
    --  Security Controller

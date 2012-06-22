@@ -20,6 +20,7 @@ with Util.Strings;
 with Ada.Unchecked_Deallocation;
 
 with Yolk.Log;
+pragma Elaborate (Yolk.Log);
 
 package body Util.Serialize.Mappers is
 

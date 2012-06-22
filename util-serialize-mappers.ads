@@ -21,6 +21,7 @@ with Ada.Finalization;
 with Util.Beans.Objects;
 with Util.Serialize.Contexts;
 package Util.Serialize.Mappers is
+   pragma Elaborate_Body (Util.Serialize.Mappers);
 
    Mapping_Error : exception;
 
