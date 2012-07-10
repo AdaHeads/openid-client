@@ -67,5 +67,5 @@ package body OpenID_Handler is
    end Service;
 begin
    Data.Initialise (Name      => "AdaHeads K/S",
-                    Return_To => "https://localhost/return_to");
+                    Return_To => "http://login.jacob-sparre.dk/return_to");
 end OpenID_Handler;
