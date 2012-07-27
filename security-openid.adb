@@ -16,9 +16,10 @@
 --  limitations under the License.
 -----------------------------------------------------------------------
 with Ada.Strings.Fixed;
-with Ada.Text_IO;
 
 with AWS.Client;
+with AWS.Headers;
+with AWS.Headers.Set;
 with AWS.Messages;
 with AWS.Response;
 
@@ -195,13 +196,19 @@ package body Security.Openid is
    procedure Discover_XRDS (Realm  : in out Manager;
                             URI    : in String;
                             Result : out End_Point) is
+      use AWS.Headers.Set;
       use Yolk.Log;
       use type AWS.Messages.Status_Code;
-      Reply  : AWS.Response.Data;
+      Headers : AWS.Headers.List;
+      Reply   : AWS.Response.Data;
    begin
       Trace (Info ,"Discover XRDS on " & URI);
 
-      Reply := AWS.Client.Get (URL => URI);
+      Add (Headers, "Accept", "application/xrds+xml");
+
+      Reply := AWS.Client.Get (URL                => URI,
+                               Follow_Redirection => True,
+                               Headers            => Headers);
 
       if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
          Trace (Error,
@@ -257,7 +264,11 @@ package body Security.Openid is
       URI : constant String := Extract (Content, "<URI>", "</URI>");
    begin
       if URI'Length = 0 then
-         raise Invalid_End_Point with "Cannot extract the <URI> from the XRDS document";
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Error,
+            Message => "Extract_XRDS: Content = """ & Content & """");
+         raise Invalid_End_Point
+           with "Cannot extract the <URI> from the XRDS document";
       end if;
       Result.URL := To_Unbounded_String (URI);
    end Extract_XRDS;
@@ -325,11 +336,15 @@ package body Security.Openid is
                   Val : constant String := Slice (Output, N + 1, Last);
                   --                    Expires : Integer := Integer'Value (Val);
                begin
-                  Ada.Text_IO.Put_Line ("Expires: |" & Val & "|");
+                  Yolk.Log.Trace
+                    (Handle  => Yolk.Log.Info,
+                     Message => "Expires: |" & Val & "|");
                   Result.Expired := Ada.Calendar.Clock;
                end;
             elsif Key /= "ns" then
-               Ada.Text_IO.Put_Line ("Key not recognized: " & Key);
+               Yolk.Log.Trace
+                 (Handle  => Yolk.Log.Error,
+                  Message => "Key not recognized: " & Key);
             end if;
          end;
          Pos := Last + 2;

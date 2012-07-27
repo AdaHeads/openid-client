@@ -1,4 +1,6 @@
 with
+  Ada.Exceptions;
+with
   AWS.Messages,
   AWS.Status;
 with
@@ -48,24 +50,53 @@ package body OpenID_Handler is
 
    function Service (Request : in AWS.Status.Data) return AWS.Response.Data is
    begin
+      Yolk.Log.Trace
+        (Handle  => Yolk.Log.Info,
+         Message => "OpenID demo request URI: <" & AWS.Status.URI (Request) &
+                    ">");
+
       if AWS.Status.URI (Request) = "/" then
          return AWS.Response.File (Content_Type  => "text/html",
                                    Filename      => "index.html");
+      elsif AWS.Status.URI (Request) = "/error" then
+         return AWS.Response.File (Content_Type  => "text/html",
+                                   Filename      => "error.html");
       elsif AWS.Status.URI (Request) = "/login" then
          Data.Associate
            (Name => AWS.Status.Parameters (Request).Get ("openid"));
+
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Redirecting to <" & Data.URL & ">");
+
          return AWS.Response.Moved (Data.URL);
       elsif AWS.Status.URI (Request) = "/favicon.ico" then
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Redirecting to <http://www.jacob-sparre.dk/icon>");
+
          return AWS.Response.Moved ("http://www.jacob-sparre.dk/icon");
       else
+         Yolk.Log.Trace (Handle  => Yolk.Log.Error,
+                         Message => "Unknown document.");
+
          return AWS.Response.Acknowledge (Status_Code => AWS.Messages.S404);
       end if;
    exception
-      when others =>
-         Yolk.Log.Trace (Yolk.Log.Error, "OpenID demo failed.");
-         return AWS.Response.Acknowledge (Status_Code => AWS.Messages.S500);
+      when E : others =>
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Error,
+            Message => "OpenID demo failed at URI <" &
+                       AWS.Status.URI (Request) & "> with exception " &
+                       Ada.Exceptions.Exception_Name (E) & ": " &
+                       Ada.Exceptions.Exception_Message (E));
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Redirecting to <https://jaws.adaheads.com/error>");
+
+         return AWS.Response.Moved ("https://jaws.adaheads.com/error");
    end Service;
 begin
-   Data.Initialise (Name      => "AdaHeads K/S",
-                    Return_To => "http://login.jacob-sparre.dk/return_to");
+   Data.Initialise (Name      => "https://jaws.adaheads.com/",
+                    Return_To => "https://jaws.adaheads.com/return_to");
 end OpenID_Handler;
