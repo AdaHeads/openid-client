@@ -70,6 +70,14 @@ package body OpenID_Handler is
             Message => "Redirecting to <" & Data.URL & ">");
 
          return AWS.Response.Moved (Data.URL);
+      elsif AWS.Status.URI (Request) = "/return_to" then
+         Data.Verify (Response => Request);
+
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Redirecting to <http://www.adaheads.com/>");
+
+         return AWS.Response.Moved ("http://www.adaheads.com/");
       elsif AWS.Status.URI (Request) = "/favicon.ico" then
          Yolk.Log.Trace
            (Handle  => Yolk.Log.Info,
