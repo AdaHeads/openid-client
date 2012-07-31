@@ -15,10 +15,13 @@ package body OpenID_Handler is
                             Return_To : in     String);
       procedure Associate (Name   : in     String);
       function URL return String;
+      procedure Validate (Response : in     AWS.Status.Data);
+      function Authenticated return Boolean;
    private
-      Realm       : Security.OpenID.Manager;
-      End_Point   : Security.OpenID.End_Point;
-      Association : Security.OpenID.Association;
+      Realm          : Security.OpenID.Manager;
+      End_Point      : Security.OpenID.End_Point;
+      Association    : Security.OpenID.Association;
+      Authentication : Security.OpenID.Authentication;
    end Data;
 
    protected body Data is
@@ -46,6 +49,20 @@ package body OpenID_Handler is
                                                         OP    => End_Point,
                                                         Assoc => Association);
       end URL;
+
+      procedure Validate (Response : in     AWS.Status.Data) is
+      begin
+         Security.OpenID.Verify (Realm   => Realm,
+                                 Assoc   => Association,
+                                 Request => Response,
+                                 Result  => Authentication);
+      end Validate;
+
+      function Authenticated return Boolean is
+         use type Security.OpenID.Auth_Result;
+      begin
+         return Security.OpenID.Get_Status (Authentication) = Security.OpenID.Authenticated;
+      end Authenticated;
    end Data;
 
    function Service (Request : in AWS.Status.Data) return AWS.Response.Data is
@@ -71,13 +88,27 @@ package body OpenID_Handler is
 
          return AWS.Response.Moved (Data.URL);
       elsif AWS.Status.URI (Request) = "/return_to" then
-         Data.Verify (Response => Request);
+         Data.Validate (Response => Request);
 
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Redirecting to <http://www.adaheads.com/>");
+         if Data.Authenticated then
+            Yolk.Log.Trace
+              (Handle  => Yolk.Log.Info,
+               Message => "Authenticated");
+            Yolk.Log.Trace
+              (Handle  => Yolk.Log.Info,
+               Message => "Redirecting to <http://www.jacob-sparre.dk/>");
 
-         return AWS.Response.Moved ("http://www.adaheads.com/");
+            return AWS.Response.Moved ("http://www.jacob-sparre.dk/");
+         else
+            Yolk.Log.Trace
+              (Handle  => Yolk.Log.Info,
+               Message => "Not authenticated");
+            Yolk.Log.Trace
+              (Handle  => Yolk.Log.Info,
+               Message => "Redirecting to <https://jaws.adaheads.com/>");
+
+            return AWS.Response.Moved ("https://jaws.adaheads.com/");
+         end if;
       elsif AWS.Status.URI (Request) = "/favicon.ico" then
          Yolk.Log.Trace
            (Handle  => Yolk.Log.Info,
