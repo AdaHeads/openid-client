@@ -46,83 +46,57 @@ package body Security.Openid is
                             Request : in AWS.Status.Data;
                             Name    : in String);
 
-   procedure Set_Result (Result  : in out Authentication;
-                         Status  : in Auth_Result;
-                         Message : in String);
-
    function Get_Association_Query return String;
 
-   --  ------------------------------
-   --  Get the email address
-   --  ------------------------------
-   function Get_Email (Auth : in Authentication) return String is
+   function Authenticated (Auth : in Authentication) return Boolean is
    begin
-      return To_String (Auth.Email);
-   end Get_Email;
+      return Status (Auth) = Authenticated;
+   end Authenticated;
 
-   --  ------------------------------
-   --  Get the user first name.
-   --  ------------------------------
-   function Get_First_Name (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.First_Name);
-   end Get_First_Name;
-
-   --  ------------------------------
-   --  Get the user last name.
-   --  ------------------------------
-   function Get_Last_Name (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.Last_Name);
-   end Get_Last_Name;
-
-   --  ------------------------------
-   --  Get the user full name.
-   --  ------------------------------
-   function Get_Full_Name (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.Full_Name);
-   end Get_Full_Name;
-
-   --  ------------------------------
-   --  Get the user identity.
-   --  ------------------------------
-   function Get_Identity (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.Identity);
-   end Get_Identity;
-
-   --  ------------------------------
-   --  Get the user claimed identity.
-   --  ------------------------------
-   function Get_Claimed_Id (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.Claimed_Id);
-   end Get_Claimed_Id;
-
-   --  ------------------------------
-   --  Get the user language.
-   --  ------------------------------
-   function Get_Language (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.Language);
-   end Get_Language;
-
-   --  ------------------------------
-   --  Get the user country.
-   --  ------------------------------
-   function Get_Country (Auth : in Authentication) return String is
-   begin
-      return To_String (Auth.Country);
-   end Get_Country;
-
-   --  ------------------------------
-   --  Get the result of the authentication.
-   --  ------------------------------
-   function Get_Status (Auth : in Authentication) return Auth_Result is
+   function Status (Auth : in Authentication) return Auth_Result is
    begin
       return Auth.Status;
-   end Get_Status;
+   end Status;
+
+   function Email (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Email);
+   end Email;
+
+   function First_Name (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.First_Name);
+   end First_Name;
+
+   function Last_Name (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Last_Name);
+   end Last_Name;
+
+   function Full_Name (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Full_Name);
+   end Full_Name;
+
+   function Identity (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Identity);
+   end Identity;
+
+   function Claimed_ID (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Claimed_ID);
+   end Claimed_ID;
+
+   function Language (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Language);
+   end Language;
+
+   function Country (Auth : in Authentication) return String is
+   begin
+      return To_String (Auth.Country);
+   end Country;
 
    --  ------------------------------
    --  OpenID Default principal
@@ -143,18 +117,15 @@ package body Security.Openid is
    --  Get the principal name.
    --  ------------------------------
    overriding
-   function Get_Name (From : in Principal) return String is
+   function Name (From : in Principal) return String is
    begin
-      return Get_First_Name (From.Auth) & " " & Get_Last_Name (From.Auth);
-   end Get_Name;
+      return First_Name (From.Auth) & " " & Last_Name (From.Auth);
+   end Name;
 
-   --  ------------------------------
-   --  Get the user email address.
-   --  ------------------------------
-   function Get_Email (From : in Principal) return String is
+   function Email (From : in Principal) return String is
    begin
-      return Get_Email (From.Auth);
-   end Get_Email;
+      return Email (From.Auth);
+   end Email;
 
    --  ------------------------------
    --  Get the authentication data.
@@ -376,7 +347,7 @@ package body Security.Openid is
       Append (Result, "&openid." & Axa & ".type.lastname=http://axschema.org/namePerson/last");
       Append (Result, "&openid." & Axa & ".type.gender=http://axschema.org/person/gender");
       Append (Result, "&openid." & Axa & ".required=email,fullname,language,firstname,"
-              & "lastname,gender");
+                & "lastname,gender");
       Append (Result, "&openid.ns.sreg=http://openid.net/extensions/sreg/1.1");
       Append (Result, "&openid.sreg.required=email,fullname,gender,country,nickname");
       Append (Result, "&openid.return_to=");
@@ -388,18 +359,16 @@ package body Security.Openid is
       return To_String (Result);
    end Get_Authentication_URL;
 
-   procedure Set_Result (Result  : in out Authentication;
-                         Status  : in Auth_Result;
-                         Message : in String) is
+   procedure Log_Verification (Succeeded : in     Boolean;
+                               Message   : in     String) is
       use Yolk.Log;
    begin
-      if Status /= AUTHENTICATED then
-         Trace (Error, "OpenID verification failed: " & Message);
-      else
+      if Succeeded then
          Trace (Info,  "OpenID verification: "        & Message);
+      else
+         Trace (Error, "OpenID verification failed: " & Message);
       end if;
-      Result.Status := Status;
-   end Set_Result;
+   end Log_Verification;
 
    procedure Extract_Value (Into    : in out Unbounded_String;
                             Request : in AWS.Status.Data;
@@ -437,78 +406,92 @@ package body Security.Openid is
    --  ------------------------------
    --  Verify the authentication result
    --  ------------------------------
-   procedure Verify (Realm   : in Manager;
-                     Assoc   : in Association;
-                     Request : in AWS.Status.Data;
-                     Result  : out Authentication) is
+   function Verify (Realm   : in Manager;
+                    Assoc   : in Association;
+                    Request : in AWS.Status.Data) return Authentication is
       Mode : constant String := AWS.Status.Parameter (Request, "openid.mode");
    begin
       --  Step 1: verify the response status
       if Mode = "cancel" then
-         Set_Result (Result, CANCEL, "Authentication refused");
-         return;
+         Log_Verification (Succeeded => False,
+                           Message   => "Authentication refused");
+         return (Status => Cancel);
       end if;
 
       if Mode = "setup_needed" then
-         Set_Result (Result, SETUP_NEEDED, "Setup is needed");
-         return;
+         Log_Verification (Succeeded => False,
+                           Message   => "Setup is needed");
+         return (Status => Setup_Needed);
       end if;
 
       if Mode /= "id_res" then
-         Set_Result (Result, UNKNOWN, "Setup is needed");
-         return;
+         Log_Verification (Succeeded => False,
+                           Message   => "Setup is needed");
+         return (Status => Unknown);
       end if;
 
       --  OpenID Section: 11.1.  Verifying the Return URL
       declare
-         Value : constant String := AWS.Status.Parameter (Request, "openid.return_to");
+         Value : constant String := AWS.Status.Parameter (Request,
+                                                          "openid.return_to");
       begin
          if Value /= Realm.Return_To then
-            Set_Result (Result, UNKNOWN, "openid.return_to URL does not match");
-            return;
+            Log_Verification
+              (Succeeded => False,
+               Message   => "openid.return_to URL does not match");
+            return (Status => Unknown);
          end if;
       end;
 
-      --  OpenID Section: 11.2.  Verifying Discovered Information
-      Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
+      return Result : Authentication do
+        --  OpenID Section: 11.2.  Verifying Discovered Information
+        Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
 
-      --  OpenID Section: 11.3.  Checking the Nonce
-      declare
-         Value : constant String := AWS.Status.Parameter (Request, "openid.response_nonce");
-      begin
-         if Value = "" then
-            Set_Result (Result, UNKNOWN, "openid.response_nonce is empty");
-            return;
-         end if;
-      end;
+        --  OpenID Section: 11.3.  Checking the Nonce
+        declare
+           Value : constant String := AWS.Status.Parameter
+                                        (Request, "openid.response_nonce");
+        begin
+           if Value = "" then
+              Log_Verification
+                (Succeeded => False,
+                 Message   => "openid.response_nonce is empty");
+              Result := (Status => Unknown);
+	      return;
+           end if;
+        end;
 
-      --  OpenID Section: 11.4.  Verifying Signatures
-      Manager'Class (Realm).Verify_Signature (Assoc, Request, Result);
+        --  OpenID Section: 11.4.  Verifying Signatures
+        Manager'Class (Realm).Verify_Signature (Assoc, Request, Result);
 
-      declare
-         Value : constant String := AWS.Status.Parameter (Request, "openid.ns.sreg");
-      begin
-         --  Extract profile information
-         if Value = "http://openid.net/extensions/sreg/1.1" then
-            Extract_Profile ("openid.sreg", Request, Result);
-         end if;
-      end;
+        declare
+           Value : constant String := AWS.Status.Parameter (Request,
+                                                            "openid.ns.sreg");
+        begin
+           --  Extract profile information
+           if Value = "http://openid.net/extensions/sreg/1.1" then
+              Extract_Profile ("openid.sreg", Request, Result);
+           end if;
+        end;
 
-      declare
-         Value : constant String := AWS.Status.Parameter (Request, "openid.ns.ax");
-      begin
-         if Value = "http://openid.net/srv/ax/1.0" then
-            Extract_Profile ("openid.ax.value", Request, Result);
-         end if;
-      end;
+        declare
+           Value : constant String := AWS.Status.Parameter (Request,
+                                                            "openid.ns.ax");
+        begin
+           if Value = "http://openid.net/srv/ax/1.0" then
+              Extract_Profile ("openid.ax.value", Request, Result);
+           end if;
+        end;
 
-      declare
-         Value : constant String := AWS.Status.Parameter (Request, "openid.ns.ext1");
-      begin
-         if Value = "http://openid.net/srv/ax/1.0" then
-            Extract_Profile ("openid.ext1.value", Request, Result);
-         end if;
-      end;
+        declare
+           Value : constant String := AWS.Status.Parameter (Request,
+                                                            "openid.ns.ext1");
+        begin
+           if Value = "http://openid.net/srv/ax/1.0" then
+              Extract_Profile ("openid.ext1.value", Request, Result);
+           end if;
+        end;
+      end return;
    end Verify;
 
    --  ------------------------------
@@ -560,10 +543,13 @@ package body Security.Openid is
            := Util.Encoders.HMAC.SHA1.Sign_Base64 (Key, To_String (Sign));
       begin
          Trace (Info, "Signature: " & S & " - " & R);
-         if R /= S then
-            Set_Result (Result, INVALID_SIGNATURE, "openid.response_nonce is empty");
+         if R = S then
+            Log_Verification (Succeeded => True,
+                              Message   => "Authenticated");
          else
-            Set_Result (Result, AUTHENTICATED, "authenticated");
+            Log_Verification (Succeeded => False,
+                              Message   => "openid.response_nonce is empty");
+            Result := (Status => Invalid_Signature);
          end if;
       end;
    end Verify_Signature;
@@ -577,7 +563,7 @@ package body Security.Openid is
                                 Result  : out Authentication) is
       pragma Unreferenced (Realm, Assoc);
    begin
-      Result.Claimed_Id := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.claimed_id"));
+      Result.Claimed_ID := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.claimed_id"));
       Result.Identity   := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.identity"));
    end Verify_Discovered;
 
@@ -593,5 +579,4 @@ package body Security.Openid is
         & "&assoc_handle=" & To_String (Assoc.Assoc_Handle)
         & "&mac_key=" & To_String (Assoc.Mac_Key);
    end To_String;
-
 end Security.Openid;

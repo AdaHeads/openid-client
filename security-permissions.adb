@@ -77,7 +77,7 @@ package body Security.Permissions is
 
       procedure Add_Permission (Name  : in String;
                                 Index : out Permission_Index) is
-	 use Yolk.Log;
+         use Yolk.Log;
          Pos : constant Permission_Maps.Cursor := Map.Find (Name);
       begin
          if Permission_Maps.Has_Element (Pos) then
@@ -85,7 +85,7 @@ package body Security.Permissions is
          else
             Index := Next_Index;
             Trace (Debug,
-		   "Creating permission index " & Name & " for " &
+                   "Creating permission index " & Name & " for " &
                      Permission_Index'Image (Index));
             Map.Insert (Name, Index);
             Next_Index := Next_Index + 1;
@@ -297,8 +297,8 @@ package body Security.Permissions is
 
       if Manager.Next_Role = Role_Type'Last then
          Trace (Error,
-		"Too many roles allocated.  Number of roles is " &
-		  Role_Type'Image (Role_Type'Last));
+                "Too many roles allocated.  Number of roles is " &
+                  Role_Type'Image (Role_Type'Last));
       else
          Manager.Next_Role := Manager.Next_Role + 1;
       end if;
@@ -351,7 +351,7 @@ package body Security.Permissions is
    begin
       case Field is
          when FIELD_ID =>
-            P.Id := Util.Beans.Objects.To_Integer (Value);
+            P.ID := Util.Beans.Objects.To_Integer (Value);
 
          when FIELD_PERMISSION =>
             P.Permissions.Append (Value);
@@ -361,7 +361,7 @@ package body Security.Permissions is
 
          when FIELD_POLICY =>
             Process (P);
-            P.Id := 0;
+            P.ID := 0;
             P.Permissions.Clear;
             P.Patterns.Clear;
 
@@ -400,7 +400,7 @@ package body Security.Permissions is
             Pattern : constant Util.Beans.Objects.Object
               := Util.Beans.Objects.Vectors.Element (Iter);
          begin
-            Pol.Id   := Policy.Id;
+            Pol.ID   := Policy.ID;
             Pol.Pattern := GNAT.Regexp.Compile (Util.Beans.Objects.To_String (Pattern));
             Policy.Manager.Policies.Append (Pol);
          end;

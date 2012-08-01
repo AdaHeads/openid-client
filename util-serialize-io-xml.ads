@@ -172,15 +172,15 @@ private
 
    overriding
    function Resolve_Entity (Handler   : Xhtml_Reader;
-                            Public_Id : Unicode.CES.Byte_Sequence;
-                            System_Id : Unicode.CES.Byte_Sequence)
+                            Public_ID : Unicode.CES.Byte_Sequence;
+                            System_ID : Unicode.CES.Byte_Sequence)
                             return Input_Sources.Input_Source_Access;
 
    overriding
    procedure Start_DTD (Handler   : in out Xhtml_Reader;
                         Name      : Unicode.CES.Byte_Sequence;
-                        Public_Id : Unicode.CES.Byte_Sequence := "";
-                        System_Id : Unicode.CES.Byte_Sequence := "");
+                        Public_ID : Unicode.CES.Byte_Sequence := "";
+                        System_ID : Unicode.CES.Byte_Sequence := "");
 
    procedure Collect_Text (Handler : in out Xhtml_Reader;
                            Content : Unicode.CES.Byte_Sequence);

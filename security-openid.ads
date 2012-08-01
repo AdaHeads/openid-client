@@ -54,7 +54,11 @@ package Security.Openid is
    --  Dump the association as a string (for debugging purposes)
    function To_String (Assoc : Association) return String;
 
-   type Auth_Result is (AUTHENTICATED, CANCEL, SETUP_NEEDED, UNKNOWN, INVALID_SIGNATURE);
+   type Auth_Result is (Authenticated,
+                        Cancel,
+                        Setup_Needed,
+                        Unknown,
+                        Invalid_Signature);
 
    --  ------------------------------
    --  OpenID provider
@@ -62,32 +66,25 @@ package Security.Openid is
    --
    type Authentication is private;
 
-   --  Get the email address
-   function Get_Email (Auth : in Authentication) return String;
+   function Authenticated (Auth : in Authentication) return Boolean;
 
-   --  Get the user first name.
-   function Get_First_Name (Auth : in Authentication) return String;
+   function Status (Auth : in Authentication) return Auth_Result;
 
-   --  Get the user last name.
-   function Get_Last_Name (Auth : in Authentication) return String;
+   function Email (Auth : in Authentication) return String;
 
-   --  Get the user full name.
-   function Get_Full_Name (Auth : in Authentication) return String;
+   function First_Name (Auth : in Authentication) return String;
 
-   --  Get the user identity.
-   function Get_Identity (Auth : in Authentication) return String;
+   function Last_Name (Auth : in Authentication) return String;
 
-   --  Get the user claimed identity.
-   function Get_Claimed_Id (Auth : in Authentication) return String;
+   function Full_Name (Auth : in Authentication) return String;
 
-   --  Get the user language.
-   function Get_Language (Auth : in Authentication) return String;
+   function Identity (Auth : in Authentication) return String;
 
-   --  Get the user country.
-   function Get_Country (Auth : in Authentication) return String;
+   function Claimed_ID (Auth : in Authentication) return String;
 
-   --  Get the result of the authentication.
-   function Get_Status (Auth : in Authentication) return Auth_Result;
+   function Language (Auth : in Authentication) return String;
+
+   function Country (Auth : in Authentication) return String;
 
    --  ------------------------------
    --  OpenID Default principal
@@ -102,10 +99,10 @@ package Security.Openid is
 
    --  Get the principal name.
    overriding
-   function Get_Name (From : in Principal) return String;
+   function Name (From : in Principal) return String;
 
    --  Get the user email address.
-   function Get_Email (From : in Principal) return String;
+   function Email (From : in Principal) return String;
 
    --  Get the authentication data.
    function Get_Authentication (From : in Principal) return Authentication;
@@ -155,10 +152,9 @@ package Security.Openid is
                                     Assoc : in Association) return String;
 
    --  Verify the authentication result
-   procedure Verify (Realm   : in Manager;
-                     Assoc   : in Association;
-                     Request : in AWS.Status.Data;
-                     Result  : out Authentication);
+   function Verify (Realm   : in Manager;
+                    Assoc   : in Association;
+                    Request : in AWS.Status.Data) return Authentication;
 
    --  Verify the authentication result
    procedure Verify_Discovered (Realm   : in Manager;
@@ -197,19 +193,23 @@ private
       Expired      : Ada.Calendar.Time;
    end record;
 
-   type Authentication is record
-      Status     : Auth_Result;
-      Identity   : Unbounded_String;
-      Claimed_Id : Unbounded_String;
-      Email      : Unbounded_String;
-      Full_Name  : Unbounded_String;
-      First_Name : Unbounded_String;
-      Last_Name  : Unbounded_String;
-      Language   : Unbounded_String;
-      Country    : Unbounded_String;
-      Gender     : Unbounded_String;
-      Timezone   : Unbounded_String;
-      Nickname   : Unbounded_String;
+   type Authentication (Status : Auth_Result := Unknown) is record
+      case Status is
+         when Authenticated =>
+            Identity   : Unbounded_String;
+            Claimed_ID : Unbounded_String;
+            Email      : Unbounded_String;
+            Full_Name  : Unbounded_String;
+            First_Name : Unbounded_String;
+            Last_Name  : Unbounded_String;
+            Language   : Unbounded_String;
+            Country    : Unbounded_String;
+            Gender     : Unbounded_String;
+            Timezone   : Unbounded_String;
+            Nickname   : Unbounded_String;
+         when others =>
+            null;
+      end case;
    end record;
 
    type End_Point is record

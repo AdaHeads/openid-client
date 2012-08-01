@@ -278,7 +278,7 @@ package body Util.Serialize.Mappers is
       --  Dump the mapping description
       --  -----------------------
       procedure Dump (Map : in Mapper'Class) is
-	 use Yolk.Log;
+         use Yolk.Log;
       begin
          if Map.Mapping /= null and then Map.Mapping.Is_Attribute then
             Trace (Info,

@@ -260,21 +260,21 @@ package body Util.Serialize.IO.XML is
    --  ------------------------------
    overriding
    function Resolve_Entity (Handler   : Xhtml_Reader;
-                            Public_Id : Unicode.CES.Byte_Sequence;
-                            System_Id : Unicode.CES.Byte_Sequence)
+                            Public_ID : Unicode.CES.Byte_Sequence;
+                            System_ID : Unicode.CES.Byte_Sequence)
                             return Input_Sources.Input_Source_Access is
       pragma Unreferenced (Handler);
       use Yolk.Log;
    begin
-      Trace (Error, "Cannot resolve entity " & Public_Id & " - " & System_Id);
+      Trace (Error, "Cannot resolve entity " & Public_ID & " - " & System_ID);
       return null;
    end Resolve_Entity;
 
    overriding
    procedure Start_DTD (Handler   : in out Xhtml_Reader;
                         Name      : Unicode.CES.Byte_Sequence;
-                        Public_Id : Unicode.CES.Byte_Sequence := "";
-                        System_Id : Unicode.CES.Byte_Sequence := "") is
+                        Public_ID : Unicode.CES.Byte_Sequence := "";
+                        System_ID : Unicode.CES.Byte_Sequence := "") is
    begin
       null;
    end Start_DTD;

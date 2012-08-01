@@ -52,16 +52,15 @@ package body OpenID_Handler is
 
       procedure Validate (Response : in     AWS.Status.Data) is
       begin
-         Security.OpenID.Verify (Realm   => Realm,
-                                 Assoc   => Association,
-                                 Request => Response,
-                                 Result  => Authentication);
+         Authentication := Security.OpenID.Verify (Realm   => Realm,
+                                                   Assoc   => Association,
+                                                   Request => Response);
       end Validate;
 
       function Authenticated return Boolean is
          use type Security.OpenID.Auth_Result;
       begin
-         return Security.OpenID.Get_Status (Authentication) = Security.OpenID.Authenticated;
+         return Security.OpenID.Authenticated (Authentication);
       end Authenticated;
    end Data;
 

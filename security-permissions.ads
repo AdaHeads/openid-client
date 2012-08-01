@@ -100,8 +100,7 @@ package Security.Permissions is
    function Has_Role (User : in Principal;
                       Role : in Role_Type) return Boolean is abstract;
 
-   --  Get the principal name.
-   function Get_Name (From : in Principal) return String is abstract;
+   function Name (From : in Principal) return String is abstract;
 
    --  ------------------------------
    --  Permission
@@ -212,7 +211,7 @@ package Security.Permissions is
    --  Policy Configuration
    --  ------------------------------
    type Policy_Config is record
-      Id          : Natural := 0;
+      ID          : Natural := 0;
       Permissions : Util.Beans.Objects.Vectors.Vector;
       Patterns    : Util.Beans.Objects.Vectors.Vector;
       Manager     : Permission_Manager_Access;
@@ -274,7 +273,7 @@ private
    --  The <b>Policy</b> defines the access rules that are applied on a given
    --  URL, set of URLs or files.
    type Policy is record
-      Id      : Natural;
+      ID      : Natural;
       Pattern : GNAT.Regexp.Regexp;
       Rule    : Access_Rule_Ref;
    end record;
