@@ -31,7 +31,6 @@ with Util.Encoders.HMAC.SHA1;
 with Yolk.Log;
 
 package body Security.Openid is
-
    use Ada.Strings.Fixed;
 
    procedure Extract_Profile (Prefix  : in String;
@@ -113,9 +112,6 @@ package body Security.Openid is
       return True;
    end Has_Role;
 
-   --  ------------------------------
-   --  Get the principal name.
-   --  ------------------------------
    overriding
    function Name (From : in Principal) return String is
    begin
@@ -127,24 +123,18 @@ package body Security.Openid is
       return Email (From.Auth);
    end Email;
 
-   --  ------------------------------
-   --  Get the authentication data.
-   --  ------------------------------
    function Get_Authentication (From : in Principal) return Authentication is
    begin
       return From.Auth;
    end Get_Authentication;
 
-   --  ------------------------------
-   --  Initialize the OpenID realm.
-   --  ------------------------------
-   procedure Initialize (Realm     : in out Manager;
-                         Name      : in String;
-                         Return_To : in String) is
+   procedure Initialise (Realm     : in out Manager;
+                         Domain    : in     String;
+                         Return_To : in     String := "return_to") is
    begin
-      Realm.Realm := To_Unbounded_String (Name);
-      Realm.Return_To := To_Unbounded_String (Return_To);
-   end Initialize;
+      Realm.Realm     := To_Unbounded_String (Domain);
+      Realm.Return_To := To_Unbounded_String (Domain & Return_To);
+   end Initialise;
 
    --  ------------------------------
    --  Discover the OpenID provider that must be used to authenticate the user.
@@ -445,7 +435,8 @@ package body Security.Openid is
 
       return Result : Authentication do
         --  OpenID Section: 11.2.  Verifying Discovered Information
-        Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
+        --  Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
+        --  /\_only copies (unchecked) information
 
         --  OpenID Section: 11.3.  Checking the Nonce
         declare
@@ -457,7 +448,7 @@ package body Security.Openid is
                 (Succeeded => False,
                  Message   => "openid.response_nonce is empty");
               Result := (Status => Unknown);
-	      return;
+              return;
            end if;
         end;
 
@@ -491,6 +482,10 @@ package body Security.Openid is
               Extract_Profile ("openid.ext1.value", Request, Result);
            end if;
         end;
+
+        if Result.Status = Authenticated then
+           Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
+        end if;
       end return;
    end Verify;
 
@@ -545,10 +540,12 @@ package body Security.Openid is
          Trace (Info, "Signature: " & S & " - " & R);
          if R = S then
             Log_Verification (Succeeded => True,
-                              Message   => "Authenticated");
+                              Message   => "Signatures match.  Authenticated.");
+            Result := (Status => Authenticated,
+                       others => <>);
          else
             Log_Verification (Succeeded => False,
-                              Message   => "openid.response_nonce is empty");
+                              Message   => "Invalid signature.");
             Result := (Status => Invalid_Signature);
          end if;
       end;

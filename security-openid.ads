@@ -112,7 +112,7 @@ package Security.Openid is
    --  ------------------------------
    --  The process is the following:
    --
-   --  o <b>Initialize</b> is called to configure the OpenID realm and set the
+   --  o <b>Initialise</b> is called to configure the OpenID realm and set the
    --    OpenID return callback CB.
    --  o <b>Discover</b> is called to retrieve from the OpenID provider the XRDS
    --    stream and identify the provider.  An <b>End_Point</b> is returned.
@@ -127,10 +127,12 @@ package Security.Openid is
    --    obtain the authentication results.
    type Manager is tagged limited private;
 
-   --  Initialize the OpenID realm.
-   procedure Initialize (Realm     : in out Manager;
-                         Name      : in String;
-                         Return_To : in String);
+   --  Example use:
+   --    Initialise (Realm     => Realm,
+   --                Domain    => "http://auth.example.com/");
+   procedure Initialise (Realm     : in out Manager;
+                         Domain    : in     String;
+                         Return_To : in     String := "return_to");
 
    --  Discover the OpenID provider that must be used to authenticate the user.
    --  The <b>Name</b> can be an URL or an alias that identifies the provider.
@@ -168,7 +170,7 @@ package Security.Openid is
                                Request : in AWS.Status.Data;
                                Result  : in out Authentication);
 
-   --  Read the XRDS document from the URI and initialize the OpenID provider end point.
+   --  Read the XRDS document from the URI and initialise the OpenID provider end point.
    procedure Discover_XRDS (Realm  : in out Manager;
                             URI    : in String;
                             Result : out End_Point);
