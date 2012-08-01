@@ -155,13 +155,13 @@ package Security.Openid is
                                     Assoc : in Association) return String;
 
    --  Verify the authentication result
-   procedure Verify (Realm   : in out Manager;
+   procedure Verify (Realm   : in Manager;
                      Assoc   : in Association;
                      Request : in AWS.Status.Data;
                      Result  : out Authentication);
 
    --  Verify the authentication result
-   procedure Verify_Discovered (Realm   : in out Manager;
+   procedure Verify_Discovered (Realm   : in Manager;
                                 Assoc   : in Association;
                                 Request : in AWS.Status.Data;
                                 Result  : out Authentication);

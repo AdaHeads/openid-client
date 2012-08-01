@@ -437,7 +437,7 @@ package body Security.Openid is
    --  ------------------------------
    --  Verify the authentication result
    --  ------------------------------
-   procedure Verify (Realm   : in out Manager;
+   procedure Verify (Realm   : in Manager;
                      Assoc   : in Association;
                      Request : in AWS.Status.Data;
                      Result  : out Authentication) is
@@ -571,7 +571,7 @@ package body Security.Openid is
    --  ------------------------------
    --  Verify the authentication result
    --  ------------------------------
-   procedure Verify_Discovered (Realm   : in out Manager;
+   procedure Verify_Discovered (Realm   : in Manager;
                                 Assoc   : in Association;
                                 Request : in AWS.Status.Data;
                                 Result  : out Authentication) is
