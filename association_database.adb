@@ -59,6 +59,10 @@ package body Association_Database is
       function Look_Up (Handle : in Security.OpenID.Association_Handle)
         return Security.OpenID.Association is
       begin
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Looking <" & Ada.Strings.Unbounded.To_String (Handle) &
+                       "> up in the association database.");
          return Maps.Element (Container => Associations,
                               Key       => Handle);
       end Look_Up;

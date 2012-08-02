@@ -577,7 +577,8 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
 
    function Handle (Response : in AWS.Status.Data) return Association_Handle is
    begin
-      return To_Unbounded_String ("<no handle yet>");
+      return To_Unbounded_String (AWS.Status.Parameter (Response,
+                                                        "openid.assoc_handle"));
    end Handle;
 
    function To_String (Assoc : Association) return String is
