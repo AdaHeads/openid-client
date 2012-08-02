@@ -114,7 +114,9 @@ package body OpenID_Handler is
                  (Handle  => Yolk.Log.Info,
                   Message => "Redirecting to <http://www.jacob-sparre.dk/>");
 
-               return AWS.Response.Moved ("http://www.jacob-sparre.dk/");
+               return AWS.Response.Moved
+                        ("http://www.jacob-sparre.dk/?" &
+                         Security.OpenID.Identity (Authentication));
             else
                Yolk.Log.Trace
                  (Handle  => Yolk.Log.Info,
