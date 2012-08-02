@@ -50,6 +50,11 @@ package Security.Openid is
    --  different users using the same OpenID provider.  The association also has an
    --  expiration date.
    type Association is private;
+   subtype Association_Handle is Ada.Strings.Unbounded.Unbounded_String;
+
+   function Handle (Item : in Association) return Association_Handle;
+
+   function Handle (Response : in AWS.Status.Data) return Association_Handle;
 
    --  Dump the association as a string (for debugging purposes)
    function To_String (Assoc : Association) return String;
@@ -112,7 +117,7 @@ package Security.Openid is
    --  ------------------------------
    --  The process is the following:
    --
-   --  o <b>Initialise</b> is called to configure the OpenID realm and set the
+   --  o <b>Initialize</b> is called to configure the OpenID realm and set the
    --    OpenID return callback CB.
    --  o <b>Discover</b> is called to retrieve from the OpenID provider the XRDS
    --    stream and identify the provider.  An <b>End_Point</b> is returned.
@@ -128,9 +133,9 @@ package Security.Openid is
    type Manager is tagged limited private;
 
    --  Example use:
-   --    Initialise (Realm     => Realm,
+   --    Initialize (Realm     => Realm,
    --                Domain    => "http://auth.example.com/");
-   procedure Initialise (Realm     : in out Manager;
+   procedure Initialize (Realm     : in out Manager;
                          Domain    : in     String;
                          Return_To : in     String := "return_to");
 
@@ -170,7 +175,7 @@ package Security.Openid is
                                Request : in AWS.Status.Data;
                                Result  : in out Authentication);
 
-   --  Read the XRDS document from the URI and initialise the OpenID provider end point.
+   --  Read the XRDS document from the URI and initialize the OpenID provider end point.
    procedure Discover_XRDS (Realm  : in out Manager;
                             URI    : in String;
                             Result : out End_Point);
@@ -190,7 +195,7 @@ private
    type Association is record
       Session_Type : Unbounded_String;
       Assoc_Type   : Unbounded_String;
-      Assoc_Handle : Unbounded_String;
+      Assoc_Handle : Association_Handle;
       Mac_Key      : Unbounded_String;
       Expired      : Ada.Calendar.Time;
    end record;

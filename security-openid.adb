@@ -30,7 +30,7 @@ with Util.Encoders.HMAC.SHA1;
 
 with Yolk.Log;
 
-package body Security.Openid is
+package body Security.OpenID is
    use Ada.Strings.Fixed;
 
    procedure Extract_Profile (Prefix  : in String;
@@ -128,13 +128,13 @@ package body Security.Openid is
       return From.Auth;
    end Get_Authentication;
 
-   procedure Initialise (Realm     : in out Manager;
+   procedure Initialize (Realm     : in out Manager;
                          Domain    : in     String;
                          Return_To : in     String := "return_to") is
    begin
       Realm.Realm     := To_Unbounded_String (Domain);
       Realm.Return_To := To_Unbounded_String (Domain & Return_To);
-   end Initialise;
+   end Initialize;
 
    --  ------------------------------
    --  Discover the OpenID provider that must be used to authenticate the user.
@@ -189,7 +189,7 @@ package body Security.Openid is
                      End_Tag   : String) return String is
       Pos  : Natural := Index (From, Start_Tag);
       Last : Natural;
-      Url_Pos : Natural;
+      URL_Pos : Natural;
    begin
       if Pos = 0 then
          Pos := Index (From, Start_Tag (Start_Tag'First .. Start_Tag'Last - 1));
@@ -200,15 +200,15 @@ package body Security.Openid is
          if Pos = 0 then
             return "";
          end if;
-         Url_Pos := Pos + 1;
+         URL_Pos := Pos + 1;
       else
-         Url_Pos := Pos + Start_Tag'Length;
+         URL_Pos := Pos + Start_Tag'Length;
       end if;
       Last := Index (From, End_Tag, Pos);
       if Last <= Pos then
          return "";
       end if;
-      return From (Url_Pos .. Last - 1);
+      return From (URL_Pos .. Last - 1);
    end Extract;
 
    --  ------------------------------
@@ -266,7 +266,7 @@ package body Security.Openid is
          Trace (Error,
                 "Received error " &
                   AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)) &
-                  " when creating assoication with " &
+                  " when creating association with " &
                   URI);
          raise Service_Error with "Cannot create association with OpenID provider.";
       end if;
@@ -289,6 +289,7 @@ package body Security.Openid is
             elsif Key = "assoc_type" then
                Result.Assoc_Type := Unbounded_Slice (Output, N + 1, Last);
             elsif Key = "assoc_handle" then
+Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
                Result.Assoc_Handle := Unbounded_Slice (Output, N + 1, Last);
             elsif Key = "mac_key" then
                Result.Mac_Key := Unbounded_Slice (Output, N + 1, Last);
@@ -568,6 +569,16 @@ package body Security.Openid is
    begin
       return "openid://" & To_String (OP.URL);
    end To_String;
+
+   function Handle (Item : in Association) return Association_Handle is
+   begin
+      return Item.Assoc_Handle;
+   end Handle;
+
+   function Handle (Response : in AWS.Status.Data) return Association_Handle is
+   begin
+      return To_Unbounded_String ("<no handle yet>");
+   end Handle;
 
    function To_String (Assoc : Association) return String is
    begin
