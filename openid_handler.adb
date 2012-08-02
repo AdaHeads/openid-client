@@ -12,6 +12,8 @@ with
 pragma Elaborate (Security.OpenID);
 
 package body OpenID_Handler is
+   Domain : constant String := "https://jaws.adaheads.com/";
+
    Realm : Security.OpenID.Manager;
 
    function Log_In (Provider : in     String) return AWS.Response.Data is
@@ -116,12 +118,9 @@ package body OpenID_Handler is
             else
                Yolk.Log.Trace
                  (Handle  => Yolk.Log.Info,
-                  Message => "Not authenticated");
-               Yolk.Log.Trace
-                 (Handle  => Yolk.Log.Info,
-                  Message => "Redirecting to <https://jaws.adaheads.com/>");
+                  Message => "Not authenticated.  Try again.");
 
-               return AWS.Response.Moved ("https://jaws.adaheads.com/");
+               return AWS.Response.Moved (Domain);
             end if;
          end;
       elsif AWS.Status.URI (Request) = "/favicon.ico" then
@@ -146,11 +145,11 @@ package body OpenID_Handler is
                        Ada.Exceptions.Exception_Message (E));
          Yolk.Log.Trace
            (Handle  => Yolk.Log.Info,
-            Message => "Redirecting to <https://jaws.adaheads.com/error>");
+            Message => "Redirecting to <" & Domain & "error>");
 
-         return AWS.Response.Moved ("https://jaws.adaheads.com/error");
+         return AWS.Response.Moved (Domain & "error");
    end Service;
 begin
    Security.OpenID.Initialize (Realm  => Realm,
-                               Domain => "https://jaws.adaheads.com/");
+                               Domain => Domain);
 end OpenID_Handler;
