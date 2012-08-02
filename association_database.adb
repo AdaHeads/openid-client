@@ -31,9 +31,11 @@ package body Association_Database is
       end Clean_Up;
 
       procedure Insert (Item : in     Security.OpenID.Association) is
+         Key : constant Security.OpenID.Association_Handle
+                 := Security.OpenID.Handle (Item);
       begin
          Maps.Insert (Container => Associations,
-                      Key       => Security.OpenID.Handle (Item),
+                      Key       => Key,
                       New_Item  => Item);
       exception
          when others =>
@@ -42,8 +44,7 @@ package body Association_Database is
                Message => "Failed to insert <" &
                           Security.OpenID.To_String (Item) &
                           "> into the association database with the handle <" &
-                          Ada.Strings.Unbounded.To_String
-                            (Security.OpenID.Handle (Item)) & ">.");
+                          Ada.Strings.Unbounded.To_String (Key) & ">.");
             Yolk.Log.Trace
               (Handle  => Yolk.Log.Error,
                Message => "Current database capacity: " &
@@ -51,8 +52,7 @@ package body Association_Database is
             Yolk.Log.Trace
               (Handle  => Yolk.Log.Error,
                Message => "Hash value: " &
-                          Ada.Strings.Unbounded.Hash
-                            (Security.OpenID.Handle (Item))'Img);
+                          Ada.Strings.Unbounded.Hash (Key)'Img);
             raise;
       end Insert;
 
