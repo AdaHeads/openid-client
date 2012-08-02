@@ -109,7 +109,7 @@ package body Security.OpenID is
                       Role : in Permissions.Role_Type) return Boolean is
       pragma Unreferenced (User, Role);
    begin
-      return True;
+      return False;
    end Has_Role;
 
    overriding
@@ -374,17 +374,18 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
                               Request : in AWS.Status.Data;
                               Result  : in out Authentication) is
    begin
-      Extract_Value (Result.Email, Request, Prefix & ".email");
-      Extract_Value (Result.Nickname, Request, Prefix & ".nickname");
-      Extract_Value (Result.Gender, Request, Prefix & ".gender");
-      Extract_Value (Result.Country, Request, Prefix & ".country");
-      Extract_Value (Result.Language, Request, Prefix & ".language");
-      Extract_Value (Result.Full_Name, Request, Prefix & ".fullname");
-      Extract_Value (Result.Timezone, Request, Prefix & ".timezone");
+      Extract_Value (Result.Email,      Request, Prefix & ".email");
+      Extract_Value (Result.Nickname,   Request, Prefix & ".nickname");
+      Extract_Value (Result.Gender,     Request, Prefix & ".gender");
+      Extract_Value (Result.Country,    Request, Prefix & ".country");
+      Extract_Value (Result.Language,   Request, Prefix & ".language");
+      Extract_Value (Result.Full_Name,  Request, Prefix & ".fullname");
+      Extract_Value (Result.Timezone,   Request, Prefix & ".timezone");
       Extract_Value (Result.First_Name, Request, Prefix & ".firstname");
-      Extract_Value (Result.Last_Name, Request, Prefix & ".lastname");
+      Extract_Value (Result.Last_Name,  Request, Prefix & ".lastname");
 
-      --  If the fullname is not specified, try to build one from the first_name and last_name.
+      --  If the fullname is not specified, try to build one from the
+      --  first_name and last_name.
       if Length (Result.Full_Name) = 0 then
          Append (Result.Full_Name, Result.First_Name);
          if Length (Result.First_Name) > 0 and Length (Result.Last_Name) > 0 then
@@ -490,9 +491,6 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
       end return;
    end Verify;
 
-   --  ------------------------------
-   --  Verify the signature part of the result
-   --  ------------------------------
    procedure Verify_Signature (Realm   : in Manager;
                                Assoc   : in Association;
                                Request : in AWS.Status.Data;
@@ -502,7 +500,8 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
       use Yolk.Log;
       use type Util.Encoders.SHA1.Digest;
 
-      Signed : constant String := AWS.Status.Parameter (Request, "openid.signed");
+      Signed : constant String := AWS.Status.Parameter (Request,
+                                                        "openid.signed");
       Len    : constant Natural := Signed'Length;
       Sign   : Unbounded_String;
       Param  : Unbounded_String;
