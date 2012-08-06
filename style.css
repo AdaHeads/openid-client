@@ -1,0 +1,30 @@
+body {
+	background:		#ffffff;
+	color:			#000000;
+	text-decoration:	none;
+}
+
+a:link {
+	background:		#ffffff;
+	color:			#003366;
+}
+
+a:visited {
+	background:		#ffffff;
+	color:			#800000;
+}
+
+h1 a {
+	background:		#ffffff;
+	color:			#000000;
+	text-decoration:	none;
+}
+
+h1 a:visited {
+	background:		#ffffff;
+	color:			#000000;
+	text-decoration:	none;
+}
+a:hover {
+	text-decoration:	underline;
+}

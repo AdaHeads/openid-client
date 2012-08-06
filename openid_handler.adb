@@ -96,6 +96,9 @@ package body OpenID_Handler is
       elsif AWS.Status.URI (Request) = "/error" then
          return AWS.Response.File (Content_Type  => "text/html",
                                    Filename      => "error.html");
+      elsif AWS.Status.URI (Request) = "/style" then
+         return AWS.Response.File (Content_Type  => "text/css",
+                                   Filename      => "style.css");
       elsif AWS.Status.URI (Request) = "/login" then
          return
            Log_In (Provider => AWS.Status.Parameters (Request).Get ("openid"));

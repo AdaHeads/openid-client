@@ -1,17 +1,32 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
-<html lang="da">
+<html lang="en">
 <head>
-  <title>OpenID-afprøvning</title>
-
-  <link rel="STYLESHEET" type="text/css" href="http://www.jacob-sparre.dk/style.css">
+  <title>Testing the OpenID for AWS library</title>
+  <link rel="STYLESHEET" type="text/css" href="/style">
 </head>
 
 <body>
-  <h1>OpenID-afprøvning</h1>
+  <h1>Testing the <a href="https://openid.net/">OpenID</a> for <a href=
+  "http://libre.adacore.com/tools/aws/">AWS</a> library</h1>
 
-  <form method="post" action="/login">
-    OpenID: <input type="text" name="openid">
-  </form>
+  <h2>Log in using:</h2>
+
+  <ul>
+    <li>
+      <p><a href=
+      "/login?openid=https://www.google.com/accounts/o8/id">Google</a></p>
+    </li>
+
+    <li>
+      <p><a href="/login?openid=https://www.myopenid.com/">MyOpenID</a></p>
+    </li>
+
+    <li>
+      <form method="post" action="/login">
+        Any other OpenID provider: <input type="text" name="openid">
+      </form>
+    </li>
+  </ul>
 </body>
 </html>
