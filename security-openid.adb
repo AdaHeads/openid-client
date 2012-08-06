@@ -47,6 +47,11 @@ package body Security.OpenID is
 
    function Get_Association_Query return String;
 
+   function Association_Not_Found return Authentication is
+   begin
+      return (Status => Association_Not_Found);
+   end Association_Not_Found;
+
    function Authenticated (Auth : in Authentication) return Boolean is
    begin
       return Status (Auth) = Authenticated;

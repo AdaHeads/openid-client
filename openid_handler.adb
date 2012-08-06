@@ -53,6 +53,15 @@ package body OpenID_Handler is
                                                 Assoc   => Association,
                                                 Request => Response);
       return Authentication;
+   exception
+      when Constraint_Error =>
+         if Association_Database.Has (Handle => Handle) then
+            raise;
+         else
+            return Security.OpenID.Association_Not_Found;
+         end if;
+      when others =>
+         raise;
    end Validate;
 
    procedure Log (Authentication : in     Security.OpenID.Authentication) is
@@ -125,7 +134,9 @@ package body OpenID_Handler is
                  (Handle  => Yolk.Log.Info,
                   Message => "Not authenticated.  Try again.");
 
-               return AWS.Response.Moved (Domain);
+               return
+                 AWS.Response.File (Content_Type  => "text/html",
+                                    Filename      => "not_authenticated.html");
             end if;
          end;
       elsif AWS.Status.URI (Request) = "/favicon.ico" then

@@ -62,6 +62,7 @@ package Security.Openid is
    type Auth_Result is (Authenticated,
                         Cancel,
                         Setup_Needed,
+                        Association_Not_Found,
                         Unknown,
                         Invalid_Signature);
 
@@ -70,6 +71,8 @@ package Security.Openid is
    --  ------------------------------
    --
    type Authentication is private;
+
+   function Association_Not_Found return Authentication;
 
    function Authenticated (Auth : in Authentication) return Boolean;
 
