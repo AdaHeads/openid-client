@@ -8,6 +8,4 @@ package Association_Database is
 
    function Look_Up (Handle : in Security.OpenID.Association_Handle)
      return Security.OpenID.Association;
-
-   function Look_Up (Handle : in String) return Security.OpenID.Association;
 end Association_Database;

@@ -109,18 +109,4 @@ package body Association_Database is
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Look_Up;
-
-   function Look_Up (Handle : in String) return Security.OpenID.Association is
-      pragma Inline (Look_Up);
-   begin
-      return
-        Look_Up (Handle => Ada.Strings.Unbounded.To_Unbounded_String (Handle));
-   exception
-      when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Association_Database.Look_Up: " &
-                       Ada.Exceptions.Exception_Name (E));
-         raise;
-   end Look_Up;
 end Association_Database;
