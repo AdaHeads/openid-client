@@ -18,6 +18,8 @@ package body Association_Database is
    protected Database is
       procedure Clean_Up;
       procedure Insert (Item : in     Security.OpenID.Association);
+      function Has (Handle : in Security.OpenID.Association_Handle)
+        return Boolean;
       function Look_Up (Handle : in Security.OpenID.Association_Handle)
         return Security.OpenID.Association;
    private
@@ -55,6 +57,18 @@ package body Association_Database is
                           Ada.Strings.Unbounded.Hash (Key)'Img);
             raise;
       end Insert;
+
+      function Has (Handle : in Security.OpenID.Association_Handle)
+        return Boolean is
+      begin
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Looking up if <" &
+                       Ada.Strings.Unbounded.To_String (Handle) &
+                       "> exists in the association database.");
+         return Maps.Contains (Container => Associations,
+                               Key       => Handle);
+      end Has;
 
       function Look_Up (Handle : in Security.OpenID.Association_Handle)
         return Security.OpenID.Association is
@@ -95,6 +109,20 @@ package body Association_Database is
                        Ada.Exceptions.Exception_Information (E) & ")");
          raise;
    end Insert;
+
+   function Has (Handle : in Security.OpenID.Association_Handle)
+     return Boolean is
+      pragma Inline (Has);
+   begin
+      return Database.Has (Handle => Handle);
+   exception
+      when E : others =>
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Error,
+            Message => "Execption in Association_Database.Has: " &
+                       Ada.Exceptions.Exception_Name (E));
+         raise;
+   end Has;
 
    function Look_Up (Handle : in Security.OpenID.Association_Handle)
      return Security.OpenID.Association is
