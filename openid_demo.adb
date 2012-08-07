@@ -8,50 +8,45 @@
 --  Jacob Sparre Andersen
 
 with
+  Ada.Command_Line,
   Ada.Text_IO;
 with
   AWS.Log,
   AWS.Net.SSL,
-  AWS.Server.Log;
+  AWS.Server,
+  AWS.Server.Log,
+  AWS.Server.Status,
+  AWS.URL;
 with
   OpenID_Handler;
 
 procedure OpenID_Demo is
-   Secure, Plain : AWS.Server.HTTP;
+   Web_Server : AWS.Server.HTTP;
 begin
    Ada.Text_IO.Put_Line ("AWS " & AWS.Version);
    Ada.Text_IO.Put_Line ("Enter 'q' key to exit...");
 
    if AWS.Net.SSL.Is_Supported then
       AWS.Server.Start
-        (Web_Server     => Secure,
+        (Web_Server     => Web_Server,
          Name           => "OpenID_Demo",
          Max_Connection => 10,
-         Port           => 443,
+         Port           => AWS.URL.Default_HTTPS_Port,
          Security       => True,
          Callback       => OpenID_Handler.Service'Access);
-      AWS.Server.Log.Start (Web_Server      => Secure,
-                            Filename_Prefix => "openid-secure",
-                            Split_Mode      => AWS.Log.Daily);
-      Ada.Text_IO.Put_Line ("Listening on port 443.");
    else
-      AWS.Server.Start
-        (Web_Server     => Plain,
-         Name           => "OpenID_Demo",
-         Max_Connection => 10,
-         Port           => 80,
-         Security       => True,
-         Callback       => OpenID_Handler.Service'Access);
-      AWS.Server.Log.Start (Web_Server      => Plain,
-                            Filename_Prefix => "openid-plain");
-      Ada.Text_IO.Put_Line ("Listening on port 80.");
+      Ada.Text_IO.Put_Line ("Compiled without support for secure HTTP.");
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+      return;
    end if;
+
+   AWS.Server.Log.Start (Web_Server      => Web_Server,
+                         Filename_Prefix => "openid_demo",
+                         Split_Mode      => AWS.Log.Daily);
+
+   Ada.Text_IO.Put_Line ("Please visit <" &
+                         AWS.Server.Status.Local_URL (Web_Server) & ">.");
 
    AWS.Server.Wait (AWS.Server.Q_Key_Pressed);
-
-   if AWS.Net.SSL.Is_Supported then
-      AWS.Server.Shutdown (Secure);
-   else
-      AWS.Server.Shutdown (Plain);
-   end if;
+   AWS.Server.Shutdown (Web_Server);
 end OpenID_Demo;
