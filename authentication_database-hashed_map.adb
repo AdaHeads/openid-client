@@ -139,20 +139,6 @@ package body Authentication_Database is
       end Delete;
    end Database;
 
-   procedure Clean_Up is
-      pragma Inline (Clean_Up);
-   begin
-      Database.Clean_Up;
-   exception
-      when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Clean_Up: " &
-                       Ada.Exceptions.Exception_Name (E) & " (" &
-                       Ada.Exceptions.Exception_Information (E) & ")");
-         raise;
-   end Clean_Up;
-
    function Token (Item     : in     Security.OpenID.Authentication;
                    Lifetime : in     Duration) return Authentication_Token is
       pragma Inline (Token);

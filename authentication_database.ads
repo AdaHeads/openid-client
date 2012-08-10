@@ -13,8 +13,6 @@ with
 package Authentication_Database is
    subtype Authentication_Token is String (1 .. 42);
 
-   procedure Clean_Up;
-
    Not_Authenticated : exception;
 
    function Token (Item     : in     Security.OpenID.Authentication;
