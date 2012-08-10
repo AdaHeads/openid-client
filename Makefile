@@ -1,5 +1,4 @@
-GNATMAKE_ARGS=-gnat05 -gnatyO -gnatE -gnato -gnatv -gnati1 -gnatf -gnatn -fstack-check -gnatyO -m
-GNATMAKE_ARGS=-gnat05 -gnatyO -gnatE -gnato -gnatv -gnati1 -gnatf -gnatn -fstack-check -gnatyO -m -g
+include .config
 
 all: style-check
 	gnatmake $(GNATMAKE_ARGS) -P openid

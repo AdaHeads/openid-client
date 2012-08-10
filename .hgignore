@@ -9,6 +9,9 @@ b__*.adb
 b~*.ads
 b~*.adb
 
+.config
+.config.sh
+
 openid
 openid_demo
 openid_demo-201?-??-??.log

@@ -1,0 +1,77 @@
+#! /bin/bash
+#-----------------------------------------------------------------------------
+#--  Usage:
+
+if [ "$(dirname "$0")" != "." ]; then
+   echo "Please run './configure' from '$(dirname "$0")/'." 1>&2
+   exit 1
+fi
+
+#-----------------------------------------------------------------------------
+#--  Check stored configuration:
+
+function generate_config_script() {
+   (
+      echo "# Generated file.  Please modify '.config' and run './configure' to update."
+      perl -lpe 's|^(.+=)|export $1|;
+                 s|^export (export )+|export |;
+                 s|=([^"])|="$1|;
+                 s|([^"])$|$1"|;' .config
+   ) > .config.sh
+   touch --reference=.config .config.sh
+}
+
+if [ -r .config ]; then
+   generate_config_script
+   source .config.sh
+   cp -p .config .config.old
+fi
+
+#-----------------------------------------------------------------------------
+#--  Gnatmake arguments:
+
+if [ -z "${GNATMAKE_ARGS}" ]; then
+   GNATMAKE_ARGS="-gnat05 -gnatyO -gnatE -gnato -gnatv -gnati1 -gnatf -gnatn -fstack-check -gnatyO -m -g"
+
+   echo "Set 'GNATMAKE_ARGS' to '${GNATMAKE_ARGS}'."
+   echo "If this is incorrect, please modify '.config' accordingly."
+fi
+
+echo "export GNATMAKE_ARGS=${GNATMAKE_ARGS}" >> .config
+
+#-----------------------------------------------------------------------------
+#--  External library source directory:
+
+if [ -z "${AUTHENTICATION_DATABASE_IMPLEMENTATION}" ]; then
+   AUTHENTICATION_DATABASE_IMPLEMENTATION="hashed_map"
+
+   echo "Set 'AUTHENTICATION_DATABASE_IMPLEMENTATION' to '${AUTHENTICATION_DATABASE_IMPLEMENTATION}'."
+   echo "If this is incorrect, please modify '.config' accordingly."
+fi
+
+echo "export AUTHENTICATION_DATABASE_IMPLEMENTATION=${AUTHENTICATION_DATABASE_IMPLEMENTATION}" >> .config
+
+#-----------------------------------------------------------------------------
+#--  Clean up config file:
+
+buffer="$(mktemp ".config-XXXXXX")"
+
+for key in $(sed 's:^export ::' .config | cut -d= -f1 | sort -u); do
+   grep "^export ${key}=" .config | tail -n1
+done \
+  | perl -lpe 's|="|=|; s|"$||' \
+  > "${buffer}"
+
+mv "${buffer}" .config
+
+if [ ! -r .config.old ]; then
+   true
+elif diff --brief .config .config.old 1>/dev/null; then
+   mv .config.old .config
+else
+   rm .config.old
+fi
+
+generate_config_script
+
+#-----------------------------------------------------------------------------

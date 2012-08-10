@@ -12,6 +12,8 @@ project OpenID is
         use "util-log-loggers-traceback-gnat.adb";
       for Implementation ("Util.Serialize.IO.XML.Get_Location")
         use "util-serialize-io-xml-get_location-xmlada-4.adb";
+      for Implementation ("Authentication_Database")
+        use "authentication_database-" & External ("AUTHENTICATION_DATABASE_IMPLEMENTATION") & ".adb";
    end Naming;
 
    package Linker is
