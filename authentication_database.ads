@@ -17,10 +17,12 @@ package Authentication_Database is
 
    Not_Authenticated : exception;
 
-   function Token (Item : in     Security.OpenID.Authentication)
-                  return Authentication_Token;
+   function Token (Item     : in     Security.OpenID.Authentication;
+                   Lifetime : in     Duration) return Authentication_Token;
 
    function Has (Token : in String) return Boolean;
 
    function Identity (Token : in String) return String;
+
+   procedure Delete (Token : in     String);
 end Authentication_Database;

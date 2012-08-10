@@ -34,6 +34,7 @@ package body Authentication_Database is
                         Token    :    out Authentication_Token);
       function Has (Token : in String) return Boolean;
       function Identity (Token : in String) return String;
+      procedure Delete (Token : in     String);
    private
       Authentications : Maps.Map := Maps.Empty_Map;
       Token_Generator : Random_Characters.Generator;
@@ -120,6 +121,22 @@ package body Authentication_Database is
          when others =>
             raise;
       end Identity;
+
+      procedure Delete (Token : in     String) is
+      begin
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Info,
+            Message => "Removing <" & Token &
+                       "> from the authentication database.");
+         Maps.Delete (Container => Authentications,
+                      Key       => Token);
+      exception
+         when others =>
+            if Maps.Contains (Container => Authentications,
+                              Key       => Token) then
+               raise;
+            end if;
+      end Delete;
    end Database;
 
    procedure Clean_Up is
@@ -136,8 +153,8 @@ package body Authentication_Database is
          raise;
    end Clean_Up;
 
-   function Token (Item : in     Security.OpenID.Authentication)
-     return Authentication_Token is
+   function Token (Item     : in     Security.OpenID.Authentication;
+                   Lifetime : in     Duration) return Authentication_Token is
       pragma Inline (Token);
    begin
       return Result : Authentication_Token do
@@ -183,4 +200,17 @@ package body Authentication_Database is
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Identity;
+
+   procedure Delete (Token : in     String) is
+      pragma Inline (Delete);
+   begin
+      Database.Delete (Token => Token);
+   exception
+      when E : others =>
+         Yolk.Log.Trace
+           (Handle  => Yolk.Log.Error,
+            Message => "Execption in Authentication_Database.Delete: " &
+                       Ada.Exceptions.Exception_Name (E));
+         raise;
+   end Delete;
 end Authentication_Database;

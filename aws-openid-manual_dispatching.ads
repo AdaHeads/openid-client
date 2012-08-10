@@ -16,22 +16,37 @@ private with
 pragma Elaborate (Security.OpenID);
 
 generic
-   Host_Name         : String;
-   Logged_In_URI     : String := "/logged_in";
-   Token_Lifetime    : Duration := 3600.0;
+   Host_Name       : String;
+   Log_In_Page     : String := "login";
+   Return_To_Page  : String := "return_to";
+   Logged_In_Page  : String := "logged_in";
+   Logged_Out_Page : String := "logged_out";
+   Token_Lifetime  : Duration := 3600.0;
 package AWS.OpenID.Manual_Dispatching is
    Provider_Parameter_Name : constant String := "openid";
    Token_Cookie_Name       : constant String := "token";
 
    package Log_In is
-      URI : constant String := "/login";
+      URI : constant String := "/" & Log_In_Page;
       function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
    end Log_In;
 
    package Validate is
-      URI : constant String := "/return_to";
+      URI : constant String := "/" & Return_To_Page;
       function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
    end Validate;
+
+   package Logged_In is
+      URI : constant String := "/" & Logged_In_Page;
+   end Logged_In;
+
+   package Log_Out is
+      function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
+   end Log_Out;
+
+   package Logged_Out is
+      URI : constant String := "/" & Logged_Out_Page;
+   end Logged_Out;
 
    function Is_Authenticated (Request : in AWS.Status.Data) return Boolean;
 

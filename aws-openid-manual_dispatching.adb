@@ -21,7 +21,8 @@ package body AWS.OpenID.Manual_Dispatching is
    package body Log_In is
       function Service (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
-         Provider    : String := AWS.Status.Parameters (Request).Get ("openid");
+         Provider    : String := AWS.Status.Parameters
+                                   (Request).Get (Provider_Parameter_Name);
          End_Point   : Security.OpenID.End_Point;
          Association : Security.OpenID.Association;
       begin
@@ -59,18 +60,36 @@ package body AWS.OpenID.Manual_Dispatching is
 
          return Result : AWS.Response.Data do
            Result :=
-             AWS.Response.Moved ("https://" & Host_Name & Logged_In_URI);
+             AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
 
            if Security.OpenID.Authenticated (Authentication) then
               AWS.Cookie.Set (Content => Result,
                               Key     => Token_Cookie_Name,
                               Value   => Authentication_Database.Token
-                                           (Authentication),
+                                           (Authentication, Token_Lifetime),
                               Max_Age => Token_Lifetime);
            end if;
          end return;
       end Service;
    end Validate;
+
+   package body Log_Out is
+      function Service (Request : in AWS.Status.Data)
+                       return AWS.Response.Data is
+      begin
+         Authentication_Database.Delete
+           (Token => AWS.Cookie.Get (Request => Request,
+                                     Key     => Token_Cookie_Name));
+
+         return Result : AWS.Response.Data do
+           Result :=
+             AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
+
+           AWS.Cookie.Expire (Content => Result,
+                              Key     => Token_Cookie_Name);
+         end return;
+      end Service;
+   end Log_Out;
 
    function Is_Authenticated (Request : in AWS.Status.Data) return Boolean is
    begin
@@ -86,6 +105,7 @@ package body AWS.OpenID.Manual_Dispatching is
                                          Key     => Token_Cookie_Name));
    end Authenticated_As;
 begin
-   Security.OpenID.Initialize (Realm  => Realm,
-                               Domain => "https://" & Host_Name & "/");
+   Security.OpenID.Initialize (Realm     => Realm,
+                               Domain    => "https://" & Host_Name & "/",
+                               Return_To => Return_To_Page);
 end AWS.OpenID.Manual_Dispatching;
