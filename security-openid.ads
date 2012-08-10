@@ -140,7 +140,7 @@ package Security.Openid is
    --                Domain    => "http://auth.example.com/");
    procedure Initialize (Realm     : in out Manager;
                          Domain    : in     String;
-                         Return_To : in     String := "return_to");
+                         Return_To : in     String);
 
    --  Discover the OpenID provider that must be used to authenticate the user.
    --  The <b>Name</b> can be an URL or an alias that identifies the provider.

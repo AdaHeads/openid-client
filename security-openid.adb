@@ -135,7 +135,7 @@ package body Security.OpenID is
 
    procedure Initialize (Realm     : in out Manager;
                          Domain    : in     String;
-                         Return_To : in     String := "return_to") is
+                         Return_To : in     String) is
    begin
       Realm.Realm     := To_Unbounded_String (Domain);
       Realm.Return_To := To_Unbounded_String (Domain & Return_To);
