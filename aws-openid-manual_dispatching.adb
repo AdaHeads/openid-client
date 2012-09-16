@@ -59,16 +59,15 @@ package body AWS.OpenID.Manual_Dispatching is
                                                    Request => Request);
 
          return Result : AWS.Response.Data do
-           Result :=
-             AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
+            Result :=
+              AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
 
-           if Security.OpenID.Authenticated (Authentication) then
-              AWS.Cookie.Set (Content => Result,
-                              Key     => Token_Cookie_Name,
-                              Value   => Authentication_Database.Token
-                                           (Authentication, Token_Lifetime),
-                              Max_Age => Token_Lifetime);
-           end if;
+            if Security.OpenID.Authenticated (Authentication) then
+               Authentication_Database.Register_Identity
+                 (Source   => Authentication,
+                  Request  => Request,
+                  Response => Result);
+            end if;
          end return;
       end Service;
    end Validate;
@@ -76,33 +75,25 @@ package body AWS.OpenID.Manual_Dispatching is
    package body Log_Out is
       function Service (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
+         Response : AWS.Response.Data;
       begin
-         Authentication_Database.Delete
-           (Token => AWS.Cookie.Get (Request => Request,
-                                     Key     => Token_Cookie_Name));
+         Response :=
+           AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
 
-         return Result : AWS.Response.Data do
-           Result :=
-             AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
-
-           AWS.Cookie.Expire (Content => Result,
-                              Key     => Token_Cookie_Name);
-         end return;
+         Authentication_Database.Delete_Identity (Request  => Request,
+                                                  Response => Response);
+         return Response;
       end Service;
    end Log_Out;
 
    function Is_Authenticated (Request : in AWS.Status.Data) return Boolean is
    begin
-      return Authentication_Database.Has
-               (Token => AWS.Cookie.Get (Request => Request,
-                                         Key     => Token_Cookie_Name));
+      return Authentication_Database.Is_Authenticated (Request => Request);
    end Is_Authenticated;
 
    function Authenticated_As (Request : in AWS.Status.Data) return String is
    begin
-      return Authentication_Database.Identity
-               (Token => AWS.Cookie.Get (Request => Request,
-                                         Key     => Token_Cookie_Name));
+      return Authentication_Database.Identity (Request => Request);
    end Authenticated_As;
 begin
    Security.OpenID.Initialize (Realm     => Realm,

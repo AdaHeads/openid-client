@@ -14,9 +14,15 @@ with
   Ada.Numerics.Discrete_Random,
   Ada.Strings.Fixed.Hash;
 with
+  AWS.Cookie,
   Yolk.Log;
 
 package body Authentication_Database is
+   Token_Lifetime    : constant Duration := 3600.0;
+   Token_Cookie_Name : constant String := "token";
+
+   subtype Authentication_Token is String (1 .. 42);
+
    package Random_Characters is
       new Ada.Numerics.Discrete_Random (Ada.Characters.Handling.ISO_646);
 
@@ -139,28 +145,42 @@ package body Authentication_Database is
       end Delete;
    end Database;
 
-   function Token (Item     : in     Security.OpenID.Authentication;
-                   Lifetime : in     Duration) return Authentication_Token is
-      pragma Inline (Token);
+   procedure Register_Identity
+     (Source   : in     Security.OpenID.Authentication;
+      Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data) is
+      pragma Unreferenced (Request);
+      Token : Authentication_Token;
    begin
-      return Result : Authentication_Token do
-        Database.Insert (Identity => Security.OpenID.Identity (Item),
-                         Token    => Result);
-      end return;
+      if Security.OpenID.Authenticated (Source) then
+         Database.Insert (Identity => Security.OpenID.Identity (Source),
+                          Token    => Token);
+         AWS.Cookie.Set (Content => Response,
+                         Key     => Token_Cookie_Name,
+                         Value   => Token,
+                         Max_Age => Token_Lifetime);
+      else
+         raise Not_Authenticated;
+      end if;
    exception
+      when Not_Authenticated =>
+         raise;
       when E : others =>
          Yolk.Log.Trace
            (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Token: " &
+            Message => "Execption in Authentication_Database." &
+                       "Register_Identity: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
          raise;
-   end Token;
+   end Register_Identity;
 
-   function Has (Token : in String) return Boolean is
-      pragma Inline (Has);
+   function Is_Authenticated (Request  : in AWS.Status.Data) return Boolean is
+      pragma Inline (Is_Authenticated);
    begin
-      return Database.Has (Token => Token);
+      return
+        Database.Has (Token => AWS.Cookie.Get (Request => Request,
+                                               Key     => Token_Cookie_Name));
    exception
       when Constraint_Error =>
          return False;
@@ -170,12 +190,14 @@ package body Authentication_Database is
             Message => "Execption in Authentication_Database.Has: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
-   end Has;
+   end Is_Authenticated;
 
-   function Identity (Token : in String) return String is
+   function Identity (Request : in AWS.Status.Data) return String is
       pragma Inline (Identity);
    begin
-      return Database.Identity (Token => Token);
+      return Database.Identity
+               (Token => AWS.Cookie.Get (Request => Request,
+                                         Key     => Token_Cookie_Name));
    exception
       when Not_Authenticated | Constraint_Error =>
          raise;
@@ -187,10 +209,16 @@ package body Authentication_Database is
          raise;
    end Identity;
 
-   procedure Delete (Token : in     String) is
-      pragma Inline (Delete);
+   procedure Delete_Identity (Request  : in     AWS.Status.Data;
+                              Response : in out AWS.Response.Data) is
+      pragma Inline (Delete_Identity);
+      Token : Authentication_Token;
    begin
+      Token := AWS.Cookie.Get (Request => Request,
+                               Key     => Token_Cookie_Name);
       Database.Delete (Token => Token);
+      AWS.Cookie.Expire (Content => Response,
+                         Key     => Token_Cookie_Name);
    exception
       when E : others =>
          Yolk.Log.Trace
@@ -198,5 +226,5 @@ package body Authentication_Database is
             Message => "Execption in Authentication_Database.Delete: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
-   end Delete;
+   end Delete_Identity;
 end Authentication_Database;

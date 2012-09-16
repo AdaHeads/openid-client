@@ -8,19 +8,23 @@
 --  Jacob Sparre Andersen
 
 with
+   AWS.Response,
+   AWS.Status;
+with
   Security.OpenID;
 
 package Authentication_Database is
-   subtype Authentication_Token is String (1 .. 42);
-
    Not_Authenticated : exception;
 
-   function Token (Item     : in     Security.OpenID.Authentication;
-                   Lifetime : in     Duration) return Authentication_Token;
+   procedure Register_Identity
+     (Source   : in     Security.OpenID.Authentication;
+      Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data);
 
-   function Has (Token : in String) return Boolean;
+   function Is_Authenticated (Request  : in AWS.Status.Data) return Boolean;
 
-   function Identity (Token : in String) return String;
+   function Identity (Request : in AWS.Status.Data) return String;
 
-   procedure Delete (Token : in     String);
+   procedure Delete_Identity (Request  : in     AWS.Status.Data;
+                              Response : in out AWS.Response.Data);
 end Authentication_Database;

@@ -21,10 +21,8 @@ generic
    Return_To_Page  : String := "return_to";
    Logged_In_Page  : String := "logged_in";
    Logged_Out_Page : String := "logged_out";
-   Token_Lifetime  : Duration := 3600.0;
 package AWS.OpenID.Manual_Dispatching is
    Provider_Parameter_Name : constant String := "openid";
-   Token_Cookie_Name       : constant String := "token";
 
    package Log_In is
       URI : constant String := "/" & Log_In_Page;
