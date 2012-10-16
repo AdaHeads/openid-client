@@ -34,6 +34,7 @@ begin
          Max_Connection => 10,
          Port           => AWS.URL.Default_HTTPS_Port,
          Security       => True,
+         Session        => True,
          Callback       => OpenID_Handler.Service'Access);
    else
       Ada.Text_IO.Put_Line ("Compiled without support for secure HTTP.");
