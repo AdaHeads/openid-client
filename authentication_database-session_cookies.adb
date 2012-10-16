@@ -92,4 +92,8 @@ package body Authentication_Database is
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Delete_Identity;
+
+   procedure Save (File_Name : in     String) renames AWS.Session.Save;
+
+   procedure Load (File_Name : in     String) renames AWS.Session.Load;
 end Authentication_Database;

@@ -13,6 +13,7 @@ with
 with
   AWS.Log,
   AWS.Net.SSL,
+  AWS.OpenID.State,
   AWS.Server,
   AWS.Server.Log,
   AWS.Server.Status,
@@ -40,6 +41,7 @@ begin
       return;
    end if;
 
+   AWS.OpenID.State.Load (File_Name => "openid_demo.state");
    AWS.Server.Log.Start (Web_Server      => Web_Server,
                          Filename_Prefix => "openid_demo",
                          Split_Mode      => AWS.Log.Daily);
@@ -49,4 +51,5 @@ begin
 
    AWS.Server.Wait (AWS.Server.Q_Key_Pressed);
    AWS.Server.Shutdown (Web_Server);
+   AWS.OpenID.State.Save (File_Name => "openid_demo.state");
 end OpenID_Demo;

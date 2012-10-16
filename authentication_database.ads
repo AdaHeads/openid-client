@@ -27,4 +27,7 @@ package Authentication_Database is
 
    procedure Delete_Identity (Request  : in     AWS.Status.Data;
                               Response : in out AWS.Response.Data);
+
+   procedure Save (File_Name : in     String);
+   procedure Load (File_Name : in     String);
 end Authentication_Database;
