@@ -187,8 +187,10 @@ package body Authentication_Database is
       when E : others =>
          Yolk.Log.Trace
            (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Has: " &
-                       Ada.Exceptions.Exception_Name (E));
+            Message => "Execption in Authentication_Database." &
+                       "Is_Authenticated: " &
+                       Ada.Exceptions.Exception_Name (E) & " (" &
+                       Ada.Exceptions.Exception_Information (E) & ")");
          raise;
    end Is_Authenticated;
 
