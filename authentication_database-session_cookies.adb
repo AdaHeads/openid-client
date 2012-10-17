@@ -22,9 +22,12 @@ package body Authentication_Database is
       Response : in out AWS.Response.Data) is
       pragma Unreferenced (Response);
       use type AWS.Session.ID;
+      ID : AWS.Session.ID := AWS.Status.Session (Request);
    begin
-      if AWS.Status.Session (Request) /= AWS.Session.No_Session then
-         AWS.Session.Set (SID   => AWS.Status.Session (Request),
+      if ID = AWS.Session.No_Session then
+         null;
+      else
+         AWS.Session.Set (SID   => ID,
                           Key   => Session_Key,
                           Value => Security.OpenID.Identity (Source));
       end if;
