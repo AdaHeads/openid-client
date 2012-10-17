@@ -19,4 +19,7 @@ package Association_Database is
 
    function Look_Up (Handle : in Security.OpenID.Association_Handle)
      return Security.OpenID.Association;
+
+   procedure Save (File_Name : in     String);
+   procedure Load (File_Name : in     String);
 end Association_Database;

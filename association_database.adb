@@ -10,6 +10,7 @@
 with
   Ada.Containers.Hashed_Maps,
   Ada.Exceptions,
+  Ada.Streams.Stream_IO,
   Ada.Strings.Unbounded,
   Ada.Strings.Unbounded.Hash;
 with
@@ -31,6 +32,8 @@ package body Association_Database is
         return Boolean;
       function Look_Up (Handle : in Security.OpenID.Association_Handle)
         return Security.OpenID.Association;
+      procedure Save (File_Name : in     String);
+      procedure Load (File_Name : in     String);
    private
       Associations : Maps.Map := Maps.Empty_Map;
    end Database;
@@ -89,6 +92,48 @@ package body Association_Database is
          return Maps.Element (Container => Associations,
                               Key       => Handle);
       end Look_Up;
+
+      procedure Save (File_Name : in     String) is
+         use Ada.Streams.Stream_IO;
+         File    : Ada.Streams.Stream_IO.File_Type;
+         Target  : Ada.Streams.Stream_IO.Stream_Access;
+
+         procedure Save (Position : in     Maps.Cursor) is
+         begin
+            Security.OpenID.Association_Handle'Output (Target,
+                                                       Maps.Key (Position));
+            Security.OpenID.Association'Output (Target,
+                                                Maps.Element (Position));
+         end Save;
+      begin
+         Create (File => File,
+                 Name => File_Name);
+         Target := Stream (File);
+         Maps.Iterate (Container => Associations,
+                       Process   => Save'Access);
+         Close (File => File);
+      end Save;
+
+      procedure Load (File_Name : in     String) is
+         use Ada.Streams.Stream_IO;
+         File    : Ada.Streams.Stream_IO.File_Type;
+         Source  : Ada.Streams.Stream_IO.Stream_Access;
+         Key     : Security.OpenID.Association_Handle;
+         Element : Security.OpenID.Association;
+      begin
+         Open (File => File,
+               Name => File_Name,
+               Mode => In_File);
+         Source := Stream (File);
+         while not End_Of_File (File) loop
+            Key     := Security.OpenID.Association_Handle'Input (Source);
+            Element := Security.OpenID.Association'Input (Source);
+            Maps.Insert (Container => Associations,
+                         Key       => Key,
+                         New_Item  => Element);
+         end loop;
+         Close (File => File);
+      end Load;
    end Database;
 
    procedure Clean_Up is
@@ -146,4 +191,14 @@ package body Association_Database is
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Look_Up;
+
+   procedure Save (File_Name : in     String) is
+   begin
+      Database.Save (File_Name => File_Name);
+   end Save;
+
+   procedure Load (File_Name : in     String) is
+   begin
+      Database.Load (File_Name => File_Name);
+   end Load;
 end Association_Database;
