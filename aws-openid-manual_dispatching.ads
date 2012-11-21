@@ -17,9 +17,10 @@ pragma Elaborate (Security.OpenID);
 
 generic
    Host_Name       : String;
-   Log_In_Page     : String := "login";
+   Log_In_Page     : String := "log_in";
    Return_To_Page  : String := "return_to";
    Logged_In_Page  : String := "logged_in";
+   Log_Out_Page    : String := "log_out";
    Logged_Out_Page : String := "logged_out";
 package AWS.OpenID.Manual_Dispatching is
    Provider_Parameter_Name : constant String := "openid";
@@ -39,6 +40,7 @@ package AWS.OpenID.Manual_Dispatching is
    end Logged_In;
 
    package Log_Out is
+      URI : constant String := "/" & Log_Out_Page;
       function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
    end Log_Out;
 

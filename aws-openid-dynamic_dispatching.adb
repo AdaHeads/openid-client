@@ -13,13 +13,13 @@ package body AWS.OpenID.Dynamic_Dispatching is
       use AWS.Services.Dispatchers.URI;
    begin
       Register (Dispatcher => Dispatcher,
-		URI        => Handlers.Log_In.URI,
-		Action     => Handlers.Log_In.Service'Access);
+                URI        => Handlers.Log_In.URI,
+                Action     => Handlers.Log_In.Service'Access);
       Register (Dispatcher => Dispatcher,
-		URI        => Handlers.Validate.URI,
-		Action     => Handlers.Validate.Service'Access);
+                URI        => Handlers.Validate.URI,
+                Action     => Handlers.Validate.Service'Access);
       Register (Dispatcher => Dispatcher,
-		URI        => Handlers.Log_Out.URI,
-		Action     => Handlers.Log_Out.Service'Access);
+                URI        => Handlers.Log_Out.URI,
+                Action     => Handlers.Log_Out.Service'Access);
    end Register;
 end AWS.OpenID.Dynamic_Dispatching;

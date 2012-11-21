@@ -40,7 +40,7 @@ package body AWS.OpenID.Manual_Dispatching is
                                         OP    => End_Point,
                                         Assoc => Association);
          begin
-            return AWS.Response.Moved (URL);
+            return AWS.Response.URL (URL);
          end;
       end Service;
    end Log_In;
@@ -60,7 +60,7 @@ package body AWS.OpenID.Manual_Dispatching is
 
          return Result : AWS.Response.Data do
             Result :=
-              AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
+              AWS.Response.URL ("https://" & Host_Name & Logged_In.URI);
 
             if Security.OpenID.Authenticated (Authentication) then
                Authentication_Database.Register_Identity
@@ -78,7 +78,7 @@ package body AWS.OpenID.Manual_Dispatching is
          Response : AWS.Response.Data;
       begin
          Response :=
-           AWS.Response.Moved ("https://" & Host_Name & Logged_In.URI);
+           AWS.Response.URL ("https://" & Host_Name & Logged_Out.URI);
 
          Authentication_Database.Delete_Identity (Request  => Request,
                                                   Response => Response);

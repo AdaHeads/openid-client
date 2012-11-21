@@ -21,11 +21,11 @@ generic
 package AWS.OpenID.Dynamic_Dispatching is
    package Handlers is
      new AWS.OpenID.Manual_Dispatching (Host_Name       => Host_Name,
-					Log_In_Page     => Log_In_Page,
-					Return_To_Page  => Return_To_Page,
-					Logged_In_Page  => Logged_In_Page,
-					Logged_Out_Page => Logged_Out_Page);
-   
+                                        Log_In_Page     => Log_In_Page,
+                                        Return_To_Page  => Return_To_Page,
+                                        Logged_In_Page  => Logged_In_Page,
+                                        Logged_Out_Page => Logged_Out_Page);
+
    procedure Register
      (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler);
 

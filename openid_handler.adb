@@ -28,8 +28,8 @@ package body OpenID_Handler is
          Message => "Request URI: <" & AWS.Status.URI (Request) & ">");
 
       if OpenID.Is_Authenticated (Request) then
-         return AWS.Response.Moved ("http://www.jacob-sparre.dk/?" &
-                                    OpenID.Authenticated_As (Request));
+         return AWS.Response.URL ("http://www.jacob-sparre.dk/?" &
+                                  OpenID.Authenticated_As (Request));
       elsif AWS.Status.URI (Request) = OpenID.Log_In.URI then
          return OpenID.Log_In.Service (Request);
       elsif AWS.Status.URI (Request) = OpenID.Validate.URI then
@@ -65,6 +65,6 @@ package body OpenID_Handler is
            (Handle  => Yolk.Log.Info,
             Message => "Redirecting to </error>");
 
-         return AWS.Response.Moved ("/error");
+         return AWS.Response.URL ("/error");
    end Service;
 end OpenID_Handler;
