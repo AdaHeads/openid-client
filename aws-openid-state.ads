@@ -9,5 +9,11 @@
 
 package AWS.OpenID.State is
    procedure Save (File_Name : in     String);
+   --  Remember to call Save before stopping the last HTTP server.
+   --  If you compile the AWS.OpenID packages with
+   --     AUTHENTICATION_DATABASE_IMPLEMENTATION=session_cookies
+   --  Save depends on AWS.Session, which drops all state after the last HTTP
+   --  server in the application is stopped.
+
    procedure Load (File_Name : in     String);
 end AWS.OpenID.State;
