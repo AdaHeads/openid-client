@@ -51,6 +51,6 @@ begin
                          AWS.Server.Status.Local_URL (Web_Server) & ">.");
 
    AWS.Server.Wait (AWS.Server.Q_Key_Pressed);
-   AWS.Server.Shutdown (Web_Server);
    AWS.OpenID.State.Save (File_Name => "openid_demo.state");
+   AWS.Server.Shutdown (Web_Server);
 end OpenID_Demo;
