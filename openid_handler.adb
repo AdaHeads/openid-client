@@ -19,7 +19,8 @@ with
 
 package body OpenID_Handler is
    package OpenID is
-      new AWS.OpenID.Manual_Dispatching (Host_Name => "jaws.adaheads.com");
+      new AWS.OpenID.Manual_Dispatching (Host_Name       => "jaws.adaheads.com",
+                                         Logged_Out_Page => "");
 
    function Service (Request : in AWS.Status.Data) return AWS.Response.Data is
    begin
@@ -27,16 +28,12 @@ package body OpenID_Handler is
         (Handle  => Yolk.Log.Info,
          Message => "Request URI: <" & AWS.Status.URI (Request) & ">");
 
-      if OpenID.Is_Authenticated (Request) then
-         return AWS.Response.URL ("http://www.jacob-sparre.dk/?" &
-                                  OpenID.Authenticated_As (Request));
-      elsif AWS.Status.URI (Request) = OpenID.Log_In.URI then
+      if AWS.Status.URI (Request) = OpenID.Log_In.URI then
          return OpenID.Log_In.Service (Request);
       elsif AWS.Status.URI (Request) = OpenID.Validate.URI then
          return OpenID.Validate.Service (Request);
-      elsif AWS.Status.URI (Request) = "/" then
-         return AWS.Response.File (Content_Type  => "text/html",
-                                   Filename      => "index.html");
+      elsif AWS.Status.URI (Request) = OpenID.Log_Out.URI then
+         return OpenID.Log_Out.Service (Request);
       elsif AWS.Status.URI (Request) = "/error" then
          return AWS.Response.File (Content_Type  => "text/html",
                                    Filename      => "error.html");
@@ -49,6 +46,12 @@ package body OpenID_Handler is
             Message => "Redirecting to <http://www.jacob-sparre.dk/icon>");
 
          return AWS.Response.Moved ("http://www.jacob-sparre.dk/icon");
+      elsif OpenID.Is_Authenticated (Request) then
+         return AWS.Response.URL ("http://www.jacob-sparre.dk/?" &
+                                  OpenID.Authenticated_As (Request));
+      elsif AWS.Status.URI (Request) = OpenID.Logged_Out.URI then
+         return AWS.Response.File (Content_Type  => "text/html",
+                                   Filename      => "index.html");
       else
          return AWS.Response.File (Content_Type  => "text/html",
                                    Filename      => "not_authenticated.html");
@@ -61,10 +64,6 @@ package body OpenID_Handler is
                        AWS.Status.URI (Request) & "> with exception " &
                        Ada.Exceptions.Exception_Name (E) & ": " &
                        Ada.Exceptions.Exception_Message (E));
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Redirecting to </error>");
-
-         return AWS.Response.URL ("/error");
+         raise;
    end Service;
 end OpenID_Handler;
