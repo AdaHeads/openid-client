@@ -42,7 +42,8 @@ begin
       return;
    end if;
 
-   AWS.OpenID.State.Load (File_Name => "openid_demo.state");
+   AWS.OpenID.State.Load (File_Name           => "openid_demo.state",
+                          Suppress_Exceptions => True);
    AWS.Server.Log.Start (Web_Server      => Web_Server,
                          Filename_Prefix => "openid_demo",
                          Split_Mode      => AWS.Log.Daily);
