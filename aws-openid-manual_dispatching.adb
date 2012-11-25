@@ -10,7 +10,8 @@
 with
   Ada.Strings.Unbounded;
 with
-  AWS.Cookie;
+  AWS.Cookie,
+  AWS.OpenID.Error_Messages;
 with
   Association_Database,
   Authentication_Database;
@@ -21,14 +22,27 @@ package body AWS.OpenID.Manual_Dispatching is
    package body Log_In is
       function Service (Request : in AWS.Status.Data)
                        return AWS.Response.Data is
-         Provider    : String := AWS.Status.Parameters
-                                   (Request).Get (Provider_Parameter_Name);
          End_Point   : Security.OpenID.End_Point;
          Association : Security.OpenID.Association;
       begin
-         Security.OpenID.Discover (Realm  => Realm,
-                                   Name   => Provider,
-                                   Result => End_Point);
+         declare
+            Provider : constant String := AWS.Status.Parameters (Request).Get
+                                            (Provider_Parameter_Name);
+         begin
+            Security.OpenID.Discover (Realm  => Realm,
+                                      Name   => Provider,
+                                      Result => End_Point);
+         exception
+            when Constraint_Error =>
+               return AWS.OpenID.Error_Messages.Invalid_URL (Provider);
+            when Security.OpenID.Invalid_End_Point =>
+               return AWS.OpenID.Error_Messages.Invalid_End_Point (Provider);
+            when Security.OpenID.Service_Error =>
+               return AWS.OpenID.Error_Messages.Provider_Off_Line (Provider);
+            when others =>
+               raise;
+         end;
+
          Security.OpenID.Associate (Realm  => Realm,
                                     OP     => End_Point,
                                     Result => Association);
@@ -58,17 +72,19 @@ package body AWS.OpenID.Manual_Dispatching is
                                                    Assoc   => Association,
                                                    Request => Request);
 
-         return Result : AWS.Response.Data do
-            Result :=
-              AWS.Response.URL ("https://" & Host_Name & Logged_In.URI);
+         if Security.OpenID.Authenticated (Authentication) then
+            return Result : AWS.Response.Data do
+               Result :=
+                 AWS.Response.URL ("https://" & Host_Name & Logged_In.URI);
 
-            if Security.OpenID.Authenticated (Authentication) then
                Authentication_Database.Register_Identity
                  (Source   => Authentication,
                   Request  => Request,
                   Response => Result);
-            end if;
-         end return;
+            end return;
+         else
+            return AWS.OpenID.Error_Messages.Authentication_Failed;
+         end if;
       end Service;
    end Validate;
 
