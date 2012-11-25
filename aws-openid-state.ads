@@ -15,5 +15,6 @@ package AWS.OpenID.State is
    --  Save depends on AWS.Session, which drops all state after the last HTTP
    --  server in the application is stopped.
 
-   procedure Load (File_Name : in     String);
+   procedure Load (File_Name           : in     String;
+                   Suppress_Exceptions : in     Boolean := False);
 end AWS.OpenID.State;

@@ -18,9 +18,28 @@ package body AWS.OpenID.State is
       Authentication_Database.Save (File_Name & ".authentications");
    end Save;
 
-   procedure Load (File_Name : in     String) is
+   procedure Load (File_Name           : in     String;
+                   Suppress_Exceptions : in     Boolean := False) is
    begin
-      Association_Database.Load    (File_Name & ".associations");
-      Authentication_Database.Load (File_Name & ".authentications");
+
+  Load_Association_Data:
+      begin
+         Association_Database.Load    (File_Name & ".associations");
+      exception
+         when others =>
+            if not Suppress_Exceptions then
+               raise;
+            end if;
+      end Load_Association_Data;
+
+  Load_Authentication_Data:
+      begin
+         Authentication_Database.Load (File_Name & ".authentications");
+      exception
+         when others =>
+            if not Suppress_Exceptions then
+               raise;
+            end if;
+      end Load_Authentication_Data;
    end Load;
 end AWS.OpenID.State;
