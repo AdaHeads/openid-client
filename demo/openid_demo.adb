@@ -21,17 +21,26 @@ with
 with
   AWS.Log,
   AWS.Net.SSL,
+  AWS.OpenID.Log,
   AWS.OpenID.State,
   AWS.Server,
   AWS.Server.Log,
   AWS.Server.Status,
   AWS.URL;
 with
+  Logger,
   OpenID_Handler;
 
 procedure OpenID_Demo is
    Web_Server : AWS.Server.HTTP;
 begin
+   Logger.Open ("aws-openid.log");
+
+   AWS.OpenID.Log.Info    := Logger.Info'Access;
+   AWS.OpenID.Log.Error   := Logger.Error'Access;
+   AWS.OpenID.Log.Debug   := Logger.Debug'Access;
+   AWS.OpenID.Log.Warning := Logger.Warning'Access;
+
    Ada.Text_IO.Put_Line ("AWS " & AWS.Version);
    Ada.Text_IO.Put_Line ("Enter 'q' key to exit...");
 
@@ -62,4 +71,6 @@ begin
    AWS.Server.Wait (AWS.Server.Q_Key_Pressed);
    AWS.OpenID.State.Save (File_Name => "openid_demo.state");
    AWS.Server.Shutdown (Web_Server);
+
+   Logger.Close;
 end OpenID_Demo;
