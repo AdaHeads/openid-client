@@ -20,10 +20,9 @@ with
   Ada.Strings.Unbounded;
 with
   AWS.Messages,
+  AWS.OpenID.Log,
   AWS.OpenID.Manual_Dispatching,
   AWS.Status;
-with
-  Yolk.Log;
 
 package body OpenID_Handler is
    package OpenID is
@@ -32,9 +31,8 @@ package body OpenID_Handler is
 
    function Service (Request : in AWS.Status.Data) return AWS.Response.Data is
    begin
-      Yolk.Log.Trace
-        (Handle  => Yolk.Log.Info,
-         Message => "Request URI: <" & AWS.Status.URI (Request) & ">");
+      AWS.OpenID.Log.Info
+        (Message => "Request URI: <" & AWS.Status.URI (Request) & ">");
 
       if AWS.Status.URI (Request) = OpenID.Log_In.URI then
          return OpenID.Log_In.Service (Request);
@@ -49,9 +47,8 @@ package body OpenID_Handler is
          return AWS.Response.File (Content_Type  => "text/css",
                                    Filename      => "style.css");
       elsif AWS.Status.URI (Request) = "/favicon.ico" then
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Redirecting to <http://www.jacob-sparre.dk/icon>");
+         AWS.OpenID.Log.Info
+           (Message => "Redirecting to <http://www.jacob-sparre.dk/icon>");
 
          return AWS.Response.Moved ("http://www.jacob-sparre.dk/icon");
       elsif OpenID.Is_Authenticated (Request) then
@@ -66,9 +63,8 @@ package body OpenID_Handler is
       end if;
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "OpenID demo failed at URI <" &
+         AWS.OpenID.Log.Error
+           (Message => "OpenID demo failed at URI <" &
                        AWS.Status.URI (Request) & "> with exception " &
                        Ada.Exceptions.Exception_Name (E) & ": " &
                        Ada.Exceptions.Exception_Message (E));

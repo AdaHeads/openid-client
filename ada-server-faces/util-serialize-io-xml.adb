@@ -21,7 +21,7 @@ with Unicode.CES.Utf8;
 
 with Util.Strings;
 
-with Yolk.Log;
+with AWS.OpenID.Log;
 
 package body Util.Serialize.IO.XML is
 
@@ -44,9 +44,8 @@ package body Util.Serialize.IO.XML is
    procedure Warning (Handler : in out Xhtml_Reader;
                       Except  : Sax.Exceptions.Sax_Parse_Exception'Class) is
       pragma Warnings (Off, Handler);
-      use Yolk.Log;
    begin
-      Trace (Warning, Get_Message (Except));
+      AWS.OpenID.Log.Warning (Get_Message (Except));
    end Warning;
 
    --  ------------------------------
@@ -137,11 +136,9 @@ package body Util.Serialize.IO.XML is
                             Atts          : in Sax.Attributes.Attributes'Class) is
       pragma Unreferenced (Namespace_URI, Qname);
 
-      use Yolk.Log;
-
       Attr_Count : Natural;
    begin
-      Trace (Debug, "Start object " & Local_Name);
+      AWS.OpenID.Log.Debug ("Start object " & Local_Name);
 
       Handler.Handler.Start_Object (Local_Name);
       Attr_Count := Get_Length (Atts);
@@ -166,15 +163,16 @@ package body Util.Serialize.IO.XML is
                           Local_Name    : in Unicode.CES.Byte_Sequence := "";
                           Qname         : in Unicode.CES.Byte_Sequence := "") is
       pragma Unreferenced (Namespace_URI, Qname);
-      use Yolk.Log;
+      use AWS.OpenID.Log;
    begin
       Handler.Handler.Finish_Object (Local_Name);
       if Length (Handler.Text) > 0 then
-         Trace (Debug, "Close object " & Local_Name & " -> " & To_String (Handler.Text));
+         Debug ("Close object " & Local_Name & " -> " &
+                  To_String (Handler.Text));
          Handler.Handler.Set_Member (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
          Set_Unbounded_String (Handler.Text, "");
       else
-         Trace (Debug, "Close object " & Local_Name);
+         Debug ("Close object " & Local_Name);
          Handler.Handler.Set_Member (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
       end if;
    end End_Element;
@@ -215,9 +213,8 @@ package body Util.Serialize.IO.XML is
                                      Target  : in Unicode.CES.Byte_Sequence;
                                      Data    : in Unicode.CES.Byte_Sequence) is
       pragma Unreferenced (Handler);
-      use Yolk.Log;
    begin
-      Trace (Error, "Processing instruction: " & Target & ": " & Data);
+      AWS.OpenID.Log.Error ("Processing instruction: " & Target & ": " & Data);
    end Processing_Instruction;
 
    --  ------------------------------
@@ -238,9 +235,8 @@ package body Util.Serialize.IO.XML is
    procedure Start_Cdata (Handler : in out Xhtml_Reader) is
       pragma Unmodified (Handler);
       pragma Unreferenced (Handler);
-      use Yolk.Log;
    begin
-      Trace (Info, "Start CDATA");
+      AWS.OpenID.Log.Info ("Start CDATA");
    end Start_Cdata;
 
    --  ------------------------------
@@ -250,9 +246,8 @@ package body Util.Serialize.IO.XML is
    procedure End_Cdata (Handler : in out Xhtml_Reader) is
       pragma Unmodified (Handler);
       pragma Unreferenced (Handler);
-      use Yolk.Log;
    begin
-      Trace (Info, "End CDATA");
+      AWS.OpenID.Log.Info ("End CDATA");
    end End_Cdata;
 
    --  ------------------------------
@@ -264,9 +259,9 @@ package body Util.Serialize.IO.XML is
                             System_ID : Unicode.CES.Byte_Sequence)
                             return Input_Sources.Input_Source_Access is
       pragma Unreferenced (Handler);
-      use Yolk.Log;
    begin
-      Trace (Error, "Cannot resolve entity " & Public_ID & " - " & System_ID);
+      AWS.OpenID.Log.Error
+        ("Cannot resolve entity " & Public_ID & " - " & System_ID);
       return null;
    end Resolve_Entity;
 

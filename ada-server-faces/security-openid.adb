@@ -28,7 +28,7 @@ with Util.Encoders;
 with Util.Encoders.SHA1;
 with Util.Encoders.HMAC.SHA1;
 
-with Yolk.Log;
+with AWS.OpenID.Log;
 
 package body Security.OpenID is
    use Ada.Strings.Fixed;
@@ -163,12 +163,12 @@ package body Security.OpenID is
                             URI    : in String;
                             Result : out End_Point) is
       use AWS.Headers.Set;
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       use type AWS.Messages.Status_Code;
       Headers : AWS.Headers.List;
       Reply   : AWS.Response.Data;
    begin
-      Trace (Info ,"Discover XRDS on " & URI);
+      Info ("Discover XRDS on " & URI);
 
       Add (Headers, "Accept", "application/xrds+xml");
 
@@ -177,8 +177,7 @@ package body Security.OpenID is
                                Headers            => Headers);
 
       if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
-         Trace (Error,
-                "Received error " &
+         Error ("Received error " &
                   AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)) &
                   " when discovering XRDS on " &
                   URI);
@@ -230,9 +229,7 @@ package body Security.OpenID is
       URI : constant String := Extract (Content, "<URI>", "</URI>");
    begin
       if URI'Length = 0 then
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Extract_XRDS: Content = """ & Content & """");
+         AWS.OpenID.Log.Error ("Extract_XRDS: Content = """ & Content & """");
          raise Invalid_End_Point
            with "Cannot extract the <URI> from the XRDS document";
       end if;
@@ -257,7 +254,7 @@ package body Security.OpenID is
                         Result : out Association) is
       pragma Unreferenced (Realm);
 
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       use type AWS.Messages.Status_Code;
       Output : Unbounded_String;
       URI    : constant String := To_String (OP.URL);
@@ -268,8 +265,7 @@ package body Security.OpenID is
       Reply := AWS.Client.Post (URL  => URI,
                                 Data => Params);
       if AWS.Response.Status_Code (Reply) /= AWS.Messages.S200 then
-         Trace (Error,
-                "Received error " &
+         Error ("Received error " &
                   AWS.Messages.Status_Code'Image (AWS.Response.Status_Code (Reply)) &
                   " when creating association with " &
                   URI);
@@ -294,7 +290,8 @@ package body Security.OpenID is
             elsif Key = "assoc_type" then
                Result.Assoc_Type := Unbounded_Slice (Output, N + 1, Last);
             elsif Key = "assoc_handle" then
-Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
+               AWS.OpenID.Log.Debug
+                 ("Extracting 'assoc_handle' from result...");
                Result.Assoc_Handle := Unbounded_Slice (Output, N + 1, Last);
             elsif Key = "mac_key" then
                Result.Mac_Key := Unbounded_Slice (Output, N + 1, Last);
@@ -303,20 +300,16 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
                   Val : constant String := Slice (Output, N + 1, Last);
                   --                    Expires : Integer := Integer'Value (Val);
                begin
-                  Yolk.Log.Trace
-                    (Handle  => Yolk.Log.Info,
-                     Message => "Expires: |" & Val & "|");
+                  AWS.OpenID.Log.Info ("Expires: |" & Val & "|");
                   Result.Expired := Ada.Calendar.Clock;
                end;
             elsif Key /= "ns" then
-               Yolk.Log.Trace
-                 (Handle  => Yolk.Log.Error,
-                  Message => "Key not recognized: " & Key);
+               AWS.OpenID.Log.Error ("Key not recognized: " & Key);
             end if;
          end;
          Pos := Last + 2;
       end loop;
-      Trace (Debug, "Received end point " & To_String (Output));
+      Debug ("Received end point " & To_String (Output));
    end Associate;
 
    function Get_Authentication_URL (Realm : in Manager;
@@ -357,12 +350,11 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
 
    procedure Log_Verification (Succeeded : in     Boolean;
                                Message   : in     String) is
-      use Yolk.Log;
    begin
       if Succeeded then
-         Trace (Info,  "OpenID verification: "        & Message);
+         AWS.OpenID.Log.Info  ("OpenID verification: "        & Message);
       else
-         Trace (Error, "OpenID verification failed: " & Message);
+         AWS.OpenID.Log.Error ("OpenID verification failed: " & Message);
       end if;
    end Log_Verification;
 
@@ -502,7 +494,7 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
                                Result  : in out Authentication) is
       pragma Unreferenced (Realm);
 
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       use type Util.Encoders.SHA1.Digest;
 
       Signed : constant String := AWS.Status.Parameter (Request,
@@ -532,7 +524,7 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
             Append (Sign, ASCII.LF);
          end;
       end loop;
-      Trace (Info, "Signing: '" & To_String (Sign) & "'");
+      Info ("Signing: '" & To_String (Sign) & "'");
 
       declare
          Decoder : constant Util.Encoders.Encoder := Util.Encoders.Create (Util.Encoders.BASE_64);
@@ -542,7 +534,7 @@ Yolk.Log.Trace (Yolk.Log.Debug, "Extracting 'assoc_handle' from result...");
          R : constant Util.Encoders.SHA1.Base64_Digest
            := Util.Encoders.HMAC.SHA1.Sign_Base64 (Key, To_String (Sign));
       begin
-         Trace (Info, "Signature: " & S & " - " & R);
+         Info ("Signature: " & S & " - " & R);
          if R = S then
             Log_Verification (Succeeded => True,
                               Message   => "Signatures match.  Authenticated.");

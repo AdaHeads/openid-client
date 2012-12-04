@@ -2,7 +2,6 @@
 
 with "aws";
 with "xmlada";
-with "yolk";
 
 project OpenID is
    for Main use ("openid_demo");

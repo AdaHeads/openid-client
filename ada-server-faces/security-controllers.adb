@@ -16,7 +16,7 @@
 --  limitations under the License.
 -----------------------------------------------------------------------
 
-with Yolk.Log;
+with AWS.OpenID.Log;
 
 package body Security.Controllers is
 
@@ -37,9 +37,9 @@ package body Security.Controllers is
    --  ------------------------------
    procedure Register_Controller (Name    : in String;
                                   Factory : in Controller_Factory) is
-      use Yolk.Log;
+      use AWS.OpenID.Log;
    begin
-      Trace (Info, "Register security controller factory " & Name);
+      Info ("Register security controller factory " & Name);
       for I in Factories'Range loop
          if Factories (I) = null then
             Factories (I) := new Factory_Entry '(Len     => Name'Length,
@@ -48,8 +48,7 @@ package body Security.Controllers is
             return;
          end if;
       end loop;
-      Trace (Error, 
-             "Maximum number of security factories is reached: " &
+      Error ("Maximum number of security factories is reached: " &
                Positive'Image (MAX_CONTROLLER_FACTORY));
       raise Program_Error
         with "Too many security controller factory. Increase MAX_CONTROLLER_FACTORY.";
@@ -61,9 +60,9 @@ package body Security.Controllers is
    --  Raises <b>Invalid_Controller</b> if the name is not recognized.
    --  ------------------------------
    function Create_Controller (Name : in String) return Controller_Access is
-      use Yolk.Log;
+      use AWS.OpenID.Log;
    begin
-      Trace (Debug, "Creating security controller " & Name);
+      Debug ("Creating security controller " & Name);
 
       for I in Factories'Range loop
          exit when Factories (I) = null;
@@ -72,7 +71,7 @@ package body Security.Controllers is
          end if;
       end loop;
 
-      Trace (Error ,"Security controller factory " & Name & " not found");
+      Error ("Security controller factory " & Name & " not found");
       raise Invalid_Controller;
    end Create_Controller;
 

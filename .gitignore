@@ -16,3 +16,6 @@ openid
 openid_demo
 openid_demo-201?-??-??.log
 openid-secure-201?-??-??.log
+
+demo/openid_demo.state.associations
+demo/openid_demo.state.authentications

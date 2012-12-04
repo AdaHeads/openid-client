@@ -19,7 +19,7 @@ with
   Ada.Exceptions;
 with
   AWS.Session,
-  Yolk.Log;
+  AWS.OpenID.Log;
 
 package body Authentication_Database is
    Session_Key : constant String := "OpenID.Identity";
@@ -43,9 +43,8 @@ package body Authentication_Database is
       when Not_Authenticated =>
          raise;
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database." &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database." &
                        "Register_Identity: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
@@ -59,9 +58,8 @@ package body Authentication_Database is
                                 Key => Session_Key);
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database." &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database." &
                        "Is_Authenticated: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
@@ -82,9 +80,8 @@ package body Authentication_Database is
       when Not_Authenticated =>
          raise;
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Identity: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database.Identity: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Identity;
@@ -97,9 +94,8 @@ package body Authentication_Database is
                           Key => Session_Key);
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Delete: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database.Delete: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Delete_Identity;

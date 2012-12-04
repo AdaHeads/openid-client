@@ -21,7 +21,7 @@ with Ada.Streams.Stream_IO;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 
-with Yolk.Log;
+with AWS.OpenID.Log;
 
 package body Util.Serialize.IO is
 
@@ -30,11 +30,11 @@ package body Util.Serialize.IO is
    --  ------------------------------
    procedure Parse (Handler : in out Parser;
                     File    : in String) is
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       Stream     : aliased Util.Streams.Files.File_Stream;
       Buffer     : Util.Streams.Buffered.Buffered_Stream;
    begin
-      Trace (Info, "Reading file " & File);
+      Info ("Reading file " & File);
 
       Handler.File := Ada.Strings.Unbounded.To_Unbounded_String (File);
       Buffer.Initialize (Output => null,
@@ -116,14 +116,14 @@ package body Util.Serialize.IO is
    procedure Start_Object (Handler : in out Parser;
                            Name    : in String) is
 
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       use type Util.Serialize.Mappers.Mapper_Access;
 
       Current : constant Element_Context_Access := Context_Stack.Current (Handler.Stack);
       Next    : Element_Context_Access;
       Pos     : Positive;
    begin
-      Trace (Debug, "Start object " & Name);
+      Debug ("Start object " & Name);
 
       Context_Stack.Push (Handler.Stack);
       Next := Context_Stack.Current (Handler.Stack);
@@ -161,10 +161,10 @@ package body Util.Serialize.IO is
    procedure Finish_Object (Handler : in out Parser;
                             Name    : in String) is
 
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       use type Util.Serialize.Mappers.Mapper_Access;
    begin
-      Trace (Debug, "Finish object " & Name);
+      Debug ("Finish object " & Name);
 
       declare
          Current : constant Element_Context_Access := Context_Stack.Current (Handler.Stack);
@@ -206,12 +206,12 @@ package body Util.Serialize.IO is
                          Name      : in String;
                          Value     : in Util.Beans.Objects.Object;
                          Attribute : in Boolean := False) is
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       use Util.Serialize.Mappers;
 
       Current : constant Element_Context_Access := Context_Stack.Current (Handler.Stack);
    begin
-      Trace (Debug, "Set member " & Name);
+      Debug ("Set member " & Name);
 
       if Current /= null then
 
@@ -260,10 +260,9 @@ package body Util.Serialize.IO is
    --  ------------------------------
    procedure Error (Handler : in out Parser;
                     Message : in String) is
-      use Yolk.Log;
    begin
-      Trace (Error,
-             Parser'Class (Handler).Get_Location & ": " & Message);
+      AWS.OpenID.Log.Error
+        (Parser'Class (Handler).Get_Location & ": " & Message);
       Handler.Error_Flag := True;
    end Error;
 

@@ -23,7 +23,7 @@ with
   Ada.Strings.Fixed.Hash;
 with
   AWS.Cookie,
-  Yolk.Log;
+  AWS.OpenID.Log;
 
 package body Authentication_Database is
    Token_Lifetime    : constant Duration := 3600.0;
@@ -90,27 +90,23 @@ package body Authentication_Database is
          end loop Search_For_Unused_Token;
       exception
          when others =>
-            Yolk.Log.Trace
-              (Handle  => Yolk.Log.Error,
-               Message => "Failed to insert <" & Identity & "> into the " &
+            AWS.OpenID.Log.Error
+              (Message => "Failed to insert <" & Identity & "> into the " &
                           "authentication database with the token <" &
                           Token & ">.");
-            Yolk.Log.Trace
-              (Handle  => Yolk.Log.Error,
-               Message => "Current database capacity: " &
+            AWS.OpenID.Log.Error
+              (Message => "Current database capacity: " &
                           Maps.Capacity (Authentications)'Img);
-            Yolk.Log.Trace
-              (Handle  => Yolk.Log.Error,
-               Message => "Hash value: " &
+            AWS.OpenID.Log.Error
+              (Message => "Hash value: " &
                           Ada.Strings.Fixed.Hash (Token)'Img);
             raise;
       end Insert;
 
       function Has (Token : in String) return Boolean is
       begin
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Looking up if <" & Token &
+         AWS.OpenID.Log.Info
+           (Message => "Looking up if <" & Token &
                        "> exists in the authentication database.");
          return Maps.Contains (Container => Authentications,
                                Key       => Token);
@@ -118,9 +114,8 @@ package body Authentication_Database is
 
       function Identity (Token : in String) return String is
       begin
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Looking <" & Token &
+         AWS.OpenID.Log.Info
+           (Message => "Looking <" & Token &
                        "> up in the authentication database.");
          return Maps.Element (Container => Authentications,
                               Key       => Token);
@@ -138,9 +133,8 @@ package body Authentication_Database is
 
       procedure Delete (Token : in     String) is
       begin
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Removing <" & Token &
+         AWS.OpenID.Log.Info
+           (Message => "Removing <" & Token &
                        "> from the authentication database.");
          Maps.Delete (Container => Authentications,
                       Key       => Token);
@@ -174,9 +168,8 @@ package body Authentication_Database is
       when Not_Authenticated =>
          raise;
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database." &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database." &
                        "Register_Identity: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
@@ -193,9 +186,8 @@ package body Authentication_Database is
       when Constraint_Error =>
          return False;
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database." &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database." &
                        "Is_Authenticated: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
@@ -212,9 +204,8 @@ package body Authentication_Database is
       when Not_Authenticated | Constraint_Error =>
          raise;
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Identity: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database.Identity: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Identity;
@@ -231,9 +222,8 @@ package body Authentication_Database is
                          Key     => Token_Cookie_Name);
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Authentication_Database.Delete: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database.Delete: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Delete_Identity;

@@ -20,7 +20,7 @@ with Ada.Unchecked_Deallocation;
 with Util.Serialize.Contexts;
 with Util.Strings.Transforms;
 
-with Yolk.Log;
+with AWS.OpenID.Log;
 
 package body Util.Serialize.Mappers.Record_Mapper is
 
@@ -149,10 +149,9 @@ package body Util.Serialize.Mappers.Record_Mapper is
    procedure Set_Member (Attr    : in Mapping'Class;
                          Element : in out Element_Type;
                          Value   : in Util.Beans.Objects.Object) is
-      use Yolk.Log;
    begin
       if not (Attr in Attribute_Mapping) then
-         Trace (Error, "Mapping is not an Attribute_Mapping");
+         AWS.OpenID.Log.Error ("Mapping is not an Attribute_Mapping");
          raise Mapping_Error;
       end if;
       Attribute_Mapping (Attr).Set_Member (Element, Value);
@@ -216,10 +215,9 @@ package body Util.Serialize.Mappers.Record_Mapper is
    procedure Write (Handler : in Mapper;
                     Stream  : in out Util.Serialize.IO.Output_Stream'Class;
                     Element : in Element_Type) is
-      use Yolk.Log;
    begin
       if Handler.Get_Member = null then
-         Trace (Error, "The mapper has a null Get_Member function");
+         AWS.OpenID.Log.Error ("The mapper has a null Get_Member function");
          raise Mapping_Error with "The mapper has a null Get_Member function";
       end if;
       Write (Handler, Handler.Get_Member, Stream, Element);

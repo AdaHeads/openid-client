@@ -19,8 +19,8 @@
 with Util.Strings;
 with Ada.Unchecked_Deallocation;
 
-with Yolk.Log;
-pragma Elaborate (Yolk.Log);
+with AWS.OpenID.Log;
+pragma Elaborate (AWS.OpenID.Log);
 
 package body Util.Serialize.Mappers is
 
@@ -167,18 +167,18 @@ package body Util.Serialize.Mappers is
          end loop;
       end Copy;
 
-      use Yolk.Log;
+      use AWS.OpenID.Log;
    begin
-      Trace (Info, "Mapping '" & Path & "' for mapper X");
+      Info ("Mapping '" & Path & "' for mapper X");
 
       --  Find or build the mapping tree.
       Into.Build_Path (Path, Last_Pos, Node);
 
       if Last_Pos < Path'Last then
-         Trace (Warning, "Ignoring the end of mapping path " & Path);
+         Warning ("Ignoring the end of mapping path " & Path);
       end if;
       if Node.Mapper /= null then
-         Trace (Warning, "Overriding the mapping " & Path & " for mapper X");
+         Warning ("Overriding the mapping " & Path & " for mapper X");
       end if;
       if Map.First_Child /= null then
          Copy (Node, Map.First_Child);
@@ -191,23 +191,23 @@ package body Util.Serialize.Mappers is
                           Path : in String;
                           Map  : in Mapping_Access) is
       use Ada.Strings.Unbounded;
-      use Yolk.Log;
+      use AWS.OpenID.Log;
       Node     : Mapper_Access;
       Last_Pos : Natural;
    begin
-      Trace (Info, "Mapping " & Path);
+      Info ("Mapping " & Path);
 
       --  Find or build the mapping tree.
       Into.Build_Path (Path, Last_Pos, Node);
 
       if Last_Pos < Path'Last then
-         Trace (Warning, "Ignoring the end of mapping path " & Path);
+         Warning ("Ignoring the end of mapping path " & Path);
       end if;
       if Node.Mapping /= null then
-         Trace (Warning, "Overriding the mapping " & Path & " for mapper X");
+         Warning ("Overriding the mapping " & Path & " for mapper X");
       end if;
       if Length (Node.Name) = 0 then
-         Trace (Warning, "Mapped name is empty in mapping path " & Path);
+         Warning ("Mapped name is empty in mapping path " & Path);
       elsif Element (Node.Name, 1) = '@' then
          Delete (Node.Name, 1, 1);
          Map.Is_Attribute := True;
@@ -278,14 +278,12 @@ package body Util.Serialize.Mappers is
       --  Dump the mapping description
       --  -----------------------
       procedure Dump (Map : in Mapper'Class) is
-         use Yolk.Log;
+         use AWS.OpenID.Log;
       begin
          if Map.Mapping /= null and then Map.Mapping.Is_Attribute then
-            Trace (Info,
-                   " " & Prefix & "@" & Ada.Strings.Unbounded.To_String (Map.Mapping.Name));
+            Info (" " & Prefix & "@" & Ada.Strings.Unbounded.To_String (Map.Mapping.Name));
          else
-            Trace (Info,
-                   " " & Prefix & "@" & Ada.Strings.Unbounded.To_String (Map.Name));
+            Info (" " & Prefix & "@" & Ada.Strings.Unbounded.To_String (Map.Name));
             Dump (Map, Prefix & "/" & Ada.Strings.Unbounded.To_String (Map.Name));
          end if;
       end Dump;

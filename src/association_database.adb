@@ -22,7 +22,7 @@ with
   Ada.Strings.Unbounded,
   Ada.Strings.Unbounded.Hash;
 with
-  Yolk.Log;
+  AWS.OpenID.Log;
 
 package body Association_Database is
    package Maps is
@@ -61,19 +61,16 @@ package body Association_Database is
                       New_Item  => Item);
       exception
          when others =>
-            Yolk.Log.Trace
-              (Handle  => Yolk.Log.Error,
-               Message => "Failed to insert <" &
+            AWS.OpenID.Log.Error
+              (Message => "Failed to insert <" &
                           Security.OpenID.To_String (Item) &
                           "> into the association database with the handle <" &
                           Ada.Strings.Unbounded.To_String (Key) & ">.");
-            Yolk.Log.Trace
-              (Handle  => Yolk.Log.Error,
-               Message => "Current database capacity: " &
+            AWS.OpenID.Log.Error
+              (Message => "Current database capacity: " &
                           Maps.Capacity (Associations)'Img);
-            Yolk.Log.Trace
-              (Handle  => Yolk.Log.Error,
-               Message => "Hash value: " &
+            AWS.OpenID.Log.Error
+              (Message => "Hash value: " &
                           Ada.Strings.Unbounded.Hash (Key)'Img);
             raise;
       end Insert;
@@ -81,9 +78,8 @@ package body Association_Database is
       function Has (Handle : in Security.OpenID.Association_Handle)
         return Boolean is
       begin
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Looking up if <" &
+         AWS.OpenID.Log.Info
+           (Message => "Looking up if <" &
                        Ada.Strings.Unbounded.To_String (Handle) &
                        "> exists in the association database.");
          return Maps.Contains (Container => Associations,
@@ -93,9 +89,8 @@ package body Association_Database is
       function Look_Up (Handle : in Security.OpenID.Association_Handle)
         return Security.OpenID.Association is
       begin
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Info,
-            Message => "Looking <" & Ada.Strings.Unbounded.To_String (Handle) &
+         AWS.OpenID.Log.Info
+           (Message => "Looking <" & Ada.Strings.Unbounded.To_String (Handle) &
                        "> up in the association database.");
          return Maps.Element (Container => Associations,
                               Key       => Handle);
@@ -150,9 +145,8 @@ package body Association_Database is
       Database.Clean_Up;
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Association_Database.Clean_Up: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Association_Database.Clean_Up: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
          raise;
@@ -164,9 +158,8 @@ package body Association_Database is
       Database.Insert (Item => Item);
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Association_Database.Insert: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Association_Database.Insert: " &
                        Ada.Exceptions.Exception_Name (E) & " (" &
                        Ada.Exceptions.Exception_Information (E) & ")");
          raise;
@@ -179,9 +172,8 @@ package body Association_Database is
       return Database.Has (Handle => Handle);
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Association_Database.Has: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Association_Database.Has: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Has;
@@ -193,9 +185,8 @@ package body Association_Database is
       return Database.Look_Up (Handle => Handle);
    exception
       when E : others =>
-         Yolk.Log.Trace
-           (Handle  => Yolk.Log.Error,
-            Message => "Execption in Association_Database.Look_Up: " &
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Association_Database.Look_Up: " &
                        Ada.Exceptions.Exception_Name (E));
          raise;
    end Look_Up;
