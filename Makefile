@@ -1,6 +1,7 @@
 include .config
 
 all: style-check
+	mkdir obj
 	gnatmake $(GNATMAKE_ARGS) -P openid
 
 clean:
