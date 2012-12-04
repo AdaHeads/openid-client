@@ -43,7 +43,7 @@ echo "export GNATMAKE_ARGS=${GNATMAKE_ARGS}" >> .config
 #--  External library source directory:
 
 if [ -z "${AUTHENTICATION_DATABASE_IMPLEMENTATION}" ]; then
-   AUTHENTICATION_DATABASE_IMPLEMENTATION="hashed_map"
+   AUTHENTICATION_DATABASE_IMPLEMENTATION="session_cookies"
 
    echo "Set 'AUTHENTICATION_DATABASE_IMPLEMENTATION' to '${AUTHENTICATION_DATABASE_IMPLEMENTATION}'."
    echo "If this is incorrect, please modify '.config' accordingly."
