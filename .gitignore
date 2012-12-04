@@ -12,6 +12,8 @@ b~*.adb
 .config
 .config.sh
 
+generated
+
 demo/openid_demo
 demo/openid_demo-201?-??-??.log
 demo/openid_demo.state.associations

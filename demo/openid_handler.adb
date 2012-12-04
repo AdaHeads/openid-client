@@ -23,11 +23,13 @@ with
   AWS.OpenID.Log,
   AWS.OpenID.Manual_Dispatching,
   AWS.Status;
+with
+  Configuration;
 
 package body OpenID_Handler is
-   package OpenID is
-      new AWS.OpenID.Manual_Dispatching (Host_Name       => "jaws.adaheads.com",
-                                         Logged_Out_Page => "");
+   package OpenID is new AWS.OpenID.Manual_Dispatching
+                           (Host_Name       => Configuration.Host_Name,
+                            Logged_Out_Page => "");
 
    function Service (Request : in AWS.Status.Data) return AWS.Response.Data is
    begin

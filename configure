@@ -7,6 +7,8 @@ if [ "$(dirname "$0")" != "." ]; then
    exit 1
 fi
 
+exit_code=0
+
 #-----------------------------------------------------------------------------
 #--  Check stored configuration:
 
@@ -15,8 +17,7 @@ function generate_config_script() {
       echo "# Generated file.  Please modify '.config' and run './configure' to update."
       perl -lpe 's|^(.+=)|export $1|;
                  s|^export (export )+|export |;
-                 s|=([^"])|="$1|;
-                 s|([^"])$|$1"|;' .config
+                 s|=([^"]*)$|="$1"|;' .config
    ) > .config.sh
    touch --reference=.config .config.sh
 }
@@ -52,6 +53,15 @@ fi
 echo "export AUTHENTICATION_DATABASE_IMPLEMENTATION=${AUTHENTICATION_DATABASE_IMPLEMENTATION}" >> .config
 
 #-----------------------------------------------------------------------------
+#--  Server name:
+
+if [ -z "${SERVER_NAME}" ]; then
+   echo "Please give 'SERVER_NAME' a value in '.config' and run './configure' again."
+   echo "export SERVER_NAME=" >> .config
+   exit_code=2
+fi
+
+#----------------------------------------------------------------------------
 #--  Clean up config file:
 
 buffer="$(mktemp ".config-XXXXXX")"
@@ -73,5 +83,7 @@ else
 fi
 
 generate_config_script
+
+exit ${exit_code}
 
 #-----------------------------------------------------------------------------
