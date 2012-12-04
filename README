@@ -1,0 +1,10 @@
+OpenID authentication for the Ada Web Server library (AWS).
+
+Build (with demo application):
+
+   SERVER_NAME=your.server.name ./configure && make
+
+Run demo application:
+
+   sudo ./demo/openid_demo
+
