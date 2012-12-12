@@ -8,3 +8,9 @@ Run demo application:
 
    sudo ./demo/openid_demo
 
+We start with a branch of "Ada Server Faces" which means that the code in 
+this repository for the time being is under the Apache 2 license. 
+This is compatible with GPL-3 (but apparently not with GPL-2), so 
+applications compiled with this will end up being either Apache-2 or 
+GPL-3 licensed.
+
