@@ -9,8 +9,8 @@ b__*.adb
 b~*.ads
 b~*.adb
 
-.config
-.config.sh
+build_debug
+build_production
 
 generated
 

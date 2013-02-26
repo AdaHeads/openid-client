@@ -15,24 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Association_Database,
-  Authentication_Database;
+with Association_Database;
+with Authentication_Database;
 
 package body AWS.OpenID.State is
-   procedure Save (File_Name : in     String) is
-   begin
-      Association_Database.Save    (File_Name & ".associations");
-      Authentication_Database.Save (File_Name & ".authentications");
-   end Save;
 
-   procedure Load (File_Name           : in     String;
-                   Suppress_Exceptions : in     Boolean := False) is
-   begin
+   ------------
+   --  Load  --
+   ------------
 
-  Load_Association_Data:
+   procedure Load
+     (File_Name           : in String;
+      Suppress_Exceptions : in Boolean := False)
+   is
+   begin
+      Load_Association_Data :
       begin
-         Association_Database.Load    (File_Name & ".associations");
+         Association_Database.Load (File_Name & ".associations");
       exception
          when others =>
             if not Suppress_Exceptions then
@@ -40,7 +39,7 @@ package body AWS.OpenID.State is
             end if;
       end Load_Association_Data;
 
-  Load_Authentication_Data:
+      Load_Authentication_Data :
       begin
          Authentication_Database.Load (File_Name & ".authentications");
       exception
@@ -50,4 +49,17 @@ package body AWS.OpenID.State is
             end if;
       end Load_Authentication_Data;
    end Load;
+
+   ------------
+   --  Save  --
+   ------------
+
+   procedure Save
+     (File_Name : in String)
+   is
+   begin
+      Association_Database.Save (File_Name & ".associations");
+      Authentication_Database.Save (File_Name & ".authentications");
+   end Save;
+
 end AWS.OpenID.State;

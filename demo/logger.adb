@@ -1,19 +1,35 @@
-with
-  Ada.Characters.Latin_1,
-  Ada.Strings.Fixed,
-  Ada.Text_IO;
+with Ada.Characters.Latin_1;
+with Ada.Text_IO;
 
 package body Logger is
+
    protected File is
-      procedure Open (Name : in     String);
       procedure Close;
+      procedure Open (Name : in     String);
       procedure Put (Prefix, Message : in     String);
    private
       Log : Ada.Text_IO.File_Type;
    end File;
 
    protected body File is
-      procedure Open (Name : in     String) is
+
+      -------------
+      --  Close  --
+      -------------
+
+      procedure Close
+      is
+      begin
+         Ada.Text_IO.Close (File => Log);
+      end Close;
+
+      ------------
+      --  Open  --
+      ------------
+
+      procedure Open
+        (Name : in String)
+      is
       begin
          Ada.Text_IO.Open (File => Log,
                            Name => Name,
@@ -25,17 +41,17 @@ package body Logger is
                                 Mode => Ada.Text_IO.Out_File);
       end Open;
 
-      procedure Close is
-      begin
-         Ada.Text_IO.Close (File => Log);
-      end Close;
+      -----------
+      --  Put  --
+      -----------
 
-      procedure Put (Prefix, Message : in     String) is
+      procedure Put
+        (Prefix, Message : in String)
+      is
          Position : Positive := Message'First;
       begin
          Ada.Text_IO.Put (Log, " " & Prefix & " : ");
          loop
-
             loop
                exit when Position > Message'Last;
                exit when Message (Position) = Ada.Characters.Latin_1.LF;
@@ -59,33 +75,68 @@ package body Logger is
       end Put;
    end File;
 
-   procedure Open (File_Name : in     String) is
-   begin
-      File.Open (File_Name);
-   end Open;
+   -------------
+   --  Close  --
+   -------------
 
    procedure Close is
    begin
       File.Close;
    end Close;
 
-   procedure Info    (Message : in     String) is
-   begin
-      File.Put ("Info", Message);
-   end Info;
+   -------------
+   --  Debug  --
+   -------------
 
-   procedure Debug (Message : in     String) is
+   procedure Debug
+     (Message : in String)
+   is
    begin
       File.Put ("Debug", Message);
    end Debug;
 
-   procedure Error (Message : in     String) is
+   -------------
+   --  Error  --
+   -------------
+
+   procedure Error
+     (Message : in String)
+   is
    begin
       File.Put ("Error", Message);
    end Error;
 
-   procedure Warning (Message : in     String) is
+   ------------
+   --  Info  --
+   ------------
+
+   procedure Info
+     (Message : in String)
+   is
+   begin
+      File.Put ("Info", Message);
+   end Info;
+
+   ------------
+   --  Open  --
+   ------------
+
+   procedure Open
+     (File_Name : in String)
+   is
+   begin
+      File.Open (File_Name);
+   end Open;
+
+   ---------------
+   --  Warning  --
+   ---------------
+
+   procedure Warning
+     (Message : in String)
+   is
    begin
       File.Put ("Warning", Message);
    end Warning;
+
 end Logger;

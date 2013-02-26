@@ -15,32 +15,40 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  AWS.Response,
-  AWS.Status;
-
-private with
-  Security.OpenID;
-pragma Elaborate (Security.OpenID);
+with AWS.Response;
+with AWS.Status;
 
 generic
+
    Host_Name       : String;
    Log_In_Page     : String := "log_in";
    Return_To_Page  : String := "return_to";
    Logged_In_Page  : String := "logged_in";
    Log_Out_Page    : String := "log_out";
    Logged_Out_Page : String := "logged_out";
+
 package AWS.OpenID.Manual_Dispatching is
+
+   Not_Authenticated : exception;
+
    Provider_Parameter_Name : constant String := "openid";
 
    package Log_In is
       URI : constant String := "/" & Log_In_Page;
-      function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
+
+      function Service
+        (Request : in AWS.Status.Data)
+         return AWS.Response.Data;
+      --  TODO: write comment
    end Log_In;
 
    package Validate is
       URI : constant String := "/" & Return_To_Page;
-      function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
+
+      function Service
+        (Request : in AWS.Status.Data)
+         return AWS.Response.Data;
+      --  TODO: write comment
    end Validate;
 
    package Logged_In is
@@ -49,16 +57,25 @@ package AWS.OpenID.Manual_Dispatching is
 
    package Log_Out is
       URI : constant String := "/" & Log_Out_Page;
-      function Service (Request : in AWS.Status.Data) return AWS.Response.Data;
+
+      function Service
+        (Request : in AWS.Status.Data)
+         return AWS.Response.Data;
+      --  TODO: write comment
    end Log_Out;
 
    package Logged_Out is
       URI : constant String := "/" & Logged_Out_Page;
    end Logged_Out;
 
-   function Is_Authenticated (Request : in AWS.Status.Data) return Boolean;
+   function Is_Authenticated
+     (Request : in AWS.Status.Data)
+      return Boolean;
+   --  TODO: write comment
 
-   Not_Authenticated : exception;
+   function Authenticated_As
+     (Request : in AWS.Status.Data)
+      return String;
+   --  TODO: write comment
 
-   function Authenticated_As (Request : in AWS.Status.Data) return String;
 end AWS.OpenID.Manual_Dispatching;

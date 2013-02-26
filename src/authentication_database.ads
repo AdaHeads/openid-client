@@ -15,27 +15,42 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-   AWS.Response,
-   AWS.Status;
-with
-  Security.OpenID;
+with AWS.Response;
+with AWS.Status;
+
+with Security.Openid;
 
 package Authentication_Database is
+
    Not_Authenticated : exception;
 
+   procedure Delete_Identity
+     (Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data);
+   --  TODO: write comment
+
+   function Identity
+     (Request : in AWS.Status.Data)
+      return String;
+   --  TODO: write comment
+
+   function Is_Authenticated
+     (Request  : in AWS.Status.Data)
+      return Boolean;
+   --  TODO: write comment
+
+   procedure Load
+     (File_Name : in String);
+   --  TODO: write comment
+
    procedure Register_Identity
-     (Source   : in     Security.OpenID.Authentication;
+     (Source   : in     Security.Openid.Authentication;
       Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data);
+   --  TODO: write comment
 
-   function Is_Authenticated (Request  : in AWS.Status.Data) return Boolean;
+   procedure Save
+     (File_Name : in String);
+   --  TODO: write comment
 
-   function Identity (Request : in AWS.Status.Data) return String;
-
-   procedure Delete_Identity (Request  : in     AWS.Status.Data;
-                              Response : in out AWS.Response.Data);
-
-   procedure Save (File_Name : in     String);
-   procedure Load (File_Name : in     String);
 end Authentication_Database;

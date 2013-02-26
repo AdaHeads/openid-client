@@ -15,46 +15,89 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Containers.Hashed_Maps,
-  Ada.Exceptions,
-  Ada.Streams.Stream_IO,
-  Ada.Strings.Unbounded,
-  Ada.Strings.Unbounded.Hash;
-with
-  AWS.OpenID.Log;
+with Ada.Containers.Hashed_Maps;
+with Ada.Exceptions;
+with Ada.Streams.Stream_IO;
+with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Hash;
+
+with AWS.OpenID.Log;
 
 package body Association_Database is
-   package Maps is
-     new Ada.Containers.Hashed_Maps
-           (Key_Type        => Security.OpenID.Association_Handle,
-            Hash            => Ada.Strings.Unbounded.Hash,
-            Equivalent_Keys => Ada.Strings.Unbounded."=",
-            Element_Type    => Security.OpenID.Association,
-            "="             => Security.OpenID."=");
+
+   package Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Security.OpenID.Association_Handle,
+      Hash            => Ada.Strings.Unbounded.Hash,
+      Equivalent_Keys => Ada.Strings.Unbounded."=",
+      Element_Type    => Security.OpenID.Association,
+      "="             => Security.OpenID."=");
 
    protected Database is
       procedure Clean_Up;
-      procedure Insert (Item : in     Security.OpenID.Association);
-      function Has (Handle : in Security.OpenID.Association_Handle)
-        return Boolean;
-      function Look_Up (Handle : in Security.OpenID.Association_Handle)
-        return Security.OpenID.Association;
-      procedure Save (File_Name : in     String);
-      procedure Load (File_Name : in     String);
+
+      function Has
+        (Handle : in Security.Openid.Association_Handle)
+         return Boolean;
+
+      procedure Insert
+        (Item : in Security.Openid.Association);
+
+      procedure Load
+        (File_Name : in String);
+
+      function Look_Up
+        (Handle : in Security.Openid.Association_Handle)
+         return Security.Openid.Association;
+
+      procedure Save
+        (File_Name : in String);
    private
       Associations : Maps.Map := Maps.Empty_Map;
    end Database;
 
+   ----------------
+   --  Database  --
+   ----------------
+
    protected body Database is
-      procedure Clean_Up is
+
+      ----------------
+      --  Clean_Up  --
+      ----------------
+
+      procedure Clean_Up
+      is
       begin
          raise Program_Error;
       end Clean_Up;
 
-      procedure Insert (Item : in     Security.OpenID.Association) is
-         Key : constant Security.OpenID.Association_Handle
-                 := Security.OpenID.Handle (Item);
+      -----------
+      --  Has  --
+      -----------
+
+      function Has
+        (Handle : in Security.Openid.Association_Handle)
+         return Boolean
+      is
+      begin
+         AWS.OpenID.Log.Info
+           (Message => "Looking up if <" &
+              Ada.Strings.Unbounded.To_String (Handle) &
+              "> exists in the association database.");
+
+         return Maps.Contains (Container => Associations,
+                               Key       => Handle);
+      end Has;
+
+      --------------
+      --  Insert  --
+      --------------
+
+      procedure Insert
+        (Item : in Security.Openid.Association)
+      is
+         Key : constant Security.Openid.Association_Handle
+           := Security.Openid.Handle (Item);
       begin
          Maps.Insert (Container => Associations,
                       Key       => Key,
@@ -63,7 +106,7 @@ package body Association_Database is
          when others =>
             AWS.OpenID.Log.Error
               (Message => "Failed to insert <" &
-                          Security.OpenID.To_String (Item) &
+                          Security.Openid.To_String (Item) &
                           "> into the association database with the handle <" &
                           Ada.Strings.Unbounded.To_String (Key) & ">.");
             AWS.OpenID.Log.Error
@@ -75,19 +118,43 @@ package body Association_Database is
             raise;
       end Insert;
 
-      function Has (Handle : in Security.OpenID.Association_Handle)
-        return Boolean is
-      begin
-         AWS.OpenID.Log.Info
-           (Message => "Looking up if <" &
-                       Ada.Strings.Unbounded.To_String (Handle) &
-                       "> exists in the association database.");
-         return Maps.Contains (Container => Associations,
-                               Key       => Handle);
-      end Has;
+      ------------
+      --  Load  --
+      ------------
 
-      function Look_Up (Handle : in Security.OpenID.Association_Handle)
-        return Security.OpenID.Association is
+      procedure Load (File_Name : in String)
+      is
+         use Ada.Streams.Stream_IO;
+
+         File    : Ada.Streams.Stream_IO.File_Type;
+         Source  : Ada.Streams.Stream_IO.Stream_Access;
+         Key     : Security.Openid.Association_Handle;
+         Element : Security.Openid.Association;
+      begin
+         Open (File => File,
+               Name => File_Name,
+               Mode => In_File);
+         Source := Stream (File);
+
+         while not End_Of_File (File) loop
+            Key     := Security.Openid.Association_Handle'Input (Source);
+            Element := Security.Openid.Association'Input (Source);
+            Maps.Insert (Container => Associations,
+                         Key       => Key,
+                         New_Item  => Element);
+         end loop;
+
+         Close (File => File);
+      end Load;
+
+      ---------------
+      --  Look_Up  --
+      ---------------
+
+      function Look_Up
+        (Handle : in Security.Openid.Association_Handle)
+         return Security.Openid.Association
+      is
       begin
          AWS.OpenID.Log.Info
            (Message => "Looking <" & Ada.Strings.Unbounded.To_String (Handle) &
@@ -98,14 +165,25 @@ package body Association_Database is
 
       procedure Save (File_Name : in     String) is
          use Ada.Streams.Stream_IO;
+
+         procedure Save
+           (Position : in Maps.Cursor);
+         --  TODO: write comment
+
          File    : Ada.Streams.Stream_IO.File_Type;
          Target  : Ada.Streams.Stream_IO.Stream_Access;
 
-         procedure Save (Position : in     Maps.Cursor) is
+         ------------
+         --  Save  --
+         ------------
+
+         procedure Save
+           (Position : in Maps.Cursor)
+         is
          begin
-            Security.OpenID.Association_Handle'Output (Target,
+            Security.Openid.Association_Handle'Output (Target,
                                                        Maps.Key (Position));
-            Security.OpenID.Association'Output (Target,
+            Security.Openid.Association'Output (Target,
                                                 Maps.Element (Position));
          end Save;
       begin
@@ -117,43 +195,50 @@ package body Association_Database is
          Close (File => File);
       end Save;
 
-      procedure Load (File_Name : in     String) is
-         use Ada.Streams.Stream_IO;
-         File    : Ada.Streams.Stream_IO.File_Type;
-         Source  : Ada.Streams.Stream_IO.Stream_Access;
-         Key     : Security.OpenID.Association_Handle;
-         Element : Security.OpenID.Association;
-      begin
-         Open (File => File,
-               Name => File_Name,
-               Mode => In_File);
-         Source := Stream (File);
-         while not End_Of_File (File) loop
-            Key     := Security.OpenID.Association_Handle'Input (Source);
-            Element := Security.OpenID.Association'Input (Source);
-            Maps.Insert (Container => Associations,
-                         Key       => Key,
-                         New_Item  => Element);
-         end loop;
-         Close (File => File);
-      end Load;
    end Database;
 
-   procedure Clean_Up is
-      pragma Inline (Clean_Up);
+   ----------------
+   --  Clean_Up  --
+   ----------------
+
+   procedure Clean_Up
+   is
    begin
       Database.Clean_Up;
    exception
       when E : others =>
          AWS.OpenID.Log.Error
            (Message => "Exception in Association_Database.Clean_Up: " &
-                       Ada.Exceptions.Exception_Name (E) & " (" &
-                       Ada.Exceptions.Exception_Information (E) & ")");
+              Ada.Exceptions.Exception_Name (E) & " (" &
+              Ada.Exceptions.Exception_Information (E) & ")");
          raise;
    end Clean_Up;
 
-   procedure Insert (Item : in     Security.OpenID.Association) is
-      pragma Inline (Insert);
+   -----------
+   --  Has  --
+   -----------
+
+   function Has
+     (Handle : in Security.Openid.Association_Handle)
+      return Boolean
+   is
+   begin
+      return Database.Has (Handle => Handle);
+   exception
+      when E : others =>
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Association_Database.Has: " &
+                       Ada.Exceptions.Exception_Name (E));
+         raise;
+   end Has;
+
+   --------------
+   --  Insert  --
+   --------------
+
+   procedure Insert
+     (Item : in Security.Openid.Association)
+   is
    begin
       Database.Insert (Item => Item);
    exception
@@ -165,39 +250,44 @@ package body Association_Database is
          raise;
    end Insert;
 
-   function Has (Handle : in Security.OpenID.Association_Handle)
-     return Boolean is
-      pragma Inline (Has);
-   begin
-      return Database.Has (Handle => Handle);
-   exception
-      when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Association_Database.Has: " &
-                       Ada.Exceptions.Exception_Name (E));
-         raise;
-   end Has;
+   ------------
+   --  Load  --
+   ------------
 
-   function Look_Up (Handle : in Security.OpenID.Association_Handle)
-     return Security.OpenID.Association is
-      pragma Inline (Look_Up);
+   procedure Load
+     (File_Name : in String)
+   is
+   begin
+      Database.Load (File_Name => File_Name);
+   end Load;
+
+   ---------------
+   --  Look_Up  --
+   ---------------
+
+   function Look_Up
+     (Handle : in Security.Openid.Association_Handle)
+      return Security.Openid.Association
+   is
    begin
       return Database.Look_Up (Handle => Handle);
    exception
       when E : others =>
          AWS.OpenID.Log.Error
            (Message => "Exception in Association_Database.Look_Up: " &
-                       Ada.Exceptions.Exception_Name (E));
+              Ada.Exceptions.Exception_Name (E));
          raise;
    end Look_Up;
 
-   procedure Save (File_Name : in     String) is
+   ------------
+   --  Save  --
+   ------------
+
+   procedure Save
+     (File_Name : in String)
+   is
    begin
       Database.Save (File_Name => File_Name);
    end Save;
 
-   procedure Load (File_Name : in     String) is
-   begin
-      Database.Load (File_Name => File_Name);
-   end Load;
 end Association_Database;

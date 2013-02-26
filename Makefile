@@ -1,11 +1,18 @@
-include .config
+ifeq ($(PROCESSORS),)
+PROCESSORS=1
+endif
 
 all: style-check generated/configuration.ads
 	mkdir -p obj
-	gnatmake $(GNATMAKE_ARGS) -P openid
+	gnatmake -j${PROCESSORS} -P openid
+
+debug:
+	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P openid
 
 clean:
-	rm -f *.o *.ali b__*.ad?
+	gnatclean -P openid
+	BUILDTYPE=Debug gnatclean -P openid
+	rm -f generated/*
 
 distclean: clean
 
@@ -18,5 +25,5 @@ fix-style:
 generated/configuration.ads:
 	mkdir -p generated
 	@echo 'package Configuration is'                               > generated/configuration.ads
-	@echo '   Host_Name : constant String := "'${SERVER_NAME}'";' >> generated/configuration.ads                                                   
+	@echo '   Host_Name : constant String := "${SERVER_NAME}";' >> generated/configuration.ads
 	@echo 'end Configuration;'                                    >> generated/configuration.ads

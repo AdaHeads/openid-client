@@ -1,4 +1,4 @@
--------------------------------------------------------------------------------
+-------------------------------------------------------------------------------                                                                      --
 --                                                                           --
 --                      Copyright (C) 2012-, AdaHeads K/S                    --
 --                                                                           --
@@ -15,29 +15,108 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Exceptions;
-with
-  AWS.Session,
-  AWS.OpenID.Log;
+with Ada.Exceptions;
+
+with AWS.Session;
+with AWS.OpenID.Log;
 
 package body Authentication_Database is
+
    Session_Key : constant String := "OpenID.Identity";
 
-   procedure Register_Identity
-     (Source   : in     Security.OpenID.Authentication;
-      Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data) is
+   -----------------------
+   --  Delete_Identity  --
+   -----------------------
+
+   procedure Delete_Identity
+     (Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data)
+   is
       pragma Unreferenced (Response);
-      use type AWS.Session.ID;
-      ID : AWS.Session.ID := AWS.Status.Session (Request);
    begin
-      if ID = AWS.Session.No_Session then
-         null;
+      AWS.Session.Remove (SID => AWS.Status.Session (Request),
+                          Key => Session_Key);
+   exception
+      when E : others =>
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database.Delete: " &
+              Ada.Exceptions.Exception_Name (E));
+         raise;
+   end Delete_Identity;
+
+   ----------------
+   --  Identity  --
+   ----------------
+
+   function Identity
+     (Request : in AWS.Status.Data)
+      return String
+   is
+   begin
+      if AWS.Session.Exist (SID => AWS.Status.Session (Request),
+                            Key => Session_Key)
+      then
+         return AWS.Session.Get (SID => AWS.Status.Session (Request),
+                                 Key => Session_Key);
       else
+         raise Not_Authenticated;
+      end if;
+   exception
+      when Not_Authenticated =>
+         raise;
+      when E : others =>
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database.Identity: " &
+              Ada.Exceptions.Exception_Name (E));
+         raise;
+   end Identity;
+
+   ------------------------
+   --  Is_Authenticated  --
+   ------------------------
+
+   function Is_Authenticated
+     (Request : in AWS.Status.Data)
+      return Boolean
+   is
+   begin
+      return AWS.Session.Exist (SID => AWS.Status.Session (Request),
+                                Key => Session_Key);
+   exception
+      when E : others =>
+         AWS.OpenID.Log.Error
+           (Message => "Exception in Authentication_Database." &
+              "Is_Authenticated: " &
+              Ada.Exceptions.Exception_Name (E) & " (" &
+              Ada.Exceptions.Exception_Information (E) & ")");
+         raise;
+   end Is_Authenticated;
+
+   ------------
+   --  Load  --
+   ------------
+
+   procedure Load (File_Name : in String) renames AWS.Session.Load;
+
+   -------------------------
+   --  Register_Identity  --
+   -------------------------
+
+   procedure Register_Identity
+     (Source   : in     Security.Openid.Authentication;
+      Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data)
+   is
+      pragma Unreferenced (Response);
+
+      use type AWS.Session.Id;
+
+      ID : constant AWS.Session.Id := AWS.Status.Session (Request);
+   begin
+      if ID /= AWS.Session.No_Session then
          AWS.Session.Set (SID   => ID,
                           Key   => Session_Key,
-                          Value => Security.OpenID.Identity (Source));
+                          Value => Security.Openid.Identity (Source));
       end if;
    exception
       when Not_Authenticated =>
@@ -51,56 +130,10 @@ package body Authentication_Database is
          raise;
    end Register_Identity;
 
-   function Is_Authenticated (Request  : in AWS.Status.Data) return Boolean is
-      pragma Inline (Is_Authenticated);
-   begin
-      return AWS.Session.Exist (SID => AWS.Status.Session (Request),
-                                Key => Session_Key);
-   exception
-      when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database." &
-                       "Is_Authenticated: " &
-                       Ada.Exceptions.Exception_Name (E) & " (" &
-                       Ada.Exceptions.Exception_Information (E) & ")");
-         raise;
-   end Is_Authenticated;
+   ------------
+   --  Save  --
+   ------------
 
-   function Identity (Request : in AWS.Status.Data) return String is
-      pragma Inline (Identity);
-   begin
-      if AWS.Session.Exist (SID => AWS.Status.Session (Request),
-                            Key => Session_Key) then
-         return AWS.Session.Get (SID => AWS.Status.Session (Request),
-                                 Key => Session_Key);
-      else
-         raise Not_Authenticated;
-      end if;
-   exception
-      when Not_Authenticated =>
-         raise;
-      when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database.Identity: " &
-                       Ada.Exceptions.Exception_Name (E));
-         raise;
-   end Identity;
+   procedure Save (File_Name : in String) renames AWS.Session.Save;
 
-   procedure Delete_Identity (Request  : in     AWS.Status.Data;
-                              Response : in out AWS.Response.Data) is
-      pragma Inline (Delete_Identity);
-   begin
-      AWS.Session.Remove (SID => AWS.Status.Session (Request),
-                          Key => Session_Key);
-   exception
-      when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database.Delete: " &
-                       Ada.Exceptions.Exception_Name (E));
-         raise;
-   end Delete_Identity;
-
-   procedure Save (File_Name : in     String) renames AWS.Session.Save;
-
-   procedure Load (File_Name : in     String) renames AWS.Session.Load;
 end Authentication_Database;

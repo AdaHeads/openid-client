@@ -15,10 +15,14 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  AWS.Response,
-  AWS.Status;
+with AWS.Response;
+with AWS.Status;
 
 package OpenID_Handler is
-   function Service (Request : in     AWS.Status.Data) return AWS.Response.Data;
+
+   function Service
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data;
+   --  TODO: write comment
+
 end OpenID_Handler;

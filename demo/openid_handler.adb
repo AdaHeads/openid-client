@@ -15,23 +15,27 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Exceptions,
-  Ada.Strings.Unbounded;
-with
-  AWS.Messages,
-  AWS.OpenID.Log,
-  AWS.OpenID.Manual_Dispatching,
-  AWS.Status;
-with
-  Configuration;
+with Ada.Exceptions;
+
+with AWS.OpenID.Log;
+with AWS.OpenID.Manual_Dispatching;
+
+with Configuration;
 
 package body OpenID_Handler is
-   package OpenID is new AWS.OpenID.Manual_Dispatching
-                           (Host_Name       => Configuration.Host_Name,
-                            Logged_Out_Page => "");
 
-   function Service (Request : in AWS.Status.Data) return AWS.Response.Data is
+   package OpenID is new AWS.OpenID.Manual_Dispatching
+     (Host_Name       => Configuration.Host_Name,
+      Logged_Out_Page => "");
+
+   ---------------
+   --  Service  --
+   ---------------
+
+   function Service
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
    begin
       AWS.OpenID.Log.Info
         (Message => "Request URI: <" & AWS.Status.URI (Request) & ">");
@@ -55,7 +59,7 @@ package body OpenID_Handler is
          return AWS.Response.Moved ("http://www.jacob-sparre.dk/icon");
       elsif OpenID.Is_Authenticated (Request) then
          return AWS.Response.URL ("http://www.jacob-sparre.dk/?" &
-                                  OpenID.Authenticated_As (Request));
+                                    OpenID.Authenticated_As (Request));
       elsif AWS.Status.URI (Request) = OpenID.Logged_Out.URI then
          return AWS.Response.File (Content_Type  => "text/html",
                                    Filename      => "index.html");
@@ -67,9 +71,10 @@ package body OpenID_Handler is
       when E : others =>
          AWS.OpenID.Log.Error
            (Message => "OpenID demo failed at URI <" &
-                       AWS.Status.URI (Request) & "> with exception " &
-                       Ada.Exceptions.Exception_Name (E) & ": " &
-                       Ada.Exceptions.Exception_Message (E));
+              AWS.Status.URI (Request) & "> with exception " &
+              Ada.Exceptions.Exception_Name (E) & ": " &
+              Ada.Exceptions.Exception_Message (E));
          raise;
    end Service;
+
 end OpenID_Handler;

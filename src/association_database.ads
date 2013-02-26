@@ -15,19 +15,33 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Security.OpenID;
+with Security.Openid;
 
 package Association_Database is
+
    procedure Clean_Up;
+   --  TODO: write comment
 
-   procedure Insert (Item : in     Security.OpenID.Association);
+   function Has
+     (Handle : in Security.Openid.Association_Handle)
+      return Boolean;
+   --  TODO: write comment
 
-   function Has (Handle : in Security.OpenID.Association_Handle) return Boolean;
+   procedure Insert
+     (Item : in Security.Openid.Association);
+   --  TODO: write comment
 
-   function Look_Up (Handle : in Security.OpenID.Association_Handle)
-     return Security.OpenID.Association;
+   procedure Load
+     (File_Name : in String);
+   --  TODO: write comment
 
-   procedure Save (File_Name : in     String);
-   procedure Load (File_Name : in     String);
+   function Look_Up
+     (Handle : in Security.Openid.Association_Handle)
+      return Security.Openid.Association;
+   --  TODO: write comment
+
+   procedure Save
+     (File_Name : in String);
+   --  TODO: write comment
+
 end Association_Database;
