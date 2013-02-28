@@ -53,14 +53,14 @@ package Util.Streams is
                    Into   : out Ada.Streams.Stream_Element_Array;
                    Last   : out Ada.Streams.Stream_Element_Offset) is abstract;
 
-   --  Copy the input stream to the output stream until the end of the input stream
-   --  is reached.
+   --  Copy the input stream to the output stream until the end of the input
+   --  stream is reached.
    procedure Copy (From : in out Input_Stream'Class;
                    Into : in out Output_Stream'Class);
 
    --  Notes:
    --  ------
-   --  The <b>Ada.Streams.Root_Stream_Type</b> implements the <b>Output_Stream</b>
-   --  and <b>Input_Stream</b>.  It is however not easy to use for composing various
-   --  stream behaviors.
+   --  The <b>Ada.Streams.Root_Stream_Type</b> implements the
+   --  <b>Output_Stream</b> and <b>Input_Stream</b>.  It is however not easy
+   --  to use for composing various stream behaviors.
 end Util.Streams;

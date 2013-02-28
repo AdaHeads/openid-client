@@ -18,10 +18,11 @@
 with Ada.Finalization;
 with Util.Concurrent.Counters;
 
---  The <b>Util.Refs</b> package provides support to implement object reference counting.
---
---  The data type to share through reference counting has to inherit from <b>Ref_Entity</b>
---  and the generic package <b>References</b> has to be instantiated.
+--  The <b>Util.Refs</b> package provides support to implement object reference
+--  counting.
+--  The data type to share through reference counting has to inherit from
+--  <b>Ref_Entity</b> and the generic package <b>References</b> has to be
+--  instantiated.
 --  <pre>
 --    type Data is new Util.Refs.Ref_Entity with record ... end record;
 --    type Data_Access is access all Data;
@@ -37,8 +38,8 @@ with Util.Concurrent.Counters;
 --     D.Value.all.XXXX  := 0;               --  Set data member XXXX
 --  </pre>
 --
---  When a reference is shared in a multi-threaded environment, the reference has to
---  be protected by using the <b>References.Atomic_Ref</b> type.
+--  When a reference is shared in a multi-threaded environment, the reference
+--  has to be protected by using the <b>References.Atomic_Ref</b> type.
 --
 --     R : Data_Ref.Atomic_Ref;
 --
@@ -51,7 +52,8 @@ package Util.Refs is
    --  Root of referenced objects.
    type Ref_Entity is abstract tagged limited private;
 
-   --  Finalize the referenced object.  This is called before the object is freed.
+   --  Finalize the referenced object.  This is called before the object is
+   --  freed.
    procedure Finalize (Object : in out Ref_Entity) is null;
 
    generic
@@ -77,10 +79,11 @@ package Util.Refs is
       --
       --     Ref1 := Ref2;
       --
-      --  does not guarantee atomicity of the copy (assignment) and the increment
-      --  of the reference counter (Adjust operation).  To replace shared reference
-      --  by another one, the whole assignment and Adjust have to be protected.
-      --  This is achieved by this protected type through the <b>Get</b> and <b>Set</b>
+      --  does not guarantee atomicity of the copy (assignment) and the
+      --  increment of the reference counter (Adjust operation).  To replace
+      --  shared reference by another one, the whole assignment and Adjust have
+      --  to be protected. This is achieved by this protected type through the
+      --  <b>Get</b> and <b>Set</b>
       protected type Atomic_Ref is
          --  Get the reference
          function Get return Ref;
@@ -96,8 +99,8 @@ package Util.Refs is
          Target : Element_Access := null;
       end record;
 
-      --  Release the reference.  Invoke <b>Finalize</b> and free the storage if it was
-      --  the last reference.
+      --  Release the reference.  Invoke <b>Finalize</b> and free the storage
+      --  if it was the last reference.
       overriding
       procedure Finalize (Obj : in out Ref);
 
@@ -124,10 +127,11 @@ package Util.Refs is
       --
       --     Ref1 := Ref2;
       --
-      --  does not guarantee atomicity of the copy (assignment) and the increment
-      --  of the reference counter (Adjust operation).  To replace shared reference
-      --  by another one, the whole assignment and Adjust have to be protected.
-      --  This is achieved by this protected type through the <b>Get</b> and <b>Set</b>
+      --  does not guarantee atomicity of the copy (assignment) and the
+      --  increment of the reference counter (Adjust operation).  To replace
+      --  shared reference by another one, the whole assignment and Adjust have
+      --  to be protected. This is achieved by this protected type through the
+      --  <b>Get</b> and <b>Set</b>
       subtype Atomic_Ref is IR.Atomic_Ref;
 
    end References;

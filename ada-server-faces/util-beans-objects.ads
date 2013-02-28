@@ -92,31 +92,36 @@ package Util.Beans.Objects is
    function Get_Name (Type_Def : Object_Type) return String is abstract;
 
    --  Get the base data type.
-   function Get_Data_Type (Type_Def : Object_Type) return Data_Type is abstract;
+   function Get_Data_Type
+     (Type_Def : Object_Type) return Data_Type is abstract;
 
    --  Convert the value into a string.
    function To_String (Type_Def : in Object_Type;
                        Value    : in Object_Value) return String is abstract;
 
    --  Convert the value into a wide string.
-   function To_Wide_Wide_String (Type_Def : in Object_Type;
-                                 Value    : in Object_Value) return Wide_Wide_String is abstract;
+   function To_Wide_Wide_String
+     (Type_Def : in Object_Type;
+      Value    : in Object_Value) return Wide_Wide_String is abstract;
 
    --  Convert the value into an integer.
-   function To_Long_Long (Type_Def : in Object_Type;
-                          Value    : in Object_Value) return Long_Long_Integer is abstract;
+   function To_Long_Long
+     (Type_Def : in Object_Type;
+      Value    : in Object_Value) return Long_Long_Integer is abstract;
 
    --  Convert the value into a float.
-   function To_Long_Float (Type_Def : in Object_Type;
-                           Value    : in Object_Value) return Long_Long_Float is abstract;
+   function To_Long_Float
+     (Type_Def : in Object_Type;
+      Value    : in Object_Value) return Long_Long_Float is abstract;
 
    --  Convert the value into a boolean.
    function To_Boolean (Type_Def : in Object_Type;
                         Value    : in Object_Value) return Boolean is abstract;
 
    --  Convert the value into a duration.
-   function To_Duration (Type_Def : in Object_Type;
-                         Value    : in Object_Value) return Duration is abstract;
+   function To_Duration
+     (Type_Def : in Object_Type;
+      Value    : in Object_Value) return Duration is abstract;
 
    --  Returns True if the value is empty.
    function Is_Empty (Type_Def : in Object_Type;
@@ -151,7 +156,8 @@ package Util.Beans.Objects is
    function To_String (Value : in Object) return String;
    function To_Wide_Wide_String (Value : in Object) return Wide_Wide_String;
    function To_Unbounded_String (Value : in Object) return Unbounded_String;
-   function To_Unbounded_Wide_Wide_String (Value : in Object) return Unbounded_Wide_Wide_String;
+   function To_Unbounded_Wide_Wide_String
+     (Value : in Object) return Unbounded_Wide_Wide_String;
    function To_Integer (Value : in Object) return Integer;
    function To_Boolean (Value : in Object) return Boolean;
    function To_Long_Integer (Value : in Object) return Long_Integer;
@@ -161,7 +167,8 @@ package Util.Beans.Objects is
    function To_Long_Long_Float (Value : in Object) return Long_Long_Float;
    function To_Duration (Value : in Object) return Duration;
 
-   function To_Bean (Value : in Object) return access Util.Beans.Basic.Readonly_Bean'Class;
+   function To_Bean
+     (Value : in Object) return access Util.Beans.Basic.Readonly_Bean'Class;
 
    --  Convert the object to an object of another time.
    --  Force the object to be an integer.
@@ -222,8 +229,9 @@ private
    type Basic_Type is abstract limited new Object_Type with null record;
 
    --  Convert the value into a wide string.
-   function To_Wide_Wide_String (Type_Def : in Basic_Type;
-                                 Value    : in Object_Value) return Wide_Wide_String;
+   function To_Wide_Wide_String
+     (Type_Def : in Basic_Type;
+      Value    : in Object_Value) return Wide_Wide_String;
 
    --  Convert the value into an integer.
    function To_Long_Long (Type_Def : in Basic_Type;
@@ -376,8 +384,9 @@ private
                        Value    : in Object_Value) return String;
 
    --  Convert the value into a wide string.
-   function To_Wide_Wide_String (Type_Def : in Wide_String_Type;
-                                 Value    : in Object_Value) return Wide_Wide_String;
+   function To_Wide_Wide_String
+     (Type_Def : in Wide_String_Type;
+      Value    : in Object_Value) return Wide_Wide_String;
 
    --  Convert the value into an integer.
    function To_Long_Long (Type_Def : in Wide_String_Type;
@@ -564,8 +573,9 @@ private
    overriding
    procedure Finalize (Obj : in out Object);
 
-   Null_Object : constant Object := Object '(Controlled with
-                                             V        => Object_Value '(Of_Type => TYPE_NULL),
-                                             Type_Def => No_Type'Access);
+   Null_Object : constant Object
+     := Object '(Controlled with
+                 V        => Object_Value '(Of_Type => TYPE_NULL),
+                 Type_Def => No_Type'Access);
 
 end Util.Beans.Objects;

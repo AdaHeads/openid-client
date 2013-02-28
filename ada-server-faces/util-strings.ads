@@ -43,7 +43,8 @@ package Util.Strings is
 
    --  Search for the first occurrence of the character in the string
    --  before the from index and going backward.
-   --  This implementation is 3-times faster than the Ada.Strings.Fixed version.
+   --  This implementation is 3-times faster than the Ada.Strings.Fixed
+   --  version.
    --  Returns the index of the first occurrence or 0.
    function Rindex (Source : in String;
                     Ch     : in Character;
@@ -73,13 +74,15 @@ package Util.Strings is
    function To_String_Ref (S : in String) return String_Ref;
 
    --  Create a string reference from an unbounded string.
-   function To_String_Ref (S : in Ada.Strings.Unbounded.Unbounded_String) return String_Ref;
+   function To_String_Ref
+     (S : in Ada.Strings.Unbounded.Unbounded_String) return String_Ref;
 
    --  Get the string
    function To_String (S : in String_Ref) return String;
 
    --  Get the string as an unbounded string
-   function To_Unbounded_String (S : in String_Ref) return Ada.Strings.Unbounded.Unbounded_String;
+   function To_Unbounded_String
+     (S : in String_Ref) return Ada.Strings.Unbounded.Unbounded_String;
 
    --  Compute the hash value of the string reference.
    function Hash (Key : in String_Ref) return Ada.Containers.Hash_Type;
@@ -87,11 +90,13 @@ package Util.Strings is
    --  Returns true if left and right string references are equivalent.
    function Equivalent_Keys (Left, Right : in String_Ref) return Boolean;
    overriding
-   function "=" (Left, Right : in String_Ref) return Boolean renames Equivalent_Keys;
+   function "="
+     (Left, Right : in String_Ref) return Boolean renames Equivalent_Keys;
    function "=" (Left  : in String_Ref;
                  Right : in String) return Boolean;
-   function "=" (Left  : in String_Ref;
-                 Right : in Ada.Strings.Unbounded.Unbounded_String) return Boolean;
+   function "="
+     (Left  : in String_Ref;
+      Right : in Ada.Strings.Unbounded.Unbounded_String) return Boolean;
 
    --  Returns the string length.
    function Length (S : in String_Ref) return Natural;

@@ -44,6 +44,38 @@ package body Util.Encoders.Base16 is
          14 => Output_Char'Val (Character'Pos ('E')),
          15 => Output_Char'Val (Character'Pos ('F')));
 
+      procedure Decode (From    : in Input;
+                        Into    : in out Output;
+                        Last    : out Output_Index;
+                        Encoded : out Index) is
+         First : Boolean := True;
+         Pos   : Output_Index := Into'First;
+         Value : Code := 0;
+      begin
+         if Into'Length < From'Length / 2 then
+            Encoded := Into'Length * 2;
+         elsif From'Last mod 2 /= 0 then
+            Encoded := From'Last - 1;
+         else
+            Encoded := From'Last;
+         end if;
+         if Encoded < From'First then
+            raise Encoding_Error with "Hexadecimal stream is too short";
+         end if;
+         for I in From'First .. Encoded loop
+            if First then
+               Value := To_Output_Char (From (I));
+               First := False;
+            else
+               Value := Value * 16 + To_Output_Char (From (I));
+               Into (Pos) := Output_Char'Val (Value);
+               Pos := Pos + 1;
+               First := True;
+            end if;
+         end loop;
+         Last := Pos - 1;
+      end Decode;
+
       --  Encode the input stream in hexadecimal and write the result
       --  in the output stream
       procedure Encode (From    : in Input;
@@ -93,50 +125,20 @@ package body Util.Encoders.Base16 is
             return C - Character'Pos ('0');
 
          else
-            raise Encoding_Error with "Invalid character: " & Character'Val (C);
+            raise Encoding_Error with "Invalid character: " &
+              Character'Val (C);
          end if;
       end To_Output_Char;
 
-      procedure Decode (From    : in Input;
-                        Into    : in out Output;
-                        Last    : out Output_Index;
-                        Encoded : out Index) is
-         First : Boolean := True;
-         Pos   : Output_Index := Into'First;
-         Value : Code;
-      begin
-         if Into'Length < From'Length / 2 then
-            Encoded := Into'Length * 2;
-         elsif From'Last mod 2 /= 0 then
-            Encoded := From'Last - 1;
-         else
-            Encoded := From'Last;
-         end if;
-         if Encoded < From'First then
-            raise Encoding_Error with "Hexadecimal stream is too short";
-         end if;
-         for I in From'First .. Encoded loop
-            if First then
-               Value := To_Output_Char (From (I));
-               First := False;
-            else
-               Value := Value * 16 + To_Output_Char (From (I));
-               Into (Pos) := Output_Char'Val (Value);
-               Pos := Pos + 1;
-               First := True;
-            end if;
-         end loop;
-         Last := Pos - 1;
-      end Decode;
-
    end Encoding;
 
-   package Encoding_Stream is new Encoding (Output => Ada.Streams.Stream_Element_Array,
-                                            Index  => Ada.Streams.Stream_Element_Offset,
-                                            Output_Index  => Ada.Streams.Stream_Element_Offset,
-                                            Input_Char   => Ada.Streams.Stream_Element,
-                                            Output_Char   => Ada.Streams.Stream_Element,
-                                            Input  => Ada.Streams.Stream_Element_Array);
+   package Encoding_Stream is new Encoding
+     (Output        => Ada.Streams.Stream_Element_Array,
+      Index         => Ada.Streams.Stream_Element_Offset,
+      Output_Index  => Ada.Streams.Stream_Element_Offset,
+      Input_Char    => Ada.Streams.Stream_Element,
+      Output_Char   => Ada.Streams.Stream_Element,
+      Input         => Ada.Streams.Stream_Element_Array);
 
    --  ------------------------------
    --  Encodes the binary input stream represented by <b>Data</b> into

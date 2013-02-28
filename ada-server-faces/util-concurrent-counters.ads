@@ -33,8 +33,8 @@
 --        Free (Object);
 --    end if;
 --
---  Unlike the Ada portable implementation based on protected type, this implementation
---  does not require that <b>Counter</b> be a limited type.
+--  Unlike the Ada portable implementation based on protected type, this
+--  implementation does not require that <b>Counter</b> be a limited type.
 private with Interfaces;
 package Util.Concurrent.Counters is
 

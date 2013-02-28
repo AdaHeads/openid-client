@@ -19,15 +19,13 @@
 package body Util.Streams.Files is
 
    --  ------------------------------
-   --  Open the file and initialize the stream for reading or writing.
+   --  Close the stream.
    --  ------------------------------
-   procedure Open (Stream  : in out File_Stream;
-                   Mode    : in Ada.Streams.Stream_IO.File_Mode;
-                   Name    : in String := "";
-                   Form    : in String := "") is
+   overriding
+   procedure Close (Stream : in out File_Stream) is
    begin
-      Ada.Streams.Stream_IO.Open (Stream.File, Mode, Name, Form);
-   end Open;
+      Ada.Streams.Stream_IO.Close (Stream.File);
+   end Close;
 
    --  ------------------------------
    --  Create the file and initialize the stream for writing.
@@ -41,23 +39,26 @@ package body Util.Streams.Files is
    end Create;
 
    --  ------------------------------
-   --  Close the stream.
+   --  Flush the stream and release the buffer.
    --  ------------------------------
    overriding
-   procedure Close (Stream : in out File_Stream) is
+   procedure Finalize (Object : in out File_Stream) is
    begin
-      Ada.Streams.Stream_IO.Close (Stream.File);
-   end Close;
+      if Ada.Streams.Stream_IO.Is_Open (Object.File) then
+         Object.Close;
+      end if;
+   end Finalize;
 
    --  ------------------------------
-   --  Write the buffer array to the output stream.
+   --  Open the file and initialize the stream for reading or writing.
    --  ------------------------------
-   overriding
-   procedure Write (Stream : in out File_Stream;
-                    Buffer : in Ada.Streams.Stream_Element_Array) is
+   procedure Open (Stream  : in out File_Stream;
+                   Mode    : in Ada.Streams.Stream_IO.File_Mode;
+                   Name    : in String := "";
+                   Form    : in String := "") is
    begin
-      Ada.Streams.Stream_IO.Write (Stream.File, Buffer);
-   end Write;
+      Ada.Streams.Stream_IO.Open (Stream.File, Mode, Name, Form);
+   end Open;
 
    --  ------------------------------
    --  Read into the buffer as many bytes as possible and return in
@@ -72,14 +73,13 @@ package body Util.Streams.Files is
    end Read;
 
    --  ------------------------------
-   --  Flush the stream and release the buffer.
+   --  Write the buffer array to the output stream.
    --  ------------------------------
    overriding
-   procedure Finalize (Object : in out File_Stream) is
+   procedure Write (Stream : in out File_Stream;
+                    Buffer : in Ada.Streams.Stream_Element_Array) is
    begin
-      if Ada.Streams.Stream_IO.Is_Open (Object.File) then
-         Object.Close;
-      end if;
-   end Finalize;
+      Ada.Streams.Stream_IO.Write (Stream.File, Buffer);
+   end Write;
 
 end Util.Streams.Files;

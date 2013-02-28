@@ -21,6 +21,21 @@ package body Util.Refs is
 
    package body Indefinite_References is
 
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Object => Element_Type,
+                                        Name   => Element_Access);
+
+      --  ------------------------------
+      --  Update the reference counter after an assignment.
+      --  ------------------------------
+      overriding
+      procedure Adjust (Obj : in out Ref) is
+      begin
+         if Obj.Target /= null then
+            Util.Concurrent.Counters.Increment (Obj.Target.Ref_Counter);
+         end if;
+      end Adjust;
+
       --  ------------------------------
       --  Create an element and return a reference to that element.
       --  ------------------------------
@@ -33,12 +48,24 @@ package body Util.Refs is
       end Create;
 
       --  ------------------------------
-      --  Get the element access value.
+      --  Release the reference.  Invoke <b>Finalize</b> and free the storage
+      --  if it was the last reference.
       --  ------------------------------
-      function Value (Object : in Ref'Class) return Element_Access is
+      overriding
+      procedure Finalize (Obj : in out Ref) is
+         Release : Boolean;
       begin
-         return Object.Target;
-      end Value;
+         if Obj.Target /= null then
+            Util.Concurrent.Counters.Decrement
+              (Obj.Target.Ref_Counter, Release);
+            if Release then
+               Obj.Target.Finalize;
+               Free (Obj.Target);
+            else
+               Obj.Target := null;
+            end if;
+         end if;
+      end Finalize;
 
       --  ------------------------------
       --  Returns true if the reference does not contain any element.
@@ -47,6 +74,14 @@ package body Util.Refs is
       begin
          return Object.Target = null;
       end Is_Null;
+
+      --  ------------------------------
+      --  Get the element access value.
+      --  ------------------------------
+      function Value (Object : in Ref'Class) return Element_Access is
+      begin
+         return Object.Target;
+      end Value;
 
       protected body Atomic_Ref is
          --  ------------------------------
@@ -66,40 +101,6 @@ package body Util.Refs is
          end Set;
 
       end Atomic_Ref;
-
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Object => Element_Type,
-                                        Name   => Element_Access);
-
-      --  ------------------------------
-      --  Release the reference.  Invoke <b>Finalize</b> and free the storage if it was
-      --  the last reference.
-      --  ------------------------------
-      overriding
-      procedure Finalize (Obj : in out Ref) is
-         Release : Boolean;
-      begin
-         if Obj.Target /= null then
-            Util.Concurrent.Counters.Decrement (Obj.Target.Ref_Counter, Release);
-            if Release then
-               Obj.Target.Finalize;
-               Free (Obj.Target);
-            else
-               Obj.Target := null;
-            end if;
-         end if;
-      end Finalize;
-
-      --  ------------------------------
-      --  Update the reference counter after an assignment.
-      --  ------------------------------
-      overriding
-      procedure Adjust (Obj : in out Ref) is
-      begin
-         if Obj.Target /= null then
-            Util.Concurrent.Counters.Increment (Obj.Target.Ref_Counter);
-         end if;
-      end Adjust;
 
    end Indefinite_References;
 

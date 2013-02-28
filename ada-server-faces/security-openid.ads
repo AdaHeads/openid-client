@@ -22,8 +22,8 @@ with Ada.Finalization;
 with AWS.Status;
 with Security.Permissions;
 
---  The <b>Security.Openid</b> package implements an authentication framework based
---  on OpenID 2.0.
+--  The <b>Security.Openid</b> package implements an authentication framework
+--  based on OpenID 2.0.
 --
 --  See OpenID Authentication 2.0 - Final
 --  http://openid.net/specs/openid-authentication-2_0.html
@@ -36,8 +36,8 @@ package Security.Openid is
    --  ------------------------------
    --  OpenID provider
    --  ------------------------------
-   --  The <b>End_Point</b> represents the OpenID provider that will authenticate
-   --  the user.
+   --  The <b>End_Point</b> represents the OpenID provider that will
+   --  authenticate the user.
    type End_Point is private;
 
    function To_String (OP : End_Point) return String;
@@ -45,10 +45,10 @@ package Security.Openid is
    --  ------------------------------
    --  Association
    --  ------------------------------
-   --  The OpenID association contains the shared secret between the relying party
-   --  and the OpenID provider.  The association can be cached and reused to authenticate
-   --  different users using the same OpenID provider.  The association also has an
-   --  expiration date.
+   --  The OpenID association contains the shared secret between the relying
+   --  party and the OpenID provider.  The association can be cached and reused
+   --  to authenticate different users using the same OpenID provider. The
+   --  association also has an expiration date.
    type Association is private;
    subtype Association_Handle is Ada.Strings.Unbounded.Unbounded_String;
 
@@ -122,14 +122,17 @@ package Security.Openid is
    --
    --  o <b>Initialize</b> is called to configure the OpenID realm and set the
    --    OpenID return callback CB.
-   --  o <b>Discover</b> is called to retrieve from the OpenID provider the XRDS
-   --    stream and identify the provider.  An <b>End_Point</b> is returned.
-   --  o <b>Associate</b> is called to make the association with the <b>End_Point</b>.
+   --  o <b>Discover</b> is called to retrieve from the OpenID provider the
+   --    XRDS stream and identify the provider.  An <b>End_Point</b> is
+   --    returned.
+   --  o <b>Associate</b> is called to make the association with the '
+   --    <b>End_Point</b>.
    --    The <b>Association</b> record holds session, and authentication.
-   --  o <b>Get_Authentication_URL</b> builds the provider OpenID authentication
-   --    URL for the association.
+   --  o <b>Get_Authentication_URL</b> builds the provider OpenID
+   --    authentication URL for the association.
    --  o The user should be redirected to the authentication URL.
-   --  o The OpenID provider authenticate the user and redirects the user to the callback CB.
+   --  o The OpenID provider authenticate the user and redirects the user to
+   --    the callback CB.
    --  o The association is decoded from the callback parameter.
    --  o <b>Verify</b> is called with the association to check the result and
    --    obtain the authentication results.
@@ -178,7 +181,8 @@ package Security.Openid is
                                Request : in AWS.Status.Data;
                                Result  : in out Authentication);
 
-   --  Read the XRDS document from the URI and initialize the OpenID provider end point.
+   --  Read the XRDS document from the URI and initialize the OpenID provider
+   --  end point.
    procedure Discover_XRDS (Realm  : in out Manager;
                             URI    : in String;
                             Result : out End_Point);
@@ -186,7 +190,8 @@ package Security.Openid is
    --  Extract from the XRDS content the OpenID provider URI.
    --  The default implementation is very basic as it returns the first <URI>
    --  available in the stream without validating the XRDS document.
-   --  Raises the <b>Invalid_End_Point</b> exception if the URI cannot be found.
+   --  Raises the <b>Invalid_End_Point</b> exception if the URI cannot be
+   --  found.
    procedure Extract_XRDS (Realm   : in out Manager;
                            Content : in String;
                            Result  : out End_Point);

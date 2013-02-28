@@ -25,6 +25,84 @@ package body Util.Streams.Buffered is
                                      Name   => Buffer_Access);
 
    --  ------------------------------
+   --  Close the sink.
+   --  ------------------------------
+   overriding
+   procedure Close (Stream : in out Buffered_Stream) is
+   begin
+      if Stream.Output /= null then
+         Buffered_Stream'Class (Stream).Flush;
+         Stream.Output.Close;
+      end if;
+   end Close;
+
+   --  ------------------------------
+   --  Fill the buffer by reading the input stream.
+   --  Raises Data_Error if there is no input stream;
+   --  ------------------------------
+   procedure Fill (Stream : in out Buffered_Stream) is
+   begin
+      if Stream.Input = null then
+         Stream.Eof := True;
+      else
+         Stream.Input.Read (Stream.Buffer (1 .. Stream.Last - 1),
+                            Stream.Write_Pos);
+         Stream.Eof := Stream.Write_Pos < 1;
+         if not Stream.Eof then
+            Stream.Write_Pos := Stream.Write_Pos + 1;
+         end if;
+         Stream.Read_Pos := 1;
+      end if;
+   end Fill;
+
+   --  ------------------------------
+   --  Flush the stream and release the buffer.
+   --  ------------------------------
+   overriding
+   procedure Finalize (Object : in out Buffered_Stream) is
+   begin
+      if Object.Buffer /= null then
+         if Object.Output /= null then
+            Object.Flush;
+         end if;
+         Free_Buffer (Object.Buffer);
+      end if;
+   end Finalize;
+
+   --  ------------------------------
+   --  Flush the stream.
+   --  ------------------------------
+   overriding
+   procedure Flush (Stream : in out Buffered_Stream) is
+   begin
+      if Stream.Write_Pos > 1 and not Stream.No_Flush then
+         if Stream.Output = null then
+            raise Ada.IO_Exceptions.Data_Error with "Output buffer is full";
+         else
+            Stream.Output.Write (Stream.Buffer (1 .. Stream.Write_Pos - 1));
+            Stream.Output.Flush;
+         end if;
+         Stream.Write_Pos := 1;
+      end if;
+   end Flush;
+
+   --  ------------------------------
+   --  Get the direct access to the buffer.
+   --  ------------------------------
+   function Get_Buffer (Stream : in Buffered_Stream) return Buffer_Access is
+   begin
+      return Stream.Buffer;
+   end Get_Buffer;
+
+   --  ------------------------------
+   --  Get the number of element in the stream.
+   --  ------------------------------
+   function Get_Size (Stream : in Buffered_Stream) return Natural is
+   begin
+      return Natural (Stream.Write_Pos - Stream.Read_Pos);
+   end Get_Size;
+
+   --  ------------------------------
    --  Initialize the stream to read or write on the given streams.
    --  An internal buffer is allocated for writing the stream.
    --  ------------------------------
@@ -75,32 +153,92 @@ package body Util.Streams.Buffered is
    end Initialize;
 
    --  ------------------------------
-   --  Close the sink.
+   --  Returns True if the end of the stream is reached.
+   --  ------------------------------
+   function Is_Eof (Stream : in Buffered_Stream) return Boolean is
+   begin
+      return Stream.Eof;
+   end Is_Eof;
+
+   --  ------------------------------
+   --  Read one character from the input stream.
+   --  ------------------------------
+   procedure Read (Stream : in out Buffered_Stream;
+                   Char   : out Character) is
+   begin
+      if Stream.Read_Pos >= Stream.Write_Pos then
+         Stream.Fill;
+         if Stream.Eof then
+            raise Ada.IO_Exceptions.Data_Error with "End of buffer";
+         end if;
+      end if;
+      Char := Character'Val (Stream.Buffer (Stream.Read_Pos));
+      Stream.Read_Pos := Stream.Read_Pos + 1;
+   end Read;
+
+   --  ------------------------------
+   --  Read into the buffer as many bytes as possible and return in
+   --  <b>last</b> the position of the last byte read.
    --  ------------------------------
    overriding
-   procedure Close (Stream : in out Buffered_Stream) is
+   procedure Read (Stream : in out Buffered_Stream;
+                   Into   : out Ada.Streams.Stream_Element_Array;
+                   Last   : out Ada.Streams.Stream_Element_Offset) is
+      Start : Stream_Element_Offset := Into'First;
+      Pos   : Stream_Element_Offset := Stream.Read_Pos;
+      Avail : Stream_Element_Offset;
+      Size  : Stream_Element_Offset;
+      Total : Stream_Element_Offset := 0;
    begin
-      if Stream.Output /= null then
-         Buffered_Stream'Class (Stream).Flush;
-         Stream.Output.Close;
-      end if;
-   end Close;
+      while Start <= Into'Last loop
+         Size := Into'Last - Start + 1;
+         Avail := Stream.Write_Pos - Pos;
+         if Avail = 0 then
+            Stream.Fill;
+            Pos := Stream.Read_Pos;
+            Avail := Stream.Write_Pos - Pos;
+            exit when Avail = 0;
+         end if;
+         if Avail < Size then
+            Size := Avail;
+         end if;
+         Into (Start .. Start + Size - 1) :=
+           Stream.Buffer (Pos .. Pos + Size - 1);
+         Start := Start + Size;
+         Pos   := Pos + Size;
+         Total := Total + Size;
+         Stream.Read_Pos := Pos;
+      end loop;
+      Last := Total;
+   end Read;
 
    --  ------------------------------
-   --  Get the direct access to the buffer.
+   --  Read into the buffer as many bytes as possible and return in
+   --  <b>last</b> the position of the last byte read.
    --  ------------------------------
-   function Get_Buffer (Stream : in Buffered_Stream) return Buffer_Access is
+   procedure Read (Stream : in out Buffered_Stream;
+                   Into   : in out Ada.Strings.Unbounded.Unbounded_String) is
+      Pos   : Stream_Element_Offset := Stream.Read_Pos;
+      Avail : Stream_Element_Offset;
    begin
-      return Stream.Buffer;
-   end Get_Buffer;
-
-   --  ------------------------------
-   --  Get the number of element in the stream.
-   --  ------------------------------
-   function Get_Size (Stream : in Buffered_Stream) return Natural is
-   begin
-      return Natural (Stream.Write_Pos - Stream.Read_Pos);
-   end Get_Size;
+      loop
+         Avail := Stream.Write_Pos - Pos;
+         if Avail = 0 then
+            Stream.Fill;
+            if Stream.Eof then
+               return;
+            end if;
+            Pos   := Stream.Read_Pos;
+            Avail := Stream.Write_Pos - Pos;
+         end if;
+         for I in 1 .. Avail loop
+            Ada.Strings.Unbounded.Append
+              (Into, Character'Val (Stream.Buffer (Pos)));
+            Pos := Pos + 1;
+         end loop;
+         Stream.Read_Pos := Pos;
+      end loop;
+   end Read;
 
    --  ------------------------------
    --  Write a raw character on the stream.
@@ -114,7 +252,8 @@ package body Util.Streams.Buffered is
             raise Ada.IO_Exceptions.End_Error with "Buffer is full";
          end if;
       end if;
-      Stream.Buffer (Stream.Write_Pos) := Stream_Element (Character'Pos (Char));
+      Stream.Buffer (Stream.Write_Pos) :=
+        Stream_Element (Character'Pos (Char));
       Stream.Write_Pos := Stream.Write_Pos + 1;
    end Write;
 
@@ -171,9 +310,12 @@ package body Util.Streams.Buffered is
    --  ------------------------------
    --  Write a raw string on the stream.
    --  ------------------------------
-   procedure Write (Stream : in out Buffered_Stream;
-                    Item   : in Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String) is
-      Count : constant Natural := Ada.Strings.Wide_Wide_Unbounded.Length (Item);
+   procedure Write
+     (Stream : in out Buffered_Stream;
+      Item   : in Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String)
+   is
+      Count : constant Natural :=
+                Ada.Strings.Wide_Wide_Unbounded.Length (Item);
       C     : Wide_Wide_Character;
    begin
       if Count > 0 then
@@ -209,154 +351,22 @@ package body Util.Streams.Buffered is
          if Avail < Size then
             Size := Avail;
          end if;
-         Stream.Buffer (Pos .. Pos + Size - 1) := Buffer (Start .. Start + Size - 1);
+         Stream.Buffer (Pos .. Pos + Size - 1) :=
+           Buffer (Start .. Start + Size - 1);
          Start := Start + Size;
          Pos   := Pos + Size;
          Stream.Write_Pos := Pos;
 
          --  If we have still more data that the buffer size, flush and write
          --  the buffer directly.
-         if Start < Buffer'Last and then Buffer'Last - Start > Stream.Buffer'Length then
+         if Start < Buffer'Last
+           and then Buffer'Last - Start > Stream.Buffer'Length
+         then
             Stream.Flush;
             Stream.Output.Write (Buffer (Start .. Buffer'Last));
             return;
          end if;
       end loop;
    end Write;
-
-   --  ------------------------------
-   --  Flush the stream.
-   --  ------------------------------
-   overriding
-   procedure Flush (Stream : in out Buffered_Stream) is
-   begin
-      if Stream.Write_Pos > 1 and not Stream.No_Flush then
-         if Stream.Output = null then
-            raise Ada.IO_Exceptions.Data_Error with "Output buffer is full";
-         else
-            Stream.Output.Write (Stream.Buffer (1 .. Stream.Write_Pos - 1));
-            Stream.Output.Flush;
-         end if;
-         Stream.Write_Pos := 1;
-      end if;
-   end Flush;
-
-   --  ------------------------------
-   --  Fill the buffer by reading the input stream.
-   --  Raises Data_Error if there is no input stream;
-   --  ------------------------------
-   procedure Fill (Stream : in out Buffered_Stream) is
-   begin
-      if Stream.Input = null then
-         Stream.Eof := True;
-      else
-         Stream.Input.Read (Stream.Buffer (1 .. Stream.Last - 1), Stream.Write_Pos);
-         Stream.Eof := Stream.Write_Pos < 1;
-         if not Stream.Eof then
-            Stream.Write_Pos := Stream.Write_Pos + 1;
-         end if;
-         Stream.Read_Pos := 1;
-      end if;
-   end Fill;
-
-   --  ------------------------------
-   --  Read one character from the input stream.
-   --  ------------------------------
-   procedure Read (Stream : in out Buffered_Stream;
-                   Char   : out Character) is
-   begin
-      if Stream.Read_Pos >= Stream.Write_Pos then
-         Stream.Fill;
-         if Stream.Eof then
-            raise Ada.IO_Exceptions.Data_Error with "End of buffer";
-         end if;
-      end if;
-      Char := Character'Val (Stream.Buffer (Stream.Read_Pos));
-      Stream.Read_Pos := Stream.Read_Pos + 1;
-   end Read;
-
-   --  ------------------------------
-   --  Read into the buffer as many bytes as possible and return in
-   --  <b>last</b> the position of the last byte read.
-   --  ------------------------------
-   overriding
-   procedure Read (Stream : in out Buffered_Stream;
-                   Into   : out Ada.Streams.Stream_Element_Array;
-                   Last   : out Ada.Streams.Stream_Element_Offset) is
-      Start : Stream_Element_Offset := Into'First;
-      Pos   : Stream_Element_Offset := Stream.Read_Pos;
-      Avail : Stream_Element_Offset;
-      Size  : Stream_Element_Offset;
-      Total : Stream_Element_Offset := 0;
-   begin
-      while Start <= Into'Last loop
-         Size := Into'Last - Start + 1;
-         Avail := Stream.Write_Pos - Pos;
-         if Avail = 0 then
-            Stream.Fill;
-            Pos := Stream.Read_Pos;
-            Avail := Stream.Write_Pos - Pos;
-            exit when Avail = 0;
-         end if;
-         if Avail < Size then
-            Size := Avail;
-         end if;
-         Into (Start .. Start + Size - 1) := Stream.Buffer (Pos .. Pos + Size - 1);
-         Start := Start + Size;
-         Pos   := Pos + Size;
-         Total := Total + Size;
-         Stream.Read_Pos := Pos;
-      end loop;
-      Last := Total;
-   end Read;
-
-   --  ------------------------------
-   --  Read into the buffer as many bytes as possible and return in
-   --  <b>last</b> the position of the last byte read.
-   --  ------------------------------
-   procedure Read (Stream : in out Buffered_Stream;
-                   Into   : in out Ada.Strings.Unbounded.Unbounded_String) is
-      Pos   : Stream_Element_Offset := Stream.Read_Pos;
-      Avail : Stream_Element_Offset;
-   begin
-      loop
-         Avail := Stream.Write_Pos - Pos;
-         if Avail = 0 then
-            Stream.Fill;
-            if Stream.Eof then
-               return;
-            end if;
-            Pos   := Stream.Read_Pos;
-            Avail := Stream.Write_Pos - Pos;
-         end if;
-         for I in 1 .. Avail loop
-            Ada.Strings.Unbounded.Append (Into, Character'Val (Stream.Buffer (Pos)));
-            Pos := Pos + 1;
-         end loop;
-         Stream.Read_Pos := Pos;
-      end loop;
-   end Read;
-
-   --  ------------------------------
-   --  Flush the stream and release the buffer.
-   --  ------------------------------
-   overriding
-   procedure Finalize (Object : in out Buffered_Stream) is
-   begin
-      if Object.Buffer /= null then
-         if Object.Output /= null then
-            Object.Flush;
-         end if;
-         Free_Buffer (Object.Buffer);
-      end if;
-   end Finalize;
-
-   --  ------------------------------
-   --  Returns True if the end of the stream is reached.
-   --  ------------------------------
-   function Is_Eof (Stream : in Buffered_Stream) return Boolean is
-   begin
-      return Stream.Eof;
-   end Is_Eof;
 
 end Util.Streams.Buffered;

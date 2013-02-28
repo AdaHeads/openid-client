@@ -17,7 +17,6 @@
 -----------------------------------------------------------------------
 with Ada.Strings.Unbounded;
 with Util.Streams.Buffered;
-with Ada.Characters.Handling;
 with Ada.Calendar;
 with GNAT.Calendar.Time_IO;
 package Util.Streams.Texts is
@@ -25,8 +24,8 @@ package Util.Streams.Texts is
    --  -----------------------
    --  Print stream
    --  -----------------------
-   --  The <b>Print_Stream</b> is an output stream which provides helper methods
-   --  for writing text streams.
+   --  The <b>Print_Stream</b> is an output stream which provides helper
+   --  methods for writing text streams.
    type Print_Stream is new Buffered.Buffered_Stream with private;
    type Print_Stream_Access is access all Print_Stream'Class;
 

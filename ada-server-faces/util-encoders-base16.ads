@@ -27,7 +27,7 @@ package Util.Encoders.Base16 is
    --  Base16 encoder
    --  ------------------------------
    --  This <b>Encoder</b> translates the (binary) input stream into
-   --  an ascii hexadecimal stream.  The encoding alphabet is: 0123456789ABCDEF.
+   --  an ascii hexadecimal stream. The encoding alphabet is: 0123456789ABCDEF.
    type Encoder is new Util.Encoders.Transformer with private;
 
    --  Encodes the binary input stream represented by <b>Data</b> into

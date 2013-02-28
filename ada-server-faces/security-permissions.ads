@@ -33,15 +33,17 @@ with GNAT.Regexp;
 limited with Security.Controllers;
 limited with Security.Contexts;
 
---  The <b>Security.Permissions</b> package defines the different permissions that can be
---  checked by the access control manager.
+--  The <b>Security.Permissions</b> package defines the different permissions
+--  that can be checked by the access control manager.
 package Security.Permissions is
 
    --  EL function name exposed by Set_Functions.
    HAS_PERMISSION_FN  : constant String := "hasPermission";
 
-   --  URI for the EL functions exposed by the security package (See Set_Functions).
-   AUTH_NAMESPACE_URI : constant String := "http://code.google.com/p/ada-asf/auth";
+   --  URI for the EL functions exposed by the security package
+   --  (See Set_Functions).
+   AUTH_NAMESPACE_URI : constant String :=
+                          "http://code.google.com/p/ada-asf/auth";
 
    Invalid_Name : exception;
 
@@ -51,7 +53,8 @@ package Security.Permissions is
 
    type Controller_Access is access all Security.Controllers.Controller'Class;
 
-   type Controller_Access_Array is array (Permission_Index range <>) of Controller_Access;
+   type Controller_Access_Array is array (Permission_Index range <>) of
+     Controller_Access;
 
    --  Get the permission index associated with the name.
    function Get_Permission_Index (Name : in String) return Permission_Index;
@@ -63,7 +66,6 @@ package Security.Permissions is
    procedure Add_Permission (Name  : in String;
                              Index : out Permission_Index);
 
-
    --  The permission root class.
    type Abstract_Permission is abstract tagged limited null record;
 
@@ -73,20 +75,20 @@ package Security.Permissions is
 
    type Role_Type_Array is array (Positive range <>) of Role_Type;
 
-   --  The <b>Role_Map</b> represents a set of roles which are assigned to a user.
-   --  Each role is represented by a boolean in the map.  The implementation is limited
-   --  to 64 roles (the number of different permissions can be higher).
+   --  The <b>Role_Map</b> represents a set of roles which are assigned to a
+   --  user. Each role is represented by a boolean in the map.  The
+   --  implementation is limited to 64 roles (the number of different
+   --  permissions can be higher).
    type Role_Map is array (Role_Type'Range) of Boolean;
    pragma Pack (Role_Map);
 
-
-   --  Each permission is represented by a <b>Permission_Type</b> number to provide a fast
-   --  and efficient permission check.
+   --  Each permission is represented by a <b>Permission_Type</b> number to
+   --  provide a fast and efficient permission check.
    type Permission_Type is new Natural range 0 .. 63;
 
-   --  The <b>Permission_Map</b> represents a set of permissions which are granted to a user.
-   --  Each permission is represented by a boolean in the map.  The implementation is limited
-   --  to 64 permissions.
+   --  The <b>Permission_Map</b> represents a set of permissions which are
+   --  granted to a user. Each permission is represented by a boolean in the
+   --  map.  The implementation is limited to 64 permissions.
    type Permission_Map is array (Permission_Type'Range) of Boolean;
    pragma Pack (Permission_Map);
 
@@ -107,7 +109,8 @@ package Security.Permissions is
    --  ------------------------------
 
    --  Represents a permission for a given role.
-   type Permission (Role : Permission_Type) is new Abstract_Permission with null record;
+   type Permission (Role : Permission_Type) is new Abstract_Permission with
+     null record;
 
    --  ------------------------------
    --  URI Permission
@@ -124,42 +127,48 @@ package Security.Permissions is
    type File_Mode is (READ, WRITE);
 
    --  Represents a permission to access a given file.
-   type File_Permission (Len  : Natural;
-                         Mode : File_Mode) is new Abstract_Permission with record
+   type File_Permission
+     (Len  : Natural;
+      Mode : File_Mode)
+     is new Abstract_Permission with record
       Path : String (1 .. Len);
    end record;
 
    --  ------------------------------
    --  Permission Manager
    --  ------------------------------
-   --  The <b>Permission_Manager</b> verifies through some policy that a permission
-   --  is granted to a user.
-   type Permission_Manager is new Ada.Finalization.Limited_Controlled with private;
+   --  The <b>Permission_Manager</b> verifies through some policy that a
+   --  permission is granted to a user.
+   type Permission_Manager is new Ada.Finalization.Limited_Controlled with
+     private;
    type Permission_Manager_Access is access all Permission_Manager'Class;
 
    procedure Add_Permission (Manager    : in out Permission_Manager;
                              Name       : in String;
                              Permission : in Controller_Access);
 
-   --  Find the role type associated with the role name identified by <b>Name</b>.
-   --  Raises <b>Invalid_Name</b> if there is no role type.
+   --  Find the role type associated with the role name identified by
+   --  <b>Name</b>. Raises <b>Invalid_Name</b> if there is no role type.
    function Find_Role (Manager : in Permission_Manager;
                        Name    : in String) return Role_Type;
 
-   --  Returns True if the user has the permission to access the given URI permission.
-   function Has_Permission (Manager    : in Permission_Manager;
-                            Context    : in Security_Context_Access;
-                            Permission : in URI_Permission'Class) return Boolean;
+   --  Returns True if the user has the permission to access the given URI
+   --  permission.
+   function Has_Permission
+     (Manager    : in Permission_Manager;
+      Context    : in Security_Context_Access;
+      Permission : in URI_Permission'Class) return Boolean;
 
    --  Returns True if the user has the given role permission.
    function Has_Permission (Manager    : in Permission_Manager;
                             User       : in Principal'Class;
                             Permission : in Permission_Type) return Boolean;
 
-   --  Get the security controller associated with the permission index <b>Index</b>.
-   --  Returns null if there is no such controller.
-   function Get_Controller (Manager : in Permission_Manager'Class;
-                            Index   : in Permission_Index) return Controller_Access;
+   --  Get the security controller associated with the permission index
+   --  <b>Index</b>. Returns null if there is no such controller.
+   function Get_Controller
+     (Manager : in Permission_Manager'Class;
+      Index   : in Permission_Index) return Controller_Access;
    pragma Inline_Always (Get_Controller);
 
    --  Get the role name.
@@ -176,14 +185,14 @@ package Security.Permissions is
                             Name      : in String;
                             Result    : out Role_Type);
 
-   --  Grant the permission to access to the given <b>URI</b> to users having the <b>To</b>
-   --  permissions.
+   --  Grant the permission to access to the given <b>URI</b> to users having
+   --  the <b>To</b> permissions.
    procedure Grant_URI_Permission (Manager : in out Permission_Manager;
                                    URI     : in String;
                                    To      : in String);
 
-   --  Grant the permission to access to the given <b>Path</b> to users having the <b>To</b>
-   --  permissions.
+   --  Grant the permission to access to the given <b>Path</b> to users having
+   --  the <b>To</b> permissions.
    procedure Grant_File_Permission (Manager : in out Permission_Manager;
                                     Path    : in String;
                                     To      : in String);
@@ -218,8 +227,8 @@ package Security.Permissions is
    end record;
    type Policy_Config_Access is access all Policy_Config;
 
-   --  Setup the XML parser to read the <b>policy</b> description.  For example:
-   --
+   --  Setup the XML parser to read the <b>policy</b> description.  For
+   --  example:
    --  <policy id='1'>
    --     <permission>create-workspace</permission>
    --     <permission>admin</permission>
@@ -227,8 +236,9 @@ package Security.Permissions is
    --     <url-pattern>/workspace/setup/*</url-pattern>
    --  </policy>
    --
-   --  This policy gives access to the URL that match one of the URL pattern if the
-   --  security context has the permission <b>create-workspace</b> or <b>admin</b>.
+   --  This policy gives access to the URL that match one of the URL pattern if
+   --  the security context has the permission <b>create-workspace</b> or
+   --  <b>admin</b>.
    generic
       Reader  : in out Util.Serialize.IO.XML.Parser;
       Manager : in Security.Permissions.Permission_Manager_Access;
@@ -245,25 +255,28 @@ private
 
    type Permission_Type_Array is array (1 .. 10) of Permission_Type;
 
-   type Permission_Index_Array is array (Positive range <>) of Permission_Index;
+   type Permission_Index_Array is array (Positive range <>) of
+     Permission_Index;
 
-   --  The <b>Access_Rule</b> represents a list of permissions to verify to grant
-   --  access to the resource.  To make it simple, the user must have one of the
-   --  permission from the list.  Each permission will refer to a specific permission
-   --  controller.
+   --  The <b>Access_Rule</b> represents a list of permissions to verify to
+   --  grant access to the resource.  To make it simple, the user must have one
+   --  of the permission from the list.  Each permission will refer to a
+   --  specific permission controller.
    type Access_Rule (Count : Natural) is new Util.Refs.Ref_Entity with record
       Permissions : Permission_Index_Array (1 .. Count);
    end record;
    type Access_Rule_Access is access all Access_Rule;
 
    package Access_Rule_Refs is
-     new Util.Refs.Indefinite_References (Element_Type   => Access_Rule,
-                                          Element_Access => Access_Rule_Access);
+     new Util.Refs.Indefinite_References
+       (Element_Type   => Access_Rule,
+        Element_Access => Access_Rule_Access);
    subtype Access_Rule_Ref is Access_Rule_Refs.Ref;
 
    --  No rule
---     No_Rule : constant Access_Rule := (Count => 0,
---                                        Permissions => (others => Permission_Index'First));
+   --     No_Rule : constant Access_Rule :=
+   --  (Count => 0,
+   --   Permissions => (others => Permission_Index'First));
 
    --  Find the access rule of the policy that matches the given URI.
    --  Returns the No_Rule value (disable access) if no rule is found.
@@ -278,16 +291,19 @@ private
       Rule    : Access_Rule_Ref;
    end record;
 
-   --  The <b>Policy_Vector</b> represents the whole permission policy.  The order of
-   --  policy in the list is important as policies can override each other.
-   package Policy_Vector is new Ada.Containers.Vectors (Index_Type   => Positive,
-                                                        Element_Type => Policy);
+   --  The <b>Policy_Vector</b> represents the whole permission policy.  The
+   --  order of policy in the list is important as policies can override each
+   --  other.
+   package Policy_Vector is new Ada.Containers.Vectors
+     (Index_Type   => Positive,
+      Element_Type => Policy);
 
-   package Rules_Maps is new Ada.Containers.Hashed_Maps (Key_Type        => String_Ref,
-                                                         Element_Type    => Access_Rule_Ref,
-                                                         Hash            => Hash,
-                                                         Equivalent_Keys => Equivalent_Keys,
-                                                         "="             => Access_Rule_Refs."=");
+   package Rules_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => String_Ref,
+      Element_Type    => Access_Rule_Ref,
+      Hash            => Hash,
+      Equivalent_Keys => Equivalent_Keys,
+      "="             => Access_Rule_Refs."=");
 
    type Rules is new Util.Refs.Ref_Entity with record
       Map : Rules_Maps.Map;
@@ -300,17 +316,18 @@ private
 
    type Controller_Access_Array_Access is access all Controller_Access_Array;
 
-   type Permission_Manager is new Ada.Finalization.Limited_Controlled with record
-      Names        : Role_Name_Array;
-      Cache        : Rules_Ref_Access;
-      Next_Role    : Role_Type := Role_Type'First;
-      Policies     : Policy_Vector.Vector;
-      Permissions  : Controller_Access_Array_Access;
-      Last_Index   : Permission_Index := Permission_Index'First;
-   end record;
+   type Permission_Manager is new Ada.Finalization.Limited_Controlled with
+      record
+         Names        : Role_Name_Array;
+         Cache        : Rules_Ref_Access;
+         Next_Role    : Role_Type := Role_Type'First;
+         Policies     : Policy_Vector.Vector;
+         Permissions  : Controller_Access_Array_Access;
+         Last_Index   : Permission_Index := Permission_Index'First;
+      end record;
 
-   --  EL function to check if the given permission name is granted by the current
-   --  security context.
+   --  EL function to check if the given permission name is granted by the
+   --  current security context.
    function Has_Permission (Value : in Util.Beans.Objects.Object)
                             return Util.Beans.Objects.Object;
 

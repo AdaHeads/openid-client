@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
---  util-encoders -- Encode/Decode streams and strings from one format to another
+--  util-encoders -- Encode/Decode streams and strings from one format to
+--  another.
 --  Copyright (C) 2009, 2010, 2011 Stephane Carrez
 --  Written by Stephane Carrez (Stephane.Carrez@gmail.com)
 --
@@ -101,15 +102,17 @@ package Util.Encoders is
    --
    --  The <b>Encoding_Error</b> exception is raised if the input
    --  stream cannot be transformed.
-   procedure Transform (E       : in Transformer;
-                        Data    : in Ada.Streams.Stream_Element_Array;
-                        Into    : out Ada.Streams.Stream_Element_Array;
-                        Last    : out Ada.Streams.Stream_Element_Offset;
-                        Encoded : out Ada.Streams.Stream_Element_Offset) is abstract;
+   procedure Transform
+     (E       : in Transformer;
+      Data    : in Ada.Streams.Stream_Element_Array;
+      Into    : out Ada.Streams.Stream_Element_Array;
+      Last    : out Ada.Streams.Stream_Element_Offset;
+      Encoded : out Ada.Streams.Stream_Element_Offset) is abstract;
 
-   procedure Transform (E    : in Transformer;
-                        Data : in String;
-                        Result : out Ada.Strings.Unbounded.Unbounded_String) is null;
+   procedure Transform
+     (E      : in Transformer;
+      Data   : in String;
+      Result : out Ada.Strings.Unbounded.Unbounded_String) is null;
 
    --  Transform the input string <b>Data</b> using the transformation
    --  rules provided by the <b>E</b> transformer.
@@ -128,8 +131,9 @@ package Util.Encoders is
    --
    --  Raises the <b>Encoding_Error</b> exception if the source string
    --  cannot be transformed
-   function Transform (E    : in Transformer'Class;
-                       Data : in Ada.Streams.Stream_Element_Array) return String;
+   function Transform
+     (E    : in Transformer'Class;
+      Data : in Ada.Streams.Stream_Element_Array) return String;
 
 private
 

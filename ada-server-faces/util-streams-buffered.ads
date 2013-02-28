@@ -32,7 +32,8 @@ package Util.Streams.Buffered is
    --  It is necessary to call <b>Flush</b> to make sure the data
    --  is written to the target stream.  The <b>Flush</b> operation will
    --  be called when finalizing the buffered stream.
-   type Buffered_Stream is limited new Output_Stream and Input_Stream with private;
+   type Buffered_Stream is limited new Output_Stream and Input_Stream with
+     private;
 
    type Buffer_Access is access Ada.Streams.Stream_Element_Array;
 
@@ -71,8 +72,9 @@ package Util.Streams.Buffered is
                     Item   : in Ada.Strings.Unbounded.Unbounded_String);
 
    --  Write a raw string on the stream.
-   procedure Write (Stream : in out Buffered_Stream;
-                    Item   : in Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String);
+   procedure Write
+     (Stream : in out Buffered_Stream;
+      Item   : in Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String);
 
    --  Write the buffer array to the output stream.
    overriding

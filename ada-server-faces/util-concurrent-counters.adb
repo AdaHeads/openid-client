@@ -27,6 +27,31 @@ package body Util.Concurrent.Counters is
    use Interfaces;
 
    --  ------------------------------
+   --  Decrement the counter atomically.
+   --  ------------------------------
+   procedure Decrement (C : in out Counter) is
+   begin
+      Asm (Template => "lock decl %0",
+           Volatile => True,
+           Outputs  => Unsigned_32'Asm_Output ("+m", C.Value),
+           Clobber  => "memory");
+   end Decrement;
+
+   --  ------------------------------
+   --  Decrement the counter atomically and return a status.
+   --  ------------------------------
+   procedure Decrement (C : in out Counter;
+                        Is_Zero : out Boolean) is
+      Result : Unsigned_8;
+   begin
+      Asm ("lock decl %0; sete %1",
+           Volatile => True,
+           Outputs => (Unsigned_32'Asm_Output ("+m", C.Value),
+                       Unsigned_8'Asm_Output ("=qm", Result)));
+      Is_Zero := Result /= 0;
+   end Decrement;
+
+   --  ------------------------------
    --  Increment the counter atomically.
    --  ------------------------------
    procedure Increment (C : in out Counter) is
@@ -52,31 +77,6 @@ package body Util.Concurrent.Counters is
            Clobber  => "memory");
       Value := Integer (Val);
    end Increment;
-
-   --  ------------------------------
-   --  Decrement the counter atomically.
-   --  ------------------------------
-   procedure Decrement (C : in out Counter) is
-   begin
-      Asm (Template => "lock decl %0",
-           Volatile => True,
-           Outputs  => Unsigned_32'Asm_Output ("+m", C.Value),
-           Clobber  => "memory");
-   end Decrement;
-
-   --  ------------------------------
-   --  Decrement the counter atomically and return a status.
-   --  ------------------------------
-   procedure Decrement (C : in out Counter;
-                        Is_Zero : out Boolean) is
-      Result : Unsigned_8;
-   begin
-      Asm ("lock decl %0; sete %1",
-           Volatile => True,
-           Outputs => (Unsigned_32'Asm_Output ("+m", C.Value),
-                       Unsigned_8'Asm_Output ("=qm", Result)));
-      Is_Zero := Result /= 0;
-   end Decrement;
 
    --  ------------------------------
    --  Get the counter value

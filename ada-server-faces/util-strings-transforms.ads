@@ -33,7 +33,6 @@ package Util.Strings.Transforms is
                                 To_Lower => Ada.Characters.Handling.To_Lower,
                                 To_Input => Ada.Strings.Unbounded.To_String);
 
-
    --  Capitalize the string into the result stream.
    procedure Capitalize (Content : in String;
                          Into    : in out Unbounded_String)
@@ -41,14 +40,16 @@ package Util.Strings.Transforms is
    function Capitalize (Content : String) return String
                          renames TR.Capitalize;
 
-   --  Translate the input string into an upper case string in the result stream.
+   --  Translate the input string into an upper case string in the result
+   --  stream.
    procedure To_Upper_Case (Content : in String;
                             Into    : in out Unbounded_String)
                             renames TR.To_Upper_Case;
    function To_Upper_Case (Content : String) return String
                            renames TR.To_Upper_Case;
 
-   --  Translate the input string into a lower case string in the result stream.
+   --  Translate the input string into a lower case string in the result
+   --  stream.
    procedure To_Lower_Case (Content : in String;
                             Into    : in out Unbounded_String)
                          renames TR.To_Lower_Case;

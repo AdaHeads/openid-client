@@ -20,16 +20,18 @@ with Util.Serialize.Mappers.Record_Mapper;
 package body Security.Controllers.Roles is
 
    --  ------------------------------
-   --  Returns true if the user associated with the security context <b>Context</b> has
-   --  one of the role defined in the <b>Handler</b>.
+   --  Returns true if the user associated with the security context
+   --  <b>Context</b> has one of the role defined in the <b>Handler</b>.
    --  ------------------------------
    overriding
-   function Has_Permission (Handler : in Role_Controller;
-                            Context : in Security.Contexts.Security_Context'Class)
-                            return Boolean is
+   function Has_Permission
+     (Handler : in Role_Controller;
+      Context : in Security.Contexts.Security_Context'Class)
+      return Boolean is
       use type Security.Permissions.Principal_Access;
 
-      P : constant Security.Permissions.Principal_Access := Context.Get_User_Principal;
+      P : constant Security.Permissions.Principal_Access :=
+            Context.Get_User_Principal;
    begin
       if P /= null then
          for I in Handler.Roles'Range loop
@@ -41,7 +43,8 @@ package body Security.Controllers.Roles is
       return False;
    end Has_Permission;
 
-   type Config_Fields is (FIELD_NAME, FIELD_ROLE, FIELD_ROLE_PERMISSION, FIELD_ROLE_NAME);
+   type Config_Fields is
+     (FIELD_NAME, FIELD_ROLE, FIELD_ROLE_PERMISSION, FIELD_ROLE_NAME);
 
    type Controller_Config_Access is access all Controller_Config;
 
@@ -50,9 +53,10 @@ package body Security.Controllers.Roles is
                          Value : in Util.Beans.Objects.Object);
 
    --  ------------------------------
-   --  Called while parsing the XML policy file when the <name>, <role> and <role-permission>
-   --  XML entities are found.  Create the new permission when the complete permission definition
-   --  has been parsed and save the permission in the security manager.
+   --  Called while parsing the XML policy file when the <name>, <role> and
+   --  <role-permission> XML entities are found.  Create the new permission
+   --  when the complete permission definition has been parsed and save the
+   --  permission in the security manager.
    --  ------------------------------
    procedure Set_Member (Into  : in out Controller_Config;
                          Field : in Config_Fields;
@@ -71,18 +75,22 @@ package body Security.Controllers.Roles is
 
             exception
                when Permissions.Invalid_Name =>
-                  raise Util.Serialize.Mappers.Field_Error with "Invalid role: " & Role;
+                  raise Util.Serialize.Mappers.Field_Error with
+                    "Invalid role: " & Role;
             end;
 
          when FIELD_ROLE_PERMISSION =>
             if Into.Count = 0 then
-               raise Util.Serialize.Mappers.Field_Error with "Missing at least one role";
+               raise Util.Serialize.Mappers.Field_Error with
+                 "Missing at least one role";
             end if;
             declare
-               Name : constant String := Util.Beans.Objects.To_String (Into.Name);
+               Name : constant String :=
+                        Util.Beans.Objects.To_String (Into.Name);
                Perm : constant Role_Controller_Access
                  := new Role_Controller '(Count => Into.Count,
-                                          Roles => Into.Roles (1 .. Into.Count));
+                                          Roles => Into.Roles
+                                            (1 .. Into.Count));
             begin
                Into.Manager.Add_Permission (Name, Perm.all'Access);
                Into.Count := 0;
@@ -99,15 +107,17 @@ package body Security.Controllers.Roles is
    end Set_Member;
 
    package Config_Mapper is
-     new Util.Serialize.Mappers.Record_Mapper (Element_Type        => Controller_Config,
-                                               Element_Type_Access => Controller_Config_Access,
-                                               Fields              => Config_Fields,
-                                               Set_Member          => Set_Member);
+     new Util.Serialize.Mappers.Record_Mapper
+       (Element_Type        => Controller_Config,
+        Element_Type_Access => Controller_Config_Access,
+        Fields              => Config_Fields,
+        Set_Member          => Set_Member);
 
    Mapper : aliased Config_Mapper.Mapper;
 
    --  ------------------------------
-   --  Setup the XML parser to read the <b>role-permission</b> description.  For example:
+   --  Setup the XML parser to read the <b>role-permission</b> description.
+   --  for example :
    --
    --  <security-role>
    --    <role-name>admin</role-name>
@@ -118,8 +128,8 @@ package body Security.Controllers.Roles is
    --     <role>manager</role>
    --  </role-permission>
    --
-   --  This defines a permission <b>create-workspace</b> that will be granted if the
-   --  user has either the <b>admin</b> or the <b>manager</b> role.
+   --  This defines a permission <b>create-workspace</b> that will be granted
+   --  if the user has either the <b>admin</b> or the <b>manager</b> role.
    --  ------------------------------
    package body Reader_Config is
    begin

@@ -19,36 +19,42 @@ with Ada.Streams;
 with Ada.Finalization;
 with Util.Encoders.SHA1;
 
---  The <b>Util.Encodes.HMAC.SHA1</b> package generates HMAC-SHA1 authentication
---  (See RFC 2104 - HMAC: Keyed-Hashing for Message Authentication).
+--  The <b>Util.Encodes.HMAC.SHA1</b> package generates HMAC-SHA1
+--  authentication.
+--  (See RFC 2104 - HMAC : Keyed - Hashing for Message Authentication).
 package Util.Encoders.HMAC.SHA1 is
 
    pragma Preelaborate;
 
-   --  Sign the data string with the key and return the HMAC-SHA1 code in binary.
+   --  Sign the data string with the key and return the HMAC-SHA1 code in
+   --  binary.
    function Sign (Key  : in String;
                   Data : in String) return Util.Encoders.SHA1.Hash_Array;
 
-   --  Sign the data string with the key and return the HMAC-SHA1 code as hexadecimal string.
+   --  Sign the data string with the key and return the HMAC-SHA1 code as
+   --  hexadecimal string.
    function Sign (Key  : in String;
                   Data : in String) return Util.Encoders.SHA1.Digest;
 
-   --  Sign the data string with the key and return the HMAC-SHA1 code as base64 string.
-   function Sign_Base64 (Key  : in String;
-                         Data : in String) return Util.Encoders.SHA1.Base64_Digest;
+   --  Sign the data string with the key and return the HMAC-SHA1 code as
+   --  base64 string.
+   function Sign_Base64
+     (Key  : in String;
+      Data : in String)
+      return Util.Encoders.SHA1.Base64_Digest;
 
    --  ------------------------------
    --  HMAC-SHA1 Context
    --  ------------------------------
    type Context is limited private;
 
-   --  Set the hmac private key.  The key must be set before calling any <b>Update</b>
-   --  procedure.
+   --  Set the hmac private key.  The key must be set before calling any
+   --  <b>Update</b> procedure.
    procedure Set_Key (E   : in out Context;
                       Key : in String);
 
-   --  Set the hmac private key.  The key must be set before calling any <b>Update</b>
-   --  procedure.
+   --  Set the hmac private key.  The key must be set before calling any
+   --  <b>Update</b> procedure.
    procedure Set_Key (E   : in out Context;
                       Key : in Ada.Streams.Stream_Element_Array);
 
@@ -61,12 +67,14 @@ package Util.Encoders.HMAC.SHA1 is
                      S : in Ada.Streams.Stream_Element_Array);
 
    --  Computes the HMAC-SHA1 with the private key and the data collected by
-   --  the <b>Update</b> procedures.  Returns the raw binary hash in <b>Hash</b>.
+   --  the <b>Update</b> procedures.  Returns the raw binary hash in
+   --  <b>Hash</b>.
    procedure Finish (E    : in out Context;
                      Hash : out Util.Encoders.SHA1.Hash_Array);
 
    --  Computes the HMAC-SHA1 with the private key and the data collected by
-   --  the <b>Update</b> procedures.  Returns the hexadecimal hash in <b>Hash</b>.
+   --  the <b>Update</b> procedures.  Returns the hexadecimal hash in
+   --  <b>Hash</b>.
    procedure Finish (E    : in out Context;
                      Hash : out Util.Encoders.SHA1.Digest);
 

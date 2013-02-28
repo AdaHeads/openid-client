@@ -24,6 +24,17 @@ package body Util.Stacks is
                                      Element_Type_Array_Access);
 
    --  ------------------------------
+   --  Clear the stack.
+   --  ------------------------------
+   procedure Clear (Container : in out Stack) is
+   begin
+      if Container.Stack /= null then
+         Container.Pos := Container.Stack'First;
+      end if;
+      Container.Current := null;
+   end Clear;
+
+   --  ------------------------------
    --  Get access to the current stack element.
    --  ------------------------------
    function Current (Container : in Stack) return Element_Type_Access is
@@ -32,7 +43,26 @@ package body Util.Stacks is
    end Current;
 
    --  ------------------------------
-   --  Push an element on top of the stack making the new element the current one.
+   --  Release the stack
+   --  ------------------------------
+   overriding
+   procedure Finalize (Obj : in out Stack) is
+   begin
+      Free (Obj.Stack);
+   end Finalize;
+
+   --  ------------------------------
+   --  Pop the top element.
+   --  ------------------------------
+   procedure Pop (Container : in out Stack) is
+   begin
+      Container.Pos := Container.Pos - 1;
+      Container.Current   := Container.Stack (Container.Pos)'Access;
+   end Pop;
+
+   --  ------------------------------
+   --  Push an element on top of the stack making the new element the current
+   --  one.
    --  ------------------------------
    procedure Push (Container : in out Stack) is
    begin
@@ -49,39 +79,11 @@ package body Util.Stacks is
          end;
       end if;
       if Container.Pos /= Container.Stack'First then
-         Container.Stack (Container.Pos + 1) := Container.Stack (Container.Pos);
+         Container.Stack (Container.Pos + 1) :=
+           Container.Stack (Container.Pos);
       end if;
       Container.Pos := Container.Pos + 1;
       Container.Current := Container.Stack (Container.Pos)'Access;
    end Push;
-
-   --  ------------------------------
-   --  Pop the top element.
-   --  ------------------------------
-   procedure Pop (Container : in out Stack) is
-   begin
-      Container.Pos := Container.Pos - 1;
-      Container.Current   := Container.Stack (Container.Pos)'Access;
-   end Pop;
-
-   --  ------------------------------
-   --  Clear the stack.
-   --  ------------------------------
-   procedure Clear (Container : in out Stack) is
-   begin
-      if Container.Stack /= null then
-         Container.Pos := Container.Stack'First;
-      end if;
-      Container.Current := null;
-   end Clear;
-
-   --  ------------------------------
-   --  Release the stack
-   --  ------------------------------
-   overriding
-   procedure Finalize (Obj : in out Stack) is
-   begin
-      Free (Obj.Stack);
-   end Finalize;
 
 end Util.Stacks;

@@ -25,14 +25,16 @@ package Util.Serialize.Mappers is
 
    Mapping_Error : exception;
 
-   --  The <b>Field_Error</b> exception can be raised by a mapper to indicate that the field
-   --  that was extracted is invalid.  The exception message will be reported as an error message
-   --  and the IO reader will be marked as in error.  The IO reader will continue to read and
-   --  process the mappings.
+   --  The <b>Field_Error</b> exception can be raised by a mapper to indicate
+   --  that the field that was extracted is invalid.  The exception message
+   --  will be reported as an error message and the IO reader will be marked
+   --  as in error.  The IO reader will continue to read and process the
+   --  mappings.
    Field_Error   : exception;
 
-   --  The <b>Field_Fatal_Error</b> exception is similar to the <b>Field_Error</b> exception.
-   --  However the IO reader will report the error and immediately stop.
+   --  The <b>Field_Fatal_Error</b> exception is similar to the
+   --  <b>Field_Error</b> exception. However the IO reader will report the
+   --  error and immediately stop.
    Field_Fatal_Error   : exception;
 
    --  ------------------------------
@@ -47,21 +49,23 @@ package Util.Serialize.Mappers is
    --  Mapper
    --  ------------------------------
    --  The <b>Mapper</b> represents a node of the mapping tree.  The mapping
-   --  tree is walked horizontally to find siblings.  It is walked vertically when
-   --  entering or leaving an object.
+   --  tree is walked horizontally to find siblings.  It is walked vertically
+   --  when entering or leaving an object.
    type Mapper is new Ada.Finalization.Limited_Controlled with private;
    type Mapper_Access is access all Mapper'Class;
 
-   --  Execute the mapping operation on the object associated with the current context.
-   --  The object is extracted from the context and the <b>Execute</b> operation is called.
+   --  Execute the mapping operation on the object associated with the current
+   --  context.
+   --  The object is extracted from the context and the <b>Execute</b>
+   --  operation is called.
    procedure Execute (Handler : in Mapper;
                       Map     : in Mapping'Class;
                       Ctx     : in out Util.Serialize.Contexts.Context'Class;
                       Value   : in Util.Beans.Objects.Object);
 
-   --  Add a mapping for setting a member.  When the attribute rule defined by <b>Path</b>
-   --  is matched, the <b>Set_Member</b> procedure will be called with the value and the
-   --  <b>Field</b> identification.
+   --  Add a mapping for setting a member.  When the attribute rule defined by
+   --  <b>Path</b> is matched, the <b>Set_Member</b> procedure will be called
+   --  with the value and the<b>Field</b> identification.
    procedure Add_Mapping (Into : in out Mapper;
                           Path : in String;
                           Map  : in Mapping_Access);
@@ -75,31 +79,35 @@ package Util.Serialize.Mappers is
 
    --  Set the name/value pair on the current object.  For each active mapping,
    --  find whether a rule matches our name and execute it.
-   procedure Set_Member (Handler   : in Mapper;
-                         Name      : in String;
-                         Value     : in Util.Beans.Objects.Object;
-                         Attribute : in Boolean := False;
-                         Context   : in out Util.Serialize.Contexts.Context'Class);
+   procedure Set_Member
+     (Handler   : in Mapper;
+      Name      : in String;
+      Value     : in Util.Beans.Objects.Object;
+      Attribute : in Boolean := False;
+      Context   : in out Util.Serialize.Contexts.Context'Class);
 
-   procedure Start_Object (Handler : in Mapper;
-                           Context : in out Util.Serialize.Contexts.Context'Class;
-                           Name    : in String);
+   procedure Start_Object
+     (Handler : in Mapper;
+      Context : in out Util.Serialize.Contexts.Context'Class;
+      Name    : in String);
 
-   procedure Finish_Object (Handler : in Mapper;
-                            Context : in out Util.Serialize.Contexts.Context'Class;
-                            Name    : in String);
+   procedure Finish_Object
+     (Handler : in Mapper;
+      Context : in out Util.Serialize.Contexts.Context'Class;
+      Name    : in String);
 
    --  Find the mapper associated with the given name.
    --  Returns null if there is no mapper.
-   function Find_Mapper (Controller : in Mapper;
-                         Name       : in String;
-                         Attribute  : in Boolean := False) return Mapper_Access;
-
+   function Find_Mapper
+     (Controller : in Mapper;
+      Name       : in String;
+      Attribute  : in Boolean := False) return Mapper_Access;
 
    function Is_Proxy (Controller : in Mapper) return Boolean;
 
-   procedure Iterate (Controller : in Mapper;
-                      Process : not null access procedure (Map : in Mapper'Class));
+   procedure Iterate
+     (Controller : in Mapper;
+      Process    : not null access procedure (Map : in Mapper'Class));
 
    --  Dump the mapping tree on the logger using the INFO log level.
    procedure Dump (Handler : in Mapper'Class;

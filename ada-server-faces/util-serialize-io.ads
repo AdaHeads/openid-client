@@ -42,9 +42,10 @@ package Util.Serialize.IO is
    procedure End_Entity (Stream : in out Output_Stream;
                          Name   : in String) is null;
 
-   procedure Write_Attribute (Stream : in out Output_Stream;
-                              Name   : in String;
-                              Value  : in Util.Beans.Objects.Object) is abstract;
+   procedure Write_Attribute
+     (Stream : in out Output_Stream;
+      Name   : in String;
+      Value  : in Util.Beans.Objects.Object) is abstract;
 
    procedure Write_Entity (Stream : in out Output_Stream;
                            Name   : in String;
@@ -58,8 +59,10 @@ package Util.Serialize.IO is
    type Parser is abstract new Util.Serialize.Contexts.Context with private;
 
    --  Parse the stream using the JSON parser.
-   procedure Parse (Handler : in out Parser;
-                    Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class) is abstract;
+   procedure Parse
+     (Handler : in out Parser;
+      Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class)
+   is abstract;
 
    --  Read the file and parse it using the parser.
    procedure Parse (Handler : in out Parser;
@@ -100,9 +103,10 @@ package Util.Serialize.IO is
    --  Get the current location (file and line) to report an error message.
    function Get_Location (Handler : in Parser) return String;
 
-   --  Report an error while parsing the input stream.  The error message will be reported
-   --  on the logger associated with the parser.  The parser will be set as in error so that
-   --  the <b>Has_Error</b> function will return True after parsing the whole file.
+   --  Report an error while parsing the input stream.  The error message will
+   --  be reported on the logger associated with the parser.  The parser will
+   --  be set as in error so that the <b>Has_Error</b> function will return
+   --  True after parsing the whole file.
    procedure Error (Handler : in out Parser;
                     Message : in String);
 
@@ -118,15 +122,17 @@ private
    --  Implementation limitation:  the max number of active mapping nodes
    MAX_NODES : constant Positive := 10;
 
-   type Mapper_Access_Array is array (1 .. MAX_NODES) of Serialize.Mappers.Mapper_Access;
+   type Mapper_Access_Array is array (1 .. MAX_NODES) of
+     Serialize.Mappers.Mapper_Access;
 
    procedure Push (Handler : in out Parser);
 
    --  Pop the context and restore the previous context when leaving an element
    procedure Pop (Handler  : in out Parser);
 
-   function Find_Mapper (Handler : in Parser;
-                         Name    : in String) return Util.Serialize.Mappers.Mapper_Access;
+   function Find_Mapper
+     (Handler : in Parser;
+      Name    : in String) return Util.Serialize.Mappers.Mapper_Access;
 
    type Element_Context is record
       --  The object mapper being process.
@@ -137,8 +143,9 @@ private
    end record;
    type Element_Context_Access is access all Element_Context;
 
-   package Context_Stack is new Util.Stacks (Element_Type => Element_Context,
-                                             Element_Type_Access => Element_Context_Access);
+   package Context_Stack is new
+     Util.Stacks (Element_Type        => Element_Context,
+                  Element_Type_Access => Element_Context_Access);
 
    type Parser is abstract new Util.Serialize.Contexts.Context with record
       Error_Flag     : Boolean := False;

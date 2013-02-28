@@ -37,14 +37,23 @@ package body Util.Serialize.Contexts is
       Key := Data_Key (Val);
    end Allocate;
 
-   function Hash (Key : in Data_Key) return Ada.Containers.Hash_Type is
+   --  ------------------------------
+   --  Free the context data.
+   --  ------------------------------
+   overriding
+   procedure Finalize (Ctx : in out Context) is
+      Pos     : Data_Map.Cursor;
+      Content : Data_Access;
    begin
-      return Ada.Containers.Hash_Type (Key);
-   end Hash;
-
-   --  ------------------------------
-   --  Reader context
-   --  ------------------------------
+      loop
+         Pos := Ctx.Data.First;
+         exit when not Data_Map.Has_Element (Pos);
+         Content := Data_Map.Element (Pos);
+         Content.Finalize;
+         Free (Content);
+         Ctx.Data.Delete (Pos);
+      end loop;
+   end Finalize;
 
    --  ------------------------------
    --  Get the data object associated with the given key.
@@ -60,6 +69,11 @@ package body Util.Serialize.Contexts is
          raise No_Data;
       end if;
    end Get_Data;
+
+   function Hash (Key : in Data_Key) return Ada.Containers.Hash_Type is
+   begin
+      return Ada.Containers.Hash_Type (Key);
+   end Hash;
 
    --  ------------------------------
    --  Set the data object associated with the given key.
@@ -84,23 +98,5 @@ package body Util.Serialize.Contexts is
          Ctx.Data.Insert (Key => Key, New_Item => Content);
       end if;
    end Set_Data;
-
-   --  ------------------------------
-   --  Free the context data.
-   --  ------------------------------
-   overriding
-   procedure Finalize (Ctx : in out Context) is
-      Pos     : Data_Map.Cursor;
-      Content : Data_Access;
-   begin
-      loop
-         Pos := Ctx.Data.First;
-         exit when not Data_Map.Has_Element (Pos);
-         Content := Data_Map.Element (Pos);
-         Content.Finalize;
-         Free (Content);
-         Ctx.Data.Delete (Pos);
-      end loop;
-   end Finalize;
 
 end Util.Serialize.Contexts;

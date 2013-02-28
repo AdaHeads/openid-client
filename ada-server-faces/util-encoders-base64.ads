@@ -82,47 +82,60 @@ private
 
    type Alphabet_Access is not null access constant Alphabet;
 
-   BASE64_ALPHABET : aliased constant Alphabet :=
-     (Character'Pos ('A'), Character'Pos ('B'), Character'Pos ('C'), Character'Pos ('D'),
-      Character'Pos ('E'), Character'Pos ('F'), Character'Pos ('G'), Character'Pos ('H'),
-      Character'Pos ('I'), Character'Pos ('J'), Character'Pos ('K'), Character'Pos ('L'),
-      Character'Pos ('M'), Character'Pos ('N'), Character'Pos ('O'), Character'Pos ('P'),
-      Character'Pos ('Q'), Character'Pos ('R'), Character'Pos ('S'), Character'Pos ('T'),
-      Character'Pos ('U'), Character'Pos ('V'), Character'Pos ('W'), Character'Pos ('X'),
-      Character'Pos ('Y'), Character'Pos ('Z'), Character'Pos ('a'), Character'Pos ('b'),
-      Character'Pos ('c'), Character'Pos ('d'), Character'Pos ('e'), Character'Pos ('f'),
-      Character'Pos ('g'), Character'Pos ('h'), Character'Pos ('i'), Character'Pos ('j'),
-      Character'Pos ('k'), Character'Pos ('l'), Character'Pos ('m'), Character'Pos ('n'),
-      Character'Pos ('o'), Character'Pos ('p'), Character'Pos ('q'), Character'Pos ('r'),
-      Character'Pos ('s'), Character'Pos ('t'), Character'Pos ('u'), Character'Pos ('v'),
-      Character'Pos ('w'), Character'Pos ('x'), Character'Pos ('y'), Character'Pos ('z'),
-      Character'Pos ('0'), Character'Pos ('1'), Character'Pos ('2'), Character'Pos ('3'),
-      Character'Pos ('4'), Character'Pos ('5'), Character'Pos ('6'), Character'Pos ('7'),
-      Character'Pos ('8'), Character'Pos ('9'), Character'Pos ('+'), Character'Pos ('/'));
+   BASE64_ALPHABET : aliased constant Alphabet
+     := (Character'Pos ('A'), Character'Pos ('B'), Character'Pos ('C'),
+       Character'Pos ('D'), Character'Pos ('E'), Character'Pos ('F'),
+       Character'Pos ('G'), Character'Pos ('H'), Character'Pos ('I'),
+       Character'Pos ('J'), Character'Pos ('K'), Character'Pos ('L'),
+       Character'Pos ('M'), Character'Pos ('N'), Character'Pos ('O'),
+       Character'Pos ('P'), Character'Pos ('Q'), Character'Pos ('R'),
+       Character'Pos ('S'), Character'Pos ('T'), Character'Pos ('U'),
+       Character'Pos ('V'), Character'Pos ('W'), Character'Pos ('X'),
+       Character'Pos ('Y'), Character'Pos ('Z'), Character'Pos ('a'),
+       Character'Pos ('b'), Character'Pos ('c'), Character'Pos ('d'),
+       Character'Pos ('e'), Character'Pos ('f'), Character'Pos ('g'),
+       Character'Pos ('h'), Character'Pos ('i'), Character'Pos ('j'),
+       Character'Pos ('k'), Character'Pos ('l'), Character'Pos ('m'),
+       Character'Pos ('n'), Character'Pos ('o'), Character'Pos ('p'),
+       Character'Pos ('q'), Character'Pos ('r'), Character'Pos ('s'),
+       Character'Pos ('t'), Character'Pos ('u'), Character'Pos ('v'),
+       Character'Pos ('w'), Character'Pos ('x'), Character'Pos ('y'),
+       Character'Pos ('z'), Character'Pos ('0'), Character'Pos ('1'),
+       Character'Pos ('2'), Character'Pos ('3'), Character'Pos ('4'),
+       Character'Pos ('5'), Character'Pos ('6'), Character'Pos ('7'),
+       Character'Pos ('8'), Character'Pos ('9'), Character'Pos ('+'),
+       Character'Pos ('/'));
 
-   BASE64_URL_ALPHABET : aliased constant Alphabet :=
-     (Character'Pos ('A'), Character'Pos ('B'), Character'Pos ('C'), Character'Pos ('D'),
-      Character'Pos ('E'), Character'Pos ('F'), Character'Pos ('G'), Character'Pos ('H'),
-      Character'Pos ('I'), Character'Pos ('J'), Character'Pos ('K'), Character'Pos ('L'),
-      Character'Pos ('M'), Character'Pos ('N'), Character'Pos ('O'), Character'Pos ('P'),
-      Character'Pos ('Q'), Character'Pos ('R'), Character'Pos ('S'), Character'Pos ('T'),
-      Character'Pos ('U'), Character'Pos ('V'), Character'Pos ('W'), Character'Pos ('X'),
-      Character'Pos ('Y'), Character'Pos ('Z'), Character'Pos ('a'), Character'Pos ('b'),
-      Character'Pos ('c'), Character'Pos ('d'), Character'Pos ('e'), Character'Pos ('f'),
-      Character'Pos ('g'), Character'Pos ('h'), Character'Pos ('i'), Character'Pos ('j'),
-      Character'Pos ('k'), Character'Pos ('l'), Character'Pos ('m'), Character'Pos ('n'),
-      Character'Pos ('o'), Character'Pos ('p'), Character'Pos ('q'), Character'Pos ('r'),
-      Character'Pos ('s'), Character'Pos ('t'), Character'Pos ('u'), Character'Pos ('v'),
-      Character'Pos ('w'), Character'Pos ('x'), Character'Pos ('y'), Character'Pos ('z'),
-      Character'Pos ('0'), Character'Pos ('1'), Character'Pos ('2'), Character'Pos ('3'),
-      Character'Pos ('4'), Character'Pos ('5'), Character'Pos ('6'), Character'Pos ('7'),
-      Character'Pos ('8'), Character'Pos ('9'), Character'Pos ('+'), Character'Pos ('/'));
+   BASE64_URL_ALPHABET : aliased constant Alphabet
+     := (Character'Pos ('A'), Character'Pos ('B'), Character'Pos ('C'),
+       Character'Pos ('D'), Character'Pos ('E'), Character'Pos ('F'),
+       Character'Pos ('G'), Character'Pos ('H'), Character'Pos ('I'),
+       Character'Pos ('J'), Character'Pos ('K'), Character'Pos ('L'),
+       Character'Pos ('M'), Character'Pos ('N'), Character'Pos ('O'),
+       Character'Pos ('P'), Character'Pos ('Q'), Character'Pos ('R'),
+       Character'Pos ('S'), Character'Pos ('T'), Character'Pos ('U'),
+       Character'Pos ('V'), Character'Pos ('W'), Character'Pos ('X'),
+       Character'Pos ('Y'), Character'Pos ('Z'), Character'Pos ('a'),
+       Character'Pos ('b'), Character'Pos ('c'), Character'Pos ('d'),
+       Character'Pos ('e'), Character'Pos ('f'), Character'Pos ('g'),
+       Character'Pos ('h'), Character'Pos ('i'), Character'Pos ('j'),
+       Character'Pos ('k'), Character'Pos ('l'), Character'Pos ('m'),
+       Character'Pos ('n'), Character'Pos ('o'), Character'Pos ('p'),
+       Character'Pos ('q'), Character'Pos ('r'), Character'Pos ('s'),
+       Character'Pos ('t'), Character'Pos ('u'), Character'Pos ('v'),
+       Character'Pos ('w'), Character'Pos ('x'), Character'Pos ('y'),
+       Character'Pos ('z'), Character'Pos ('0'), Character'Pos ('1'),
+       Character'Pos ('2'), Character'Pos ('3'), Character'Pos ('4'),
+       Character'Pos ('5'), Character'Pos ('6'), Character'Pos ('7'),
+       Character'Pos ('8'), Character'Pos ('9'), Character'Pos ('+'),
+       Character'Pos ('/'));
 
    type Encoder is new Util.Encoders.Transformer with record
       Alphabet : Alphabet_Access := BASE64_ALPHABET'Access;
    end record;
 
-   type Alphabet_Values is array (Ada.Streams.Stream_Element) of Interfaces.Unsigned_8;
+   type Alphabet_Values is array (Ada.Streams.Stream_Element) of
+     Interfaces.Unsigned_8;
    type Alphabet_Values_Access is not null access constant Alphabet_Values;
 
    BASE64_VALUES : aliased constant Alphabet_Values :=

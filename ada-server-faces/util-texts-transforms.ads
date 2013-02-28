@@ -34,14 +34,16 @@ package Util.Texts.Transforms is
    --  Capitalize the string
    function Capitalize (Content : Input) return Input;
 
-   --  Translate the input string into an upper case string in the result stream.
+   --  Translate the input string into an upper case string in the result
+   --  stream.
    procedure To_Upper_Case (Content : in Input;
                             Into    : in out Stream);
 
    --  Translate the input string into an upper case string.
    function To_Upper_Case (Content : Input) return Input;
 
-   --  Translate the input string into a lower case string in the result stream.
+   --  Translate the input string into a lower case string in the result
+   --  stream.
    procedure To_Lower_Case (Content : in Input;
                             Into    : in out Stream);
    function To_Lower_Case (Content : Input) return Input;

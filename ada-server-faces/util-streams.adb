@@ -21,8 +21,8 @@ package body Util.Streams is
    use Ada.Streams;
 
    --  ------------------------------
-   --  Copy the input stream to the output stream until the end of the input stream
-   --  is reached.
+   --  Copy the input stream to the output stream until the end of the input
+   --  stream is reached.
    --  ------------------------------
    procedure Copy (From : in out Input_Stream'Class;
                    Into : in out Output_Stream'Class) is

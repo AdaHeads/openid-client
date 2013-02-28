@@ -28,28 +28,33 @@ package Security.Controllers.Roles is
    --  ------------------------------
    --  Security Controller
    --  ------------------------------
-   --  The <b>Role_Controller</b> implements a simple role based permissions check.
-   --  The permission is granted if the user has the role defined by the controller.
-   type Role_Controller (Count : Positive) is limited new Controller with record
-      Roles : Permissions.Role_Type_Array (1 .. Count);
-   end record;
+   --  The <b>Role_Controller</b> implements a simple role based permissions
+   --  check. The permission is granted if the user has the role defined by the
+   --  controller.
+   type Role_Controller (Count : Positive) is limited new Controller with
+      record
+         Roles : Permissions.Role_Type_Array (1 .. Count);
+      end record;
    type Role_Controller_Access is access all Role_Controller'Class;
 
-   --  Returns true if the user associated with the security context <b>Context</b> has
-   --  one of the role defined in the <b>Handler</b>.
+   --  Returns true if the user associated with the security context
+   --  <b>Context</b> has one of the role defined in the <b>Handler</b>.
    overriding
-   function Has_Permission (Handler : in Role_Controller;
-                            Context : in Security.Contexts.Security_Context'Class)
-                            return Boolean;
+   function Has_Permission
+     (Handler : in Role_Controller;
+      Context : in Security.Contexts.Security_Context'Class)
+      return Boolean;
 
    type Controller_Config is record
       Name    : Util.Beans.Objects.Object;
-      Roles   : Permissions.Role_Type_Array (1 .. Integer (Permissions.Role_Type'Last));
+      Roles   : Permissions.Role_Type_Array
+        (1 .. Integer (Permissions.Role_Type'Last));
       Count   : Natural := 0;
       Manager : Security.Permissions.Permission_Manager_Access;
    end record;
 
-   --  Setup the XML parser to read the <b>role-permission</b> description.  For example:
+   --  Setup the XML parser to read the <b>role-permission</b> description.
+   --  For example :
    --
    --  <security-role>
    --    <role-name>admin</role-name>
@@ -60,8 +65,8 @@ package Security.Controllers.Roles is
    --     <role>manager</role>
    --  </role-permission>
    --
-   --  This defines a permission <b>create-workspace</b> that will be granted if the
-   --  user has either the <b>admin</b> or the <b>manager</b> role.
+   --  This defines a permission <b>create-workspace</b> that will be granted
+   --  if the user has either the <b>admin</b> or the <b>manager</b> role.
    generic
       Reader  : in out Util.Serialize.IO.XML.Parser;
       Manager : in Security.Permissions.Permission_Manager_Access;

@@ -26,7 +26,8 @@ package Util.Stacks is
    --  Get access to the current stack element.
    function Current (Container : in Stack) return Element_Type_Access;
 
-   --  Push an element on top of the stack making the new element the current one.
+   --  Push an element on top of the stack making the new element the current
+   --  one.
    procedure Push (Container : in out Stack);
 
    --  Pop the top element.

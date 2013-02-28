@@ -56,6 +56,11 @@ package body Security.Openid is
      return String;
    --  TODO: write comment
 
+   procedure Log_Verification
+     (Succeeded : in Boolean;
+      Message   : in String);
+   --  TODO: write comment
+
    -----------------
    --  Associate  --
    -----------------
@@ -303,6 +308,54 @@ package body Security.Openid is
       return From (URL_Pos .. Last - 1);
    end Extract;
 
+   -----------------------
+   --  Extract_Profile  --
+   -----------------------
+
+   procedure Extract_Profile
+     (Prefix  : in     String;
+      Request : in     AWS.Status.Data;
+      Result  : in out Authentication)
+   is
+   begin
+      Extract_Value (Result.Email,      Request, Prefix & ".email");
+      Extract_Value (Result.Nickname,   Request, Prefix & ".nickname");
+      Extract_Value (Result.Gender,     Request, Prefix & ".gender");
+      Extract_Value (Result.Country,    Request, Prefix & ".country");
+      Extract_Value (Result.Language,   Request, Prefix & ".language");
+      Extract_Value (Result.Full_Name,  Request, Prefix & ".fullname");
+      Extract_Value (Result.Timezone,   Request, Prefix & ".timezone");
+      Extract_Value (Result.First_Name, Request, Prefix & ".firstname");
+      Extract_Value (Result.Last_Name,  Request, Prefix & ".lastname");
+
+      --  If the fullname is not specified, try to build one from the
+      --  first_name and last_name.
+      if Length (Result.Full_Name) = 0 then
+         Append (Result.Full_Name, Result.First_Name);
+         if Length (Result.First_Name) > 0
+           and Length (Result.Last_Name) > 0
+         then
+            Append (Result.Full_Name, " ");
+            Append (Result.Full_Name, Result.Last_Name);
+         end if;
+      end if;
+   end Extract_Profile;
+
+   ---------------------
+   --  Extract_Value  --
+   ---------------------
+
+   procedure Extract_Value
+     (Into    : in out Unbounded_String;
+      Request : in     AWS.Status.Data;
+      Name    : in     String)
+   is
+   begin
+      if Length (Into) = 0 then
+         Into := To_Unbounded_String (AWS.Status.Parameter (Request, Name));
+      end if;
+   end Extract_Value;
+
    --------------------
    --  Extract_XRDS  --
    --------------------
@@ -435,6 +488,31 @@ package body Security.Openid is
       return To_String (Result);
    end Get_Authentication_URL;
 
+   --------------
+   --  Handle  --
+   --------------
+
+   function Handle
+     (Response : in AWS.Status.Data)
+      return Association_Handle
+   is
+   begin
+      return To_Unbounded_String
+        (AWS.Status.Parameter (Response, "openid.assoc_handle"));
+   end Handle;
+
+   --------------
+   --  Handle  --
+   --------------
+
+   function Handle
+     (Item : in Association)
+      return Association_Handle
+   is
+   begin
+      return Item.Assoc_Handle;
+   end Handle;
+
    ----------------
    --  Has_Role  --
    ----------------
@@ -503,6 +581,22 @@ package body Security.Openid is
       return To_String (Auth.Last_Name);
    end Last_Name;
 
+   ------------------------
+   --  Log_Verification  --
+   ------------------------
+
+   procedure Log_Verification
+     (Succeeded : in Boolean;
+      Message   : in String)
+   is
+   begin
+      if Succeeded then
+         AWS.OpenID.Log.Info  ("OpenID verification: " & Message);
+      else
+         AWS.OpenID.Log.Error ("OpenID verification failed: " & Message);
+      end if;
+   end Log_Verification;
+
    ------------
    --  Name  --
    ------------
@@ -528,56 +622,46 @@ package body Security.Openid is
       return Auth.Status;
    end Status;
 
-   procedure Log_Verification (Succeeded : in     Boolean;
-                               Message   : in     String) is
-   begin
-      if Succeeded then
-         AWS.OpenID.Log.Info  ("OpenID verification: "        & Message);
-      else
-         AWS.OpenID.Log.Error ("OpenID verification failed: " & Message);
-      end if;
-   end Log_Verification;
+   -----------------
+   --  To_String  --
+   -----------------
 
-   procedure Extract_Value (Into    : in out Unbounded_String;
-                            Request : in AWS.Status.Data;
-                            Name    : in String) is
+   function To_String
+     (Assoc : Association)
+      return String
+   is
    begin
-      if Length (Into) = 0 then
-         Into := To_Unbounded_String (AWS.Status.Parameter (Request, Name));
-      end if;
-   end Extract_Value;
+      return "session_type=" & To_String (Assoc.Session_Type)
+        & "&assoc_type=" & To_String (Assoc.Assoc_Type)
+        & "&assoc_handle=" & To_String (Assoc.Assoc_Handle)
+        & "&mac_key=" & To_String (Assoc.Mac_Key);
+   end To_String;
 
-   procedure Extract_Profile (Prefix  : in String;
-                              Request : in AWS.Status.Data;
-                              Result  : in out Authentication) is
+   -----------------
+   --  To_String  --
+   -----------------
+
+   function To_String
+     (OP : End_Point)
+      return String
+   is
    begin
-      Extract_Value (Result.Email,      Request, Prefix & ".email");
-      Extract_Value (Result.Nickname,   Request, Prefix & ".nickname");
-      Extract_Value (Result.Gender,     Request, Prefix & ".gender");
-      Extract_Value (Result.Country,    Request, Prefix & ".country");
-      Extract_Value (Result.Language,   Request, Prefix & ".language");
-      Extract_Value (Result.Full_Name,  Request, Prefix & ".fullname");
-      Extract_Value (Result.Timezone,   Request, Prefix & ".timezone");
-      Extract_Value (Result.First_Name, Request, Prefix & ".firstname");
-      Extract_Value (Result.Last_Name,  Request, Prefix & ".lastname");
+      return "openid://" & To_String (OP.URL);
+   end To_String;
 
-      --  If the fullname is not specified, try to build one from the
-      --  first_name and last_name.
-      if Length (Result.Full_Name) = 0 then
-         Append (Result.Full_Name, Result.First_Name);
-         if Length (Result.First_Name) > 0 and Length (Result.Last_Name) > 0 then
-            Append (Result.Full_Name, " ");
-            Append (Result.Full_Name, Result.Last_Name);
-         end if;
-      end if;
-   end Extract_Profile;
+   --------------
+   --  Verify  --
+   --------------
 
    --  ------------------------------
    --  Verify the authentication result
    --  ------------------------------
-   function Verify (Realm   : in Manager;
-                    Assoc   : in Association;
-                    Request : in AWS.Status.Data) return Authentication is
+   function Verify
+     (Realm   : in Manager;
+      Assoc   : in Association;
+      Request : in AWS.Status.Data)
+      return Authentication
+   is
       Mode : constant String := AWS.Status.Parameter (Request, "openid.mode");
    begin
       --  Step 1: verify the response status
@@ -613,60 +697,85 @@ package body Security.Openid is
       end;
 
       return Result : Authentication do
-        --  OpenID Section: 11.2.  Verifying Discovered Information
-        --  Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
-        --  /\_only copies (unchecked) information
+         --  OpenID Section: 11.2.  Verifying Discovered Information
+         --  Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
+         --  /\_only copies (unchecked) information
 
-        --  OpenID Section: 11.3.  Checking the Nonce
+         --  OpenID Section: 11.3.  Checking the Nonce
          declare
             Value : constant String := AWS.Status.Parameter
-                                        (Request, "openid.response_nonce");
-        begin
-           if Value = "" then
-              Log_Verification
-                (Succeeded => False,
-                 Message   => "openid.response_nonce is empty");
-              Result := (Status => Unknown);
-              return;
-           end if;
-        end;
+              (Request, "openid.response_nonce");
+         begin
+            if Value = "" then
+               Log_Verification
+                 (Succeeded => False,
+                  Message   => "openid.response_nonce is empty");
+               Result := (Status => Unknown);
+               return;
+            end if;
+         end;
 
-        --  OpenID Section: 11.4.  Verifying Signatures
-        Manager'Class (Realm).Verify_Signature (Assoc, Request, Result);
+         --  OpenID Section: 11.4.  Verifying Signatures
+         Manager'Class (Realm).Verify_Signature (Assoc, Request, Result);
 
-        declare
-           Value : constant String := AWS.Status.Parameter (Request,
-                                                            "openid.ns.sreg");
-        begin
-           --  Extract profile information
-           if Value = "http://openid.net/extensions/sreg/1.1" then
-              Extract_Profile ("openid.sreg", Request, Result);
-           end if;
-        end;
+         declare
+            Value : constant String := AWS.Status.Parameter (Request,
+                                                             "openid.ns.sreg");
+         begin
+            --  Extract profile information
+            if Value = "http://openid.net/extensions/sreg/1.1" then
+               Extract_Profile ("openid.sreg", Request, Result);
+            end if;
+         end;
 
-        declare
-           Value : constant String := AWS.Status.Parameter (Request,
-                                                            "openid.ns.ax");
-        begin
-           if Value = "http://openid.net/srv/ax/1.0" then
-              Extract_Profile ("openid.ax.value", Request, Result);
-           end if;
-        end;
+         declare
+            Value : constant String := AWS.Status.Parameter (Request,
+                                                             "openid.ns.ax");
+         begin
+            if Value = "http://openid.net/srv/ax/1.0" then
+               Extract_Profile ("openid.ax.value", Request, Result);
+            end if;
+         end;
 
-        declare
-           Value : constant String := AWS.Status.Parameter (Request,
-                                                            "openid.ns.ext1");
-        begin
-           if Value = "http://openid.net/srv/ax/1.0" then
-              Extract_Profile ("openid.ext1.value", Request, Result);
-           end if;
-        end;
+         declare
+            Value : constant String := AWS.Status.Parameter (Request,
+                                                             "openid.ns.ext1");
+         begin
+            if Value = "http://openid.net/srv/ax/1.0" then
+               Extract_Profile ("openid.ext1.value", Request, Result);
+            end if;
+         end;
 
-        if Result.Status = Authenticated then
-           Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
-        end if;
+         if Result.Status = Authenticated then
+            Manager'Class (Realm).Verify_Discovered (Assoc, Request, Result);
+         end if;
       end return;
    end Verify;
+
+   -------------------------
+   --  Verify_Discovered  --
+   -------------------------
+
+   --  ------------------------------
+   --  Verify the authentication result
+   --  ------------------------------
+   procedure Verify_Discovered
+     (Realm   : in Manager;
+      Assoc   : in Association;
+      Request : in AWS.Status.Data;
+      Result  : out Authentication)
+   is
+      pragma Unreferenced (Realm, Assoc);
+   begin
+      Result.Claimed_ID := To_Unbounded_String
+        (AWS.Status.Parameter (Request, "openid.claimed_id"));
+      Result.Identity   := To_Unbounded_String
+        (AWS.Status.Parameter (Request, "openid.identity"));
+   end Verify_Discovered;
+
+   ------------------------
+   --  Verify_Signature  --
+   ------------------------
 
    procedure Verify_Signature (Realm   : in Manager;
                                Assoc   : in Association;
@@ -707,17 +816,21 @@ package body Security.Openid is
       Info ("Signing: '" & To_String (Sign) & "'");
 
       declare
-         Decoder : constant Util.Encoders.Encoder := Util.Encoders.Create (Util.Encoders.BASE_64);
-         S       : constant String := AWS.Status.Parameter (Request, "openid.sig");
-         Key     : constant String := Decoder.Decode (To_String (Assoc.Mac_Key));
-
-         R : constant Util.Encoders.SHA1.Base64_Digest
+         Decoder : constant Util.Encoders.Encoder
+           := Util.Encoders.Create (Util.Encoders.BASE_64);
+         S       : constant String
+           := AWS.Status.Parameter (Request, "openid.sig");
+         Key     : constant String
+           := Decoder.Decode (To_String (Assoc.Mac_Key));
+         R       : constant Util.Encoders.SHA1.Base64_Digest
            := Util.Encoders.HMAC.SHA1.Sign_Base64 (Key, To_String (Sign));
       begin
          Info ("Signature: " & S & " - " & R);
          if R = S then
-            Log_Verification (Succeeded => True,
-                              Message   => "Signatures match.  Authenticated.");
+            Log_Verification
+              (Succeeded => True,
+               Message   => "Signatures match.  Authenticated.");
+
             Result := (Status => Authenticated,
                        others => <>);
          else
@@ -727,42 +840,5 @@ package body Security.Openid is
          end if;
       end;
    end Verify_Signature;
-
-   --  ------------------------------
-   --  Verify the authentication result
-   --  ------------------------------
-   procedure Verify_Discovered (Realm   : in Manager;
-                                Assoc   : in Association;
-                                Request : in AWS.Status.Data;
-                                Result  : out Authentication) is
-      pragma Unreferenced (Realm, Assoc);
-   begin
-      Result.Claimed_ID := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.claimed_id"));
-      Result.Identity   := To_Unbounded_String (AWS.Status.Parameter (Request, "openid.identity"));
-   end Verify_Discovered;
-
-   function To_String (OP : End_Point) return String is
-   begin
-      return "openid://" & To_String (OP.URL);
-   end To_String;
-
-   function Handle (Item : in Association) return Association_Handle is
-   begin
-      return Item.Assoc_Handle;
-   end Handle;
-
-   function Handle (Response : in AWS.Status.Data) return Association_Handle is
-   begin
-      return To_Unbounded_String (AWS.Status.Parameter (Response,
-                                                        "openid.assoc_handle"));
-   end Handle;
-
-   function To_String (Assoc : Association) return String is
-   begin
-      return "session_type=" & To_String (Assoc.Session_Type)
-        & "&assoc_type=" & To_String (Assoc.Assoc_Type)
-        & "&assoc_handle=" & To_String (Assoc.Assoc_Handle)
-        & "&mac_key=" & To_String (Assoc.Mac_Key);
-   end To_String;
 
 end Security.Openid;

@@ -26,37 +26,14 @@ package body Security.Controllers is
    end record;
    type Factory_Entry_Access is access all Factory_Entry;
 
-   type Factory_Entry_Array is array (1 .. MAX_CONTROLLER_FACTORY) of Factory_Entry_Access;
+   type Factory_Entry_Array is array (1 .. MAX_CONTROLLER_FACTORY) of
+     Factory_Entry_Access;
 
    Factories : Factory_Entry_Array := (others => null);
 
    --  ------------------------------
-   --  Register in a global table the controller factory under the name <b>Name</b>.
-   --  When this factory is used, the <b>Factory</b> operation will be called to
-   --  create new instances of the controller.
-   --  ------------------------------
-   procedure Register_Controller (Name    : in String;
-                                  Factory : in Controller_Factory) is
-      use AWS.OpenID.Log;
-   begin
-      Info ("Register security controller factory " & Name);
-      for I in Factories'Range loop
-         if Factories (I) = null then
-            Factories (I) := new Factory_Entry '(Len     => Name'Length,
-                                                 Name    => Name,
-                                                 Factory => Factory);
-            return;
-         end if;
-      end loop;
-      Error ("Maximum number of security factories is reached: " &
-               Positive'Image (MAX_CONTROLLER_FACTORY));
-      raise Program_Error
-        with "Too many security controller factory. Increase MAX_CONTROLLER_FACTORY.";
-   end Register_Controller;
-
-   --  ------------------------------
-   --  Create a security controller by using the controller factory registered under
-   --  the name <b>Name</b>.
+   --  Create a security controller by using the controller factory registered
+   --  under the name <b>Name</b>.
    --  Raises <b>Invalid_Controller</b> if the name is not recognized.
    --  ------------------------------
    function Create_Controller (Name : in String) return Controller_Access is
@@ -74,5 +51,30 @@ package body Security.Controllers is
       Error ("Security controller factory " & Name & " not found");
       raise Invalid_Controller;
    end Create_Controller;
+
+   --  ------------------------------
+   --  Register in a global table the controller factory under the name
+   --  <b>Name</b>. When this factory is used, the <b>Factory</b> operation
+   --  w ill be called to create new instances of the controller.
+   --  ------------------------------
+   procedure Register_Controller (Name    : in String;
+                                  Factory : in Controller_Factory) is
+      use AWS.OpenID.Log;
+   begin
+      Info ("Register security controller factory " & Name);
+      for I in Factories'Range loop
+         if Factories (I) = null then
+            Factories (I) := new Factory_Entry '(Len     => Name'Length,
+                                                 Name    => Name,
+                                                 Factory => Factory);
+            return;
+         end if;
+      end loop;
+      Error ("Maximum number of security factories is reached: " &
+               Positive'Image (MAX_CONTROLLER_FACTORY));
+      raise Program_Error
+        with "Too many security controller factory." &
+        " Increase MAX_CONTROLLER_FACTORY.";
+   end Register_Controller;
 
 end Security.Controllers;

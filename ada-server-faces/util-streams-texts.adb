@@ -25,6 +25,22 @@ package body Util.Streams.Texts is
    end Initialize;
 
    --  ------------------------------
+   --  Get the output stream content as a string.
+   --  ------------------------------
+   function To_String (Stream : in Buffered.Buffered_Stream) return String is
+      use Ada.Streams;
+
+      Size   : constant Natural := Stream.Get_Size;
+      Buffer : constant Streams.Buffered.Buffer_Access := Stream.Get_Buffer;
+      Result : String (1 .. Size);
+   begin
+      for I in Result'Range loop
+         Result (I) := Character'Val (Buffer (Stream_Element_Offset (I)));
+      end loop;
+      return Result;
+   end To_String;
+
+   --  ------------------------------
    --  Write an integer on the stream.
    --  ------------------------------
    procedure Write (Stream : in out Print_Stream;
@@ -72,21 +88,5 @@ package body Util.Streams.Texts is
    begin
       Stream.Write (GNAT.Calendar.Time_IO.Image (Item, Format));
    end Write;
-
-   --  ------------------------------
-   --  Get the output stream content as a string.
-   --  ------------------------------
-   function To_String (Stream : in Buffered.Buffered_Stream) return String is
-      use Ada.Streams;
-
-      Size   : constant Natural := Stream.Get_Size;
-      Buffer : constant Streams.Buffered.Buffer_Access := Stream.Get_Buffer;
-      Result : String (1 .. Size);
-   begin
-      for I in Result'Range loop
-         Result (I) := Character'Val (Buffer (Stream_Element_Offset (I)));
-      end loop;
-      return Result;
-   end To_String;
 
 end Util.Streams.Texts;

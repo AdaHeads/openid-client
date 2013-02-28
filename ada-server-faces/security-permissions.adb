@@ -28,9 +28,17 @@ with Security.Controllers.Roles;
 
 with AWS.OpenID.Log;
 
---  The <b>Security.Permissions</b> package defines the different permissions that can be
---  checked by the access control manager.
+--  The <b>Security.Permissions</b> package defines the different permissions
+--  that can be checked by the access control manager.
 package body Security.Permissions is
+   type Policy_Fields is
+     (FIELD_ID, FIELD_PERMISSION, FIELD_URL_PATTERN, FIELD_POLICY);
+
+   procedure Process (Policy : in Policy_Config);
+
+   procedure Set_Member (P     : in out Policy_Config;
+                         Field : in Policy_Fields;
+                         Value : in Util.Beans.Objects.Object);
 
    --  ------------------------------
    --  Permission Manager
@@ -38,17 +46,52 @@ package body Security.Permissions is
 
    --  A global map to translate a string to a permission index.
    package Permission_Maps is
-     new Ada.Containers.Indefinite_Hashed_Maps (Key_Type        => String,
-                                                Element_Type    => Permission_Index,
-                                                Hash            => Ada.Strings.Hash,
-                                                Equivalent_Keys => "=",
-                                                "="             => "=");
+     new Ada.Containers.Indefinite_Hashed_Maps
+       (Key_Type        => String,
+        Element_Type    => Permission_Index,
+        Hash            => Ada.Strings.Hash,
+        Equivalent_Keys => "=",
+        "="             => "=");
+
+   package Policy_Mapper is
+     new Util.Serialize.Mappers.Record_Mapper
+       (Element_Type        => Policy_Config,
+        Element_Type_Access => Policy_Config_Access,
+        Fields              => Policy_Fields,
+        Set_Member          => Set_Member);
+
+   Policy_Mapping        : aliased Policy_Mapper.Mapper;
+
+   --  ------------------------------
+   --  Setup the XML parser to read the servlet and mapping rules
+   --  <b>context-param</b>, <b>filter-mapping</b> and <b>servlet-mapping</b>.
+   --  ------------------------------
+   package body Reader_Config is
+   begin
+      Reader.Add_Mapping ("policy-rules", Policy_Mapping'Access);
+      Reader.Add_Mapping ("module", Policy_Mapping'Access);
+      Config.Manager := Manager;
+      Policy_Mapper.Set_Context (Reader, Config'Unchecked_Access);
+   end Reader_Config;
+
+   package body Permission_ACL is
+      P : Permission_Index;
+
+      function Permission return Permission_Index is
+      begin
+         return P;
+      end Permission;
+
+   begin
+      Add_Permission (Name => Name, Index => P);
+   end Permission_ACL;
 
    protected type Global_Index is
       --  Get the permission index
       function Get_Permission_Index (Name : in String) return Permission_Index;
 
-      --  Get the last permission index registered in the global permission map.
+      --  Get the last permission index registered in the global permission
+      --  map.
       function Get_Last_Permission_Index return Permission_Index;
 
       procedure Add_Permission (Name  : in String;
@@ -59,22 +102,6 @@ package body Security.Permissions is
    end Global_Index;
 
    protected body Global_Index is
-      function Get_Permission_Index (Name : in String) return Permission_Index is
-         Pos : constant Permission_Maps.Cursor := Map.Find (Name);
-      begin
-         if Permission_Maps.Has_Element (Pos) then
-            return Permission_Maps.Element (Pos);
-         else
-            raise Invalid_Name with "There is no permission '" & Name & "'";
-         end if;
-      end Get_Permission_Index;
-
-      --  Get the last permission index registered in the global permission map.
-      function Get_Last_Permission_Index return Permission_Index is
-      begin
-         return Next_Index;
-      end Get_Last_Permission_Index;
-
       procedure Add_Permission (Name  : in String;
                                 Index : out Permission_Index) is
          use AWS.OpenID.Log;
@@ -91,25 +118,28 @@ package body Security.Permissions is
          end if;
       end Add_Permission;
 
+      --  Get the last permission index registered in the global permission
+      --  map.
+      function Get_Last_Permission_Index return Permission_Index is
+      begin
+         return Next_Index;
+      end Get_Last_Permission_Index;
+
+      function Get_Permission_Index
+        (Name : in String)
+         return Permission_Index
+      is
+         Pos : constant Permission_Maps.Cursor := Map.Find (Name);
+      begin
+         if Permission_Maps.Has_Element (Pos) then
+            return Permission_Maps.Element (Pos);
+         else
+            raise Invalid_Name with "There is no permission '" & Name & "'";
+         end if;
+      end Get_Permission_Index;
    end Global_Index;
 
    Permission_Indexes : Global_Index;
-
-   --  ------------------------------
-   --  Get the permission index associated with the name.
-   --  ------------------------------
-   function Get_Permission_Index (Name : in String) return Permission_Index is
-   begin
-      return Permission_Indexes.Get_Permission_Index (Name);
-   end Get_Permission_Index;
-
-   --  ------------------------------
-   --  Get the last permission index registered in the global permission map.
-   --  ------------------------------
-   function Get_Last_Permission_Index return Permission_Index is
-   begin
-      return Permission_Indexes.Get_Last_Permission_Index;
-   end Get_Last_Permission_Index;
 
    --  ------------------------------
    --  Add the permission name and allocate a unique permission index.
@@ -119,6 +149,115 @@ package body Security.Permissions is
    begin
       Permission_Indexes.Add_Permission (Name, Index);
    end Add_Permission;
+
+   procedure Add_Permission (Manager    : in out Permission_Manager;
+                             Name       : in String;
+                             Permission : in Controller_Access) is
+      use AWS.OpenID.Log;
+      Index : Permission_Index;
+   begin
+      Info ("Adding permission " & Name);
+
+      Add_Permission (Name, Index);
+      if Index >= Manager.Last_Index then
+         declare
+            Count : constant Permission_Index := Index + 32;
+            Perms : constant Controller_Access_Array_Access
+              := new Controller_Access_Array (0 .. Count);
+         begin
+            if Manager.Permissions /= null then
+               Perms (Manager.Permissions'Range) := Manager.Permissions.all;
+            end if;
+            Manager.Permissions := Perms;
+            Manager.Last_Index := Count;
+         end;
+      end if;
+      Manager.Permissions (Index) := Permission;
+   end Add_Permission;
+
+   --  ------------------------------
+   --  Get or build a permission type for the given name.
+   --  ------------------------------
+   procedure Add_Role_Type (Manager   : in out Permission_Manager;
+                            Name      : in String;
+                            Result    : out Role_Type) is
+   begin
+      Result := Manager.Find_Role (Name);
+
+   exception
+      when Invalid_Name =>
+         Manager.Create_Role (Name, Result);
+   end Add_Role_Type;
+
+   --  ------------------------------
+   --  Create a role
+   --  ------------------------------
+   procedure Create_Role (Manager : in out Permission_Manager;
+                          Name    : in String;
+                          Role    : out Role_Type) is
+      use AWS.OpenID.Log;
+   begin
+      Role := Manager.Next_Role;
+      Info ("Role " & Name & " is " & Role_Type'Image (Role));
+
+      if Manager.Next_Role = Role_Type'Last then
+         Error ("Too many roles allocated.  Number of roles is " &
+                  Role_Type'Image (Role_Type'Last));
+      else
+         Manager.Next_Role := Manager.Next_Role + 1;
+      end if;
+      Manager.Names (Role) := new String '(Name);
+   end Create_Role;
+
+   --  ------------------------------
+   --  Finalize the permission manager.
+   --  ------------------------------
+   overriding
+   procedure Finalize (Manager : in out Permission_Manager) is
+      use Ada.Strings.Unbounded;
+      use Security.Controllers;
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Rules_Ref.Atomic_Ref,
+                                        Rules_Ref_Access);
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+          (Security.Controllers.Controller'Class,
+           Security.Controllers.Controller_Access);
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Controller_Access_Array,
+                                        Controller_Access_Array_Access);
+
+   begin
+      Free (Manager.Cache);
+      for I in Manager.Names'Range loop
+         exit when Manager.Names (I) = null;
+         Ada.Strings.Unbounded.Free (Manager.Names (I));
+      end loop;
+
+      if Manager.Permissions /= null then
+         for I in Manager.Permissions.all'Range loop
+            exit when Manager.Permissions (I) = null;
+
+            --  SCz 2011-12-03: GNAT 2011 reports a compilation error:
+            --  'missing "with" clause on package "Security.Controllers"'
+            --  if we use the 'Security.Controller_Access' type, even if this "
+            --  with" clause exist. gcc 4.4.3 under Ubuntu does not have this
+            --  issue.
+            --  We use the 'Security.Controllers.Controller_Access' type to
+            --  avoid the compiler bug but we have to use a temporary variable
+            --  and do some type conversion...
+            declare
+               P : Security.Controllers.Controller_Access :=
+                     Manager.Permissions (I).all'Access;
+            begin
+               Free (P);
+               Manager.Permissions (I) := null;
+            end;
+         end loop;
+         Free (Manager.Permissions);
+      end if;
+   end Finalize;
 
    --  ------------------------------
    --  Find the access rule of the policy that matches the given URI.
@@ -151,37 +290,118 @@ package body Security.Permissions is
       return Result;
    end Find_Access_Rule;
 
-   procedure Add_Permission (Manager    : in out Permission_Manager;
-                             Name       : in String;
-                             Permission : in Controller_Access) is
+   --  ------------------------------
+   --  Find the role type associated with the role name identified by
+   --  <b>Name</b>. Raises <b>Invalid_Name</b> if there is no role type.
+   --  ------------------------------
+   function Find_Role (Manager : in Permission_Manager;
+                       Name    : in String) return Role_Type is
       use AWS.OpenID.Log;
-      Index : Permission_Index;
+      use type Ada.Strings.Unbounded.String_Access;
    begin
-      Info ("Adding permission " & Name);
+      Debug ("Searching role " & Name);
 
-      Add_Permission (Name, Index);
+      for I in Role_Type'First .. Manager.Next_Role loop
+         exit when Manager.Names (I) = null;
+         if Name = Manager.Names (I).all then
+            return I;
+         end if;
+      end loop;
+
+      Debug ("Role " & Name & " not found");
+      raise Invalid_Name;
+   end Find_Role;
+
+   --  ------------------------------
+   --  Get the security controller associated with the permission index
+   --  <b>Index</b>. Returns null if there is no such controller.
+   --  ------------------------------
+   function Get_Controller
+     (Manager : in Permission_Manager'Class;
+      Index   : in Permission_Index)
+      return Controller_Access
+   is
+   begin
       if Index >= Manager.Last_Index then
-         declare
-            Count : constant Permission_Index := Index + 32;
-            Perms : constant Controller_Access_Array_Access
-              := new Controller_Access_Array (0 .. Count);
-         begin
-            if Manager.Permissions /= null then
-               Perms (Manager.Permissions'Range) := Manager.Permissions.all;
-            end if;
-            Manager.Permissions := Perms;
-            Manager.Last_Index := Count;
-         end;
+         return null;
+      else
+         return Manager.Permissions (Index);
       end if;
-      Manager.Permissions (Index) := Permission;
-   end Add_Permission;
+   end Get_Controller;
 
    --  ------------------------------
-   --  Returns True if the user has the permission to access the given URI permission.
+   --  Get the last permission index registered in the global permission map.
    --  ------------------------------
-   function Has_Permission (Manager    : in Permission_Manager;
-                            Context    : in Security_Context_Access;
-                            Permission : in URI_Permission'Class) return Boolean is
+   function Get_Last_Permission_Index return Permission_Index is
+   begin
+      return Permission_Indexes.Get_Last_Permission_Index;
+   end Get_Last_Permission_Index;
+
+   --  ------------------------------
+   --  Get the permission index associated with the name.
+   --  ------------------------------
+   function Get_Permission_Index (Name : in String) return Permission_Index is
+   begin
+      return Permission_Indexes.Get_Permission_Index (Name);
+   end Get_Permission_Index;
+
+   --  ------------------------------
+   --  Get the role name.
+   --  ------------------------------
+   function Get_Role_Name (Manager : in Permission_Manager;
+                           Role    : in Role_Type) return String is
+      use type Ada.Strings.Unbounded.String_Access;
+   begin
+      if Manager.Names (Role) = null then
+         return "";
+      else
+         return Manager.Names (Role).all;
+      end if;
+   end Get_Role_Name;
+
+   --  Grant the permission to access to the given <b>Path</b> to users having
+   --  the <b>To</b> permissions.
+   procedure Grant_File_Permission (Manager : in out Permission_Manager;
+                                    Path    : in String;
+                                    To      : in String) is
+   begin
+      null;
+   end Grant_File_Permission;
+
+   --  Grant the permission to access to the given <b>URI</b> to users having
+   --  the <b>To</b> permissions.
+   procedure Grant_URI_Permission (Manager : in out Permission_Manager;
+                                   URI     : in String;
+                                   To      : in String) is
+   begin
+      null;
+   end Grant_URI_Permission;
+
+   --  ------------------------------
+   --  EL function to check if the given permission name is granted by the
+   --  current security context.
+   --  ------------------------------
+   function Has_Permission (Value : in Util.Beans.Objects.Object)
+                            return Util.Beans.Objects.Object is
+      Name   : constant String := Util.Beans.Objects.To_String (Value);
+   begin
+      if Security.Contexts.Has_Permission (Name) then
+         return Util.Beans.Objects.To_Object (True);
+      else
+         return Util.Beans.Objects.To_Object (False);
+      end if;
+   end Has_Permission;
+
+   --  ------------------------------
+   --  Returns True if the user has the permission to access the given URI
+   --  permission.
+   --  ------------------------------
+   function Has_Permission
+     (Manager    : in Permission_Manager;
+      Context    : in Security_Context_Access;
+      Permission : in URI_Permission'Class)
+      return Boolean
+   is
       Name  : constant String_Ref := To_String_Ref (Permission.URI);
       Ref   : constant Rules_Ref.Ref := Manager.Cache.Get;
       Rules : constant Rules_Access := Ref.Value;
@@ -227,121 +447,90 @@ package body Security.Permissions is
    function Has_Permission (Manager    : in Permission_Manager;
                             User       : in Principal'Class;
                             Permission : in Permission_Type) return Boolean is
-      pragma Unreferenced (Manager);
+      pragma Unreferenced (Manager, User, Permission);
    begin
       --        return User.Has_Permission (Permission);
       return False;
    end Has_Permission;
 
    --  ------------------------------
-   --  Get the security controller associated with the permission index <b>Index</b>.
-   --  Returns null if there is no such controller.
+   --  Initialize the permission manager.
    --  ------------------------------
-   function Get_Controller (Manager : in Permission_Manager'Class;
-                            Index   : in Permission_Index) return Controller_Access is
+   overriding
+   procedure Initialize (Manager : in out Permission_Manager) is
    begin
-      if Index >= Manager.Last_Index then
-         return null;
-      else
-         return Manager.Permissions (Index);
-      end if;
-   end Get_Controller;
+      Manager.Cache := new Rules_Ref.Atomic_Ref;
+      Manager.Cache.Set (Rules_Ref.Create);
+   end Initialize;
 
-   --  ------------------------------
-   --  Get the role name.
-   --  ------------------------------
-   function Get_Role_Name (Manager : in Permission_Manager;
-                           Role    : in Role_Type) return String is
-      use type Ada.Strings.Unbounded.String_Access;
+   procedure Process (Policy : in Policy_Config) is
+      Pol    : Security.Permissions.Policy;
+      Count  : constant Natural := Natural (Policy.Permissions.Length);
+      Rule   : constant Access_Rule_Ref :=
+                 Access_Rule_Refs.Create (new Access_Rule (Count));
+      Iter   : Util.Beans.Objects.Vectors.Cursor := Policy.Permissions.First;
+      Pos    : Positive := 1;
    begin
-      if Manager.Names (Role) = null then
-         return "";
-      else
-         return Manager.Names (Role).all;
-      end if;
-   end Get_Role_Name;
+      Pol.Rule := Rule;
 
-   --  ------------------------------
-   --  Find the role type associated with the role name identified by <b>Name</b>.
-   --  Raises <b>Invalid_Name</b> if there is no role type.
-   --  ------------------------------
-   function Find_Role (Manager : in Permission_Manager;
-                       Name    : in String) return Role_Type is
-      use AWS.OpenID.Log;
-      use type Ada.Strings.Unbounded.String_Access;
-   begin
-      Debug ("Searching role " & Name);
+      --  Step 1: Initialize the list of permission index in Access_Rule from
+      --  the permission names.
+      while Util.Beans.Objects.Vectors.Has_Element (Iter) loop
+         declare
+            Perm : constant Util.Beans.Objects.Object :=
+                     Util.Beans.Objects.Vectors.Element (Iter);
+            Name : constant String := Util.Beans.Objects.To_String (Perm);
+         begin
+            Rule.Value.all.Permissions (Pos) := Get_Permission_Index (Name);
+            Pos := Pos + 1;
 
-      for I in Role_Type'First .. Manager.Next_Role loop
-         exit when Manager.Names (I) = null;
-         if Name = Manager.Names (I).all then
-            return I;
-         end if;
+         exception
+            when Invalid_Name =>
+               raise Util.Serialize.Mappers.Field_Error with
+                 "Invalid permission: " & Name;
+         end;
+         Util.Beans.Objects.Vectors.Next (Iter);
       end loop;
 
-      Debug ("Role " & Name & " not found");
-      raise Invalid_Name;
-   end Find_Role;
+      --  Step 2: Create one policy for each URL pattern
+      Iter := Policy.Patterns.First;
+      while Util.Beans.Objects.Vectors.Has_Element (Iter) loop
+         declare
+            Pattern : constant Util.Beans.Objects.Object
+              := Util.Beans.Objects.Vectors.Element (Iter);
+         begin
+            Pol.ID   := Policy.ID;
+            Pol.Pattern :=
+              GNAT.Regexp.Compile (Util.Beans.Objects.To_String (Pattern));
+            Policy.Manager.Policies.Append (Pol);
+         end;
+         Util.Beans.Objects.Vectors.Next (Iter);
+      end loop;
+   end Process;
 
    --  ------------------------------
-   --  Create a role
+   --  Read the policy file
    --  ------------------------------
-   procedure Create_Role (Manager : in out Permission_Manager;
-                          Name    : in String;
-                          Role    : out Role_Type) is
+   procedure Read_Policy (Manager : in out Permission_Manager;
+                          File    : in String) is
+
+      use Util;
       use AWS.OpenID.Log;
+
+      Reader : Util.Serialize.IO.XML.Parser;
+
+      package Policy_Config is
+        new Reader_Config (Reader, Manager'Unchecked_Access);
+      package Role_Config is
+        new Security.Controllers.Roles.Reader_Config
+          (Reader, Manager'Unchecked_Access);
+      pragma Warnings (Off, Policy_Config);
+      pragma Warnings (Off, Role_Config);
    begin
-      Role := Manager.Next_Role;
-      Info ("Role " & Name & " is " & Role_Type'Image (Role));
+      Info ("Reading policy file " & File);
 
-      if Manager.Next_Role = Role_Type'Last then
-         Error ("Too many roles allocated.  Number of roles is " &
-                  Role_Type'Image (Role_Type'Last));
-      else
-         Manager.Next_Role := Manager.Next_Role + 1;
-      end if;
-      Manager.Names (Role) := new String '(Name);
-   end Create_Role;
-
-   --  Grant the permission to access to the given <b>URI</b> to users having the <b>To</b>
-   --  permissions.
-   procedure Grant_URI_Permission (Manager : in out Permission_Manager;
-                                   URI     : in String;
-                                   To      : in String) is
-   begin
-      null;
-   end Grant_URI_Permission;
-
-   --  Grant the permission to access to the given <b>Path</b> to users having the <b>To</b>
-   --  permissions.
-   procedure Grant_File_Permission (Manager : in out Permission_Manager;
-                                    Path    : in String;
-                                    To      : in String) is
-   begin
-      null;
-   end Grant_File_Permission;
-
-   --  ------------------------------
-   --  Get or build a permission type for the given name.
-   --  ------------------------------
-   procedure Add_Role_Type (Manager   : in out Permission_Manager;
-                            Name      : in String;
-                            Result    : out Role_Type) is
-   begin
-      Result := Manager.Find_Role (Name);
-
-   exception
-      when Invalid_Name =>
-         Manager.Create_Role (Name, Result);
-   end Add_Role_Type;
-
-   type Policy_Fields is (FIELD_ID, FIELD_PERMISSION, FIELD_URL_PATTERN, FIELD_POLICY);
-
-   procedure Set_Member (P     : in out Policy_Config;
-                         Field : in Policy_Fields;
-                         Value : in Util.Beans.Objects.Object);
-
-   procedure Process (Policy : in Policy_Config);
+      Reader.Parse (File);
+   end Read_Policy;
 
    procedure Set_Member (P     : in out Policy_Config;
                          Field : in Policy_Fields;
@@ -365,173 +554,6 @@ package body Security.Permissions is
 
       end case;
    end Set_Member;
-
-   procedure Process (Policy : in Policy_Config) is
-      Pol    : Security.Permissions.Policy;
-      Count  : constant Natural := Natural (Policy.Permissions.Length);
-      Rule   : constant Access_Rule_Ref := Access_Rule_Refs.Create (new Access_Rule (Count));
-      Iter   : Util.Beans.Objects.Vectors.Cursor := Policy.Permissions.First;
-      Pos    : Positive := 1;
-   begin
-      Pol.Rule := Rule;
-
-      --  Step 1: Initialize the list of permission index in Access_Rule from the permission names.
-      while Util.Beans.Objects.Vectors.Has_Element (Iter) loop
-         declare
-            Perm : constant Util.Beans.Objects.Object := Util.Beans.Objects.Vectors.Element (Iter);
-            Name : constant String := Util.Beans.Objects.To_String (Perm);
-         begin
-            Rule.Value.all.Permissions (Pos) := Get_Permission_Index (Name);
-            Pos := Pos + 1;
-
-         exception
-            when Invalid_Name =>
-               raise Util.Serialize.Mappers.Field_Error with "Invalid permission: " & Name;
-         end;
-         Util.Beans.Objects.Vectors.Next (Iter);
-      end loop;
-
-      --  Step 2: Create one policy for each URL pattern
-      Iter := Policy.Patterns.First;
-      while Util.Beans.Objects.Vectors.Has_Element (Iter) loop
-         declare
-            Pattern : constant Util.Beans.Objects.Object
-              := Util.Beans.Objects.Vectors.Element (Iter);
-         begin
-            Pol.ID   := Policy.ID;
-            Pol.Pattern := GNAT.Regexp.Compile (Util.Beans.Objects.To_String (Pattern));
-            Policy.Manager.Policies.Append (Pol);
-         end;
-         Util.Beans.Objects.Vectors.Next (Iter);
-      end loop;
-   end Process;
-
-   package Policy_Mapper is
-     new Util.Serialize.Mappers.Record_Mapper (Element_Type        => Policy_Config,
-                                               Element_Type_Access => Policy_Config_Access,
-                                               Fields              => Policy_Fields,
-                                               Set_Member          => Set_Member);
-
-   Policy_Mapping        : aliased Policy_Mapper.Mapper;
-
-   --  ------------------------------
-   --  Setup the XML parser to read the servlet and mapping rules <b>context-param</b>,
-   --  <b>filter-mapping</b> and <b>servlet-mapping</b>.
-   --  ------------------------------
-   package body Reader_Config is
-   begin
-      Reader.Add_Mapping ("policy-rules", Policy_Mapping'Access);
-      Reader.Add_Mapping ("module", Policy_Mapping'Access);
-      Config.Manager := Manager;
-      Policy_Mapper.Set_Context (Reader, Config'Unchecked_Access);
-   end Reader_Config;
-
-   --  ------------------------------
-   --  Read the policy file
-   --  ------------------------------
-   procedure Read_Policy (Manager : in out Permission_Manager;
-                          File    : in String) is
-
-      use Util;
-      use AWS.OpenID.Log;
-
-      Reader : Util.Serialize.IO.XML.Parser;
-
-      package Policy_Config is
-        new Reader_Config (Reader, Manager'Unchecked_Access);
-      package Role_Config is
-        new Security.Controllers.Roles.Reader_Config (Reader, Manager'Unchecked_Access);
-      pragma Warnings (Off, Policy_Config);
-      pragma Warnings (Off, Role_Config);
-   begin
-      Info ("Reading policy file " & File);
-
-      Reader.Parse (File);
-   end Read_Policy;
-
-   --  ------------------------------
-   --  Initialize the permission manager.
-   --  ------------------------------
-   overriding
-   procedure Initialize (Manager : in out Permission_Manager) is
-   begin
-      Manager.Cache := new Rules_Ref.Atomic_Ref;
-      Manager.Cache.Set (Rules_Ref.Create);
-   end Initialize;
-
-   --  ------------------------------
-   --  Finalize the permission manager.
-   --  ------------------------------
-   overriding
-   procedure Finalize (Manager : in out Permission_Manager) is
-      use Ada.Strings.Unbounded;
-      use Security.Controllers;
-
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Rules_Ref.Atomic_Ref,
-                                        Rules_Ref_Access);
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Security.Controllers.Controller'Class,
-                                        Security.Controllers.Controller_Access);
-      procedure Free is
-        new Ada.Unchecked_Deallocation (Controller_Access_Array,
-                                        Controller_Access_Array_Access);
-
-   begin
-      Free (Manager.Cache);
-      for I in Manager.Names'Range loop
-         exit when Manager.Names (I) = null;
-         Ada.Strings.Unbounded.Free (Manager.Names (I));
-      end loop;
-
-      if Manager.Permissions /= null then
-         for I in Manager.Permissions.all'Range loop
-            exit when Manager.Permissions (I) = null;
-
-            --  SCz 2011-12-03: GNAT 2011 reports a compilation error:
-            --  'missing "with" clause on package "Security.Controllers"'
-            --  if we use the 'Security.Controller_Access' type, even if this "with" clause exist.
-            --  gcc 4.4.3 under Ubuntu does not have this issue.
-            --  We use the 'Security.Controllers.Controller_Access' type to avoid the compiler bug
-            --  but we have to use a temporary variable and do some type conversion...
-            declare
-               P : Security.Controllers.Controller_Access := Manager.Permissions (I).all'Access;
-            begin
-               Free (P);
-               Manager.Permissions (I) := null;
-            end;
-         end loop;
-         Free (Manager.Permissions);
-      end if;
-   end Finalize;
-
-   package body Permission_ACL is
-      P : Permission_Index;
-
-      function Permission return Permission_Index is
-      begin
-         return P;
-      end Permission;
-
-   begin
-      Add_Permission (Name => Name, Index => P);
-   end Permission_ACL;
-
-   --  ------------------------------
-   --  EL function to check if the given permission name is granted by the current
-   --  security context.
-   --  ------------------------------
-   function Has_Permission (Value : in Util.Beans.Objects.Object)
-                            return Util.Beans.Objects.Object is
-      Name   : constant String := Util.Beans.Objects.To_String (Value);
-   begin
-      if Security.Contexts.Has_Permission (Name) then
-         return Util.Beans.Objects.To_Object (True);
-      else
-         return Util.Beans.Objects.To_Object (False);
-      end if;
-   end Has_Permission;
-
 begin
    Policy_Mapping.Add_Mapping ("policy", FIELD_POLICY);
    Policy_Mapping.Add_Mapping ("policy/@id", FIELD_ID);

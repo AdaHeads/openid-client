@@ -19,121 +19,18 @@
 with Util.Encoders.Base16;
 with Util.Encoders.Base64;
 
---  The <b>Util.Encodes.HMAC.SHA1</b> package generates HMAC-SHA1 authentication
---  (See RFC 2104 - HMAC: Keyed-Hashing for Message Authentication).
+--  The <b>Util.Encodes.HMAC.SHA1</b> package generates HMAC-SHA1
+--  authentication.
+--  (See RFC 2104 - HMAC : Keyed - Hashing for Message Authentication).
 package body Util.Encoders.HMAC.SHA1 is
-
-   --  ------------------------------
-   --  Sign the data string with the key and return the HMAC-SHA1 code in binary.
-   --  ------------------------------
-   function Sign (Key  : in String;
-                  Data : in String) return Util.Encoders.SHA1.Hash_Array is
-      Ctx    : Context;
-      Result : Util.Encoders.SHA1.Hash_Array;
-   begin
-      Set_Key (Ctx, Key);
-      Update (Ctx, Data);
-      Finish (Ctx, Result);
-      return Result;
-   end Sign;
-
-   --  ------------------------------
-   --  Sign the data string with the key and return the HMAC-SHA1 code as hexadecimal string.
-   --  ------------------------------
-   function Sign (Key  : in String;
-                  Data : in String) return Util.Encoders.SHA1.Digest is
-      Ctx    : Context;
-      Result : Util.Encoders.SHA1.Digest;
-   begin
-      Set_Key (Ctx, Key);
-      Update (Ctx, Data);
-      Finish (Ctx, Result);
-      return Result;
-   end Sign;
-
-   --  Sign the data string with the key and return the HMAC-SHA1 code as base64 string.
-   function Sign_Base64 (Key  : in String;
-                         Data : in String) return Util.Encoders.SHA1.Base64_Digest is
-      Ctx    : Context;
-      Result : Util.Encoders.SHA1.Base64_Digest;
-   begin
-      Set_Key (Ctx, Key);
-      Update (Ctx, Data);
-      Finish_Base64 (Ctx, Result);
-      return Result;
-   end Sign_Base64;
-
-   --  ------------------------------
-   --  Set the hmac private key.  The key must be set before calling any <b>Update</b>
-   --  procedure.
-   --  ------------------------------
-   procedure Set_Key (E   : in out Context;
-                      Key : in String) is
-      Buf : Ada.Streams.Stream_Element_Array (1 .. Key'Length);
-      for Buf'Address use Key'Address;
-      pragma Import (Ada, Buf);
-
-   begin
-      Set_Key (E, Buf);
-   end Set_Key;
 
    IPAD : constant Ada.Streams.Stream_Element := 16#36#;
    OPAD : constant Ada.Streams.Stream_Element := 16#5c#;
 
    --  ------------------------------
-   --  Set the hmac private key.  The key must be set before calling any <b>Update</b>
-   --  procedure.
-   --  ------------------------------
-   procedure Set_Key (E   : in out Context;
-                      Key : in Ada.Streams.Stream_Element_Array) is
-      use type Ada.Streams.Stream_Element_Offset;
-      use type Ada.Streams.Stream_Element;
-   begin
-      --  Reduce the key
-      if Key'Length > 64 then
-         Util.Encoders.SHA1.Update (E.SHA, Key);
-         Util.Encoders.SHA1.Finish (E.SHA, E.Key (0 .. 19));
-         E.Key_Len := 19;
-      else
-         E.Key_Len := Key'Length - 1;
-         E.Key (0 .. E.Key_Len) := Key;
-      end if;
-
-      --  Hash the key in the SHA1 context.
-      declare
-         Block : Ada.Streams.Stream_Element_Array (0 .. 63);
-      begin
-         for I in 0 .. E.Key_Len loop
-            Block (I) := IPAD xor E.Key (I);
-         end loop;
-         for I in E.Key_Len + 1 .. 63 loop
-            Block (I) := IPAD;
-         end loop;
-         Util.Encoders.SHA1.Update (E.SHA, Block);
-      end;
-   end Set_Key;
-
-   --  ------------------------------
-   --  Update the hash with the string.
-   --  ------------------------------
-   procedure Update (E : in out Context;
-                     S : in String) is
-   begin
-      Util.Encoders.SHA1.Update (E.SHA, S);
-   end Update;
-
-   --  ------------------------------
-   --  Update the hash with the string.
-   --  ------------------------------
-   procedure Update (E : in out Context;
-                     S : in Ada.Streams.Stream_Element_Array) is
-   begin
-      Util.Encoders.SHA1.Update (E.SHA, S);
-   end Update;
-
-   --  ------------------------------
    --  Computes the HMAC-SHA1 with the private key and the data collected by
-   --  the <b>Update</b> procedures.  Returns the raw binary hash in <b>Hash</b>.
+   --  the <b>Update</b> procedures.  Returns the raw binary hash in
+   --  <b>Hash</b>.
    --  ------------------------------
    procedure Finish (E    : in out Context;
                      Hash : out Util.Encoders.SHA1.Hash_Array) is
@@ -162,7 +59,8 @@ package body Util.Encoders.HMAC.SHA1 is
 
    --  ------------------------------
    --  Computes the HMAC-SHA1 with the private key and the data collected by
-   --  the <b>Update</b> procedures.  Returns the hexadecimal hash in <b>Hash</b>.
+   --  the <b>Update</b> procedures.  Returns the hexadecimal hash in
+   --  <b>Hash</b>.
    --  ------------------------------
    procedure Finish (E    : in out Context;
                      Hash : out Util.Encoders.SHA1.Digest) is
@@ -196,6 +94,106 @@ package body Util.Encoders.HMAC.SHA1 is
       B.Transform (Data => H, Into => Buf, Last => Last, Encoded => Encoded);
    end Finish_Base64;
 
+   --  Initialize the SHA-1 context.
+   overriding
+   procedure Initialize (E : in out Context) is
+   begin
+      null;
+   end Initialize;
+
+   --  ------------------------------
+   --  Set the hmac private key.  The key must be set before calling any
+   --  <b>Update</b> procedure.
+   --  ------------------------------
+   procedure Set_Key (E   : in out Context;
+                      Key : in String) is
+      Buf : Ada.Streams.Stream_Element_Array (1 .. Key'Length);
+      for Buf'Address use Key'Address;
+      pragma Import (Ada, Buf);
+
+   begin
+      Set_Key (E, Buf);
+   end Set_Key;
+
+   --  ------------------------------
+   --  Set the hmac private key.  The key must be set before calling any
+   --  <b>Update</b> procedure.
+   --  ------------------------------
+   procedure Set_Key (E   : in out Context;
+                      Key : in Ada.Streams.Stream_Element_Array) is
+      use type Ada.Streams.Stream_Element_Offset;
+      use type Ada.Streams.Stream_Element;
+   begin
+      --  Reduce the key
+      if Key'Length > 64 then
+         Util.Encoders.SHA1.Update (E.SHA, Key);
+         Util.Encoders.SHA1.Finish (E.SHA, E.Key (0 .. 19));
+         E.Key_Len := 19;
+      else
+         E.Key_Len := Key'Length - 1;
+         E.Key (0 .. E.Key_Len) := Key;
+      end if;
+
+      --  Hash the key in the SHA1 context.
+      declare
+         Block : Ada.Streams.Stream_Element_Array (0 .. 63);
+      begin
+         for I in 0 .. E.Key_Len loop
+            Block (I) := IPAD xor E.Key (I);
+         end loop;
+         for I in E.Key_Len + 1 .. 63 loop
+            Block (I) := IPAD;
+         end loop;
+         Util.Encoders.SHA1.Update (E.SHA, Block);
+      end;
+   end Set_Key;
+
+   --  ------------------------------
+   --  Sign the data string with the key and return the HMAC-SHA1 code in
+   --  binary.
+   --  ------------------------------
+   function Sign (Key  : in String;
+                  Data : in String) return Util.Encoders.SHA1.Hash_Array is
+      Ctx    : Context;
+      Result : Util.Encoders.SHA1.Hash_Array;
+   begin
+      Set_Key (Ctx, Key);
+      Update (Ctx, Data);
+      Finish (Ctx, Result);
+      return Result;
+   end Sign;
+
+   --  ------------------------------
+   --  Sign the data string with the key and return the HMAC-SHA1 code as
+   --  hexadecimal string.
+   --  ------------------------------
+   function Sign (Key  : in String;
+                  Data : in String) return Util.Encoders.SHA1.Digest is
+      Ctx    : Context;
+      Result : Util.Encoders.SHA1.Digest;
+   begin
+      Set_Key (Ctx, Key);
+      Update (Ctx, Data);
+      Finish (Ctx, Result);
+      return Result;
+   end Sign;
+
+   --  Sign the data string with the key and return the HMAC-SHA1 code as
+   --  base64 string.
+   function Sign_Base64
+     (Key  : in String;
+      Data : in String)
+      return Util.Encoders.SHA1.Base64_Digest
+   is
+      Ctx    : Context;
+      Result : Util.Encoders.SHA1.Base64_Digest;
+   begin
+      Set_Key (Ctx, Key);
+      Update (Ctx, Data);
+      Finish_Base64 (Ctx, Result);
+      return Result;
+   end Sign_Base64;
+
    --  Encodes the binary input stream represented by <b>Data</b> into
    --  an SHA-1 hash output stream <b>Into</b>.
    --
@@ -209,20 +207,33 @@ package body Util.Encoders.HMAC.SHA1 is
    --  The <b>Encoding_Error</b> exception is raised if the input
    --  stream cannot be transformed.
    overriding
-   procedure Transform (E       : in Encoder;
-                        Data    : in Ada.Streams.Stream_Element_Array;
-                        Into    : out Ada.Streams.Stream_Element_Array;
-                        Last    : out Ada.Streams.Stream_Element_Offset;
-                        Encoded : out Ada.Streams.Stream_Element_Offset) is
+   procedure Transform
+     (E       : in Encoder;
+      Data    : in Ada.Streams.Stream_Element_Array;
+      Into    : out Ada.Streams.Stream_Element_Array;
+      Last    : out Ada.Streams.Stream_Element_Offset;
+      Encoded : out Ada.Streams.Stream_Element_Offset)
+   is
    begin
       null;
    end Transform;
 
-   --  Initialize the SHA-1 context.
-   overriding
-   procedure Initialize (E : in out Context) is
+   --  ------------------------------
+   --  Update the hash with the string.
+   --  ------------------------------
+   procedure Update (E : in out Context;
+                     S : in String) is
    begin
-      null;
-   end Initialize;
+      Util.Encoders.SHA1.Update (E.SHA, S);
+   end Update;
+
+   --  ------------------------------
+   --  Update the hash with the string.
+   --  ------------------------------
+   procedure Update (E : in out Context;
+                     S : in Ada.Streams.Stream_Element_Array) is
+   begin
+      Util.Encoders.SHA1.Update (E.SHA, S);
+   end Update;
 
 end Util.Encoders.HMAC.SHA1;

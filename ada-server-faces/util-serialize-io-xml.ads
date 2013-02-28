@@ -34,8 +34,9 @@ package Util.Serialize.IO.XML is
 
    --  Parse the stream using the JSON parser.
    overriding
-   procedure Parse (Handler : in out Parser;
-                    Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class);
+   procedure Parse
+     (Handler : in out Parser;
+      Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class);
 
    --  Set the XHTML reader to ignore or not the white spaces.
    --  When set to True, the ignorable white spaces will not be kept.
@@ -52,17 +53,17 @@ package Util.Serialize.IO.XML is
 
    type Xhtml_Reader is new Sax.Readers.Reader with private;
 
-
    --  ------------------------------
    --  XML Output Stream
    --  ------------------------------
-   --  The <b>Output_Stream</b> provides methods for creating an XML output stream.
-   --  The stream object takes care of the XML escape rules.
+   --  The <b>Output_Stream</b> provides methods for creating an XML output
+   --  stream. The stream object takes care of the XML escape rules.
    type Output_Stream is
-     new Util.Streams.Texts.Print_Stream and Util.Serialize.IO.Output_Stream with private;
+     new Util.Streams.Texts.Print_Stream and
+     Util.Serialize.IO.Output_Stream with private;
 
-   --  Write the value as a XML string.  Special characters are escaped using the XML
-   --  escape rules.
+   --  Write the value as a XML string.  Special characters are escaped using
+   --  the XML escape rules.
    procedure Write_String (Stream : in out Output_Stream;
                            Value  : in String);
 
@@ -112,8 +113,9 @@ private
                     Except  : in Sax.Exceptions.Sax_Parse_Exception'Class);
 
    overriding
-   procedure Fatal_Error (Handler : in out Xhtml_Reader;
-                          Except  : in Sax.Exceptions.Sax_Parse_Exception'Class);
+   procedure Fatal_Error
+     (Handler : in out Xhtml_Reader;
+      Except  : in Sax.Exceptions.Sax_Parse_Exception'Class);
 
    overriding
    procedure Set_Document_Locator (Handler : in out Xhtml_Reader;
@@ -135,11 +137,12 @@ private
                                  Prefix  : in Unicode.CES.Byte_Sequence);
 
    overriding
-   procedure Start_Element (Handler       : in out Xhtml_Reader;
-                            Namespace_URI : in Unicode.CES.Byte_Sequence := "";
-                            Local_Name    : in Unicode.CES.Byte_Sequence := "";
-                            Qname         : in Unicode.CES.Byte_Sequence := "";
-                            Atts          : in Sax.Attributes.Attributes'Class);
+   procedure Start_Element
+     (Handler       : in out Xhtml_Reader;
+      Namespace_URI : in Unicode.CES.Byte_Sequence := "";
+      Local_Name    : in Unicode.CES.Byte_Sequence := "";
+      Qname         : in Unicode.CES.Byte_Sequence := "";
+      Atts          : in Sax.Attributes.Attributes'Class);
 
    overriding
    procedure End_Element (Handler       : in out Xhtml_Reader;
@@ -212,7 +215,8 @@ private
    end record;
 
    type Output_Stream is
-     new Util.Streams.Texts.Print_Stream and Util.Serialize.IO.Output_Stream with record
+     new Util.Streams.Texts.Print_Stream and Util.Serialize.IO.Output_Stream
+   with record
       Close_Start : Boolean := False;
    end record;
 

@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------
---  security-contexts -- Context to provide security information and verify permissions
+--  security-contexts -- Context to provide security information and verify
+--  permissions
 --  Copyright (C) 2011 Stephane Carrez
 --  Written by Stephane Carrez (Stephane.Carrez@gmail.com)
 --
@@ -17,97 +18,16 @@
 -----------------------------------------------------------------------
 
 with Ada.Task_Attributes;
+with Security.Controllers; use Security.Controllers;
 
-with Security.Controllers;
 package body Security.Contexts is
 
    package Task_Context is new Ada.Task_Attributes
      (Security_Context_Access, null);
 
    --  ------------------------------
-   --  Get the application associated with the current service operation.
-   --  ------------------------------
-   function Get_User_Principal (Context : in Security_Context'Class)
-                                return Security.Permissions.Principal_Access is
-   begin
-      return Context.Principal;
-   end Get_User_Principal;
-
-   --  ------------------------------
-   --  Get the permission manager.
-   --  ------------------------------
-   function Get_Permission_Manager (Context : in Security_Context'Class)
-                                    return Security.Permissions.Permission_Manager_Access is
-   begin
-      return Context.Manager;
-   end Get_Permission_Manager;
-
-   --  ------------------------------
-   --  Check if the permission identified by <b>Permission</b> is allowed according to
-   --  the current security context.  The result is cached in the security context and
-   --  returned in <b>Result</b>.
-   --  ------------------------------
-   procedure Has_Permission (Context    : in out Security_Context;
-                             Permission : in Security.Permissions.Permission_Index;
-                             Result     : out Boolean) is
-      use type Security.Permissions.Controller_Access;
-      use type Security.Permissions.Permission_Manager_Access;
-   begin
-      if Context.Manager = null then
-         Result := False;
-         return;
-      end if;
-      declare
-         C : constant Permissions.Controller_Access := Context.Manager.Get_Controller (Permission);
-      begin
-         if C = null then
-            Result := False;
-         else
-            Result := C.Has_Permission (Context);
-         end if;
-      end;
-   end Has_Permission;
-
-   --  ------------------------------
-   --  Check if the permission identified by <b>Permission</b> is allowed according to
-   --  the current security context.  The result is cached in the security context and
-   --  returned in <b>Result</b>.
-   --  ------------------------------
-   procedure Has_Permission (Context    : in out Security_Context;
-                             Permission : in String;
-                             Result     : out Boolean) is
-      Index : constant Permissions.Permission_Index
-        := Permissions.Get_Permission_Index (Permission);
-   begin
-      Security_Context'Class (Context).Has_Permission (Index, Result);
-   end Has_Permission;
-
-   --  ------------------------------
-   --  Initializes the service context.  By creating the <b>Security_Context</b> variable,
-   --  the instance will be associated with the current task attribute.  If the current task
-   --  already has a security context, the new security context is installed, the old one
-   --  being kept.
-   --  ------------------------------
-   overriding
-   procedure Initialize (Context : in out Security_Context) is
-   begin
-      Context.Previous := Task_Context.Value;
-      Task_Context.Set_Value (Context'Unchecked_Access);
-   end Initialize;
-
-   --  ------------------------------
-   --  Finalize the security context releases any object.  The previous security context is
-   --  restored to the current task attribute.
-   --  ------------------------------
-   overriding
-   procedure Finalize (Context : in out Security_Context) is
-   begin
-      Task_Context.Set_Value (Context.Previous);
-   end Finalize;
-
-   --  ------------------------------
-   --  Add a context information represented by <b>Value</b> under the name identified by
-   --  <b>Name</b> in the security context <b>Context</b>.
+   --  Add a context information represented by <b>Value</b> under the name
+   --  identified by <b>Name</b> in the security context <b>Context</b>.
    --  ------------------------------
    procedure Add_Context (Context   : in out Security_Context;
                           Name      : in String;
@@ -118,8 +38,28 @@ package body Security.Contexts is
    end Add_Context;
 
    --  ------------------------------
-   --  Get the context information registered under the name <b>Name</b> in the security
-   --  context <b>Context</b>.
+   --  Get the current security context.
+   --  Returns null if the current thread is not associated with any security
+   --  context.
+   --  ------------------------------
+   function Current return Security_Context_Access is
+   begin
+      return Task_Context.Value;
+   end Current;
+
+   --  ------------------------------
+   --  Finalize the security context releases any object.  The previous
+   --  security context is restored to the current task attribute.
+   --  ------------------------------
+   overriding
+   procedure Finalize (Context : in out Security_Context) is
+   begin
+      Task_Context.Set_Value (Context.Previous);
+   end Finalize;
+
+   --  ------------------------------
+   --  Get the context information registered under the name <b>Name</b> in the
+   --  security context <b>Context</b>.
    --  Raises <b>Invalid_Context</b> if there is no such information.
    --  ------------------------------
    function Get_Context (Context  : in Security_Context;
@@ -134,7 +74,27 @@ package body Security.Contexts is
    end Get_Context;
 
    --  ------------------------------
-   --  Returns True if a context information was registered under the name <b>Name</b>.
+   --  Get the permission manager.
+   --  ------------------------------
+   function Get_Permission_Manager
+     (Context : in Security_Context'Class)
+      return Security.Permissions.Permission_Manager_Access is
+   begin
+      return Context.Manager;
+   end Get_Permission_Manager;
+
+   --  ------------------------------
+   --  Get the application associated with the current service operation.
+   --  ------------------------------
+   function Get_User_Principal (Context : in Security_Context'Class)
+                                return Security.Permissions.Principal_Access is
+   begin
+      return Context.Principal;
+   end Get_User_Principal;
+
+   --  ------------------------------
+   --  Returns True if a context information was registered under the name
+   --  <b>Name</b>.
    --  ------------------------------
    function Has_Context (Context : in Security_Context;
                          Name    : in String) return Boolean is
@@ -144,31 +104,12 @@ package body Security.Contexts is
    end Has_Context;
 
    --  ------------------------------
-   --  Set the current application and user context.
+   --  Check if the permission identified by <b>Permission</b> is allowed
+   --  according to the current security context.  The result is cached in the
+   --  security context and returned in <b>Result</b>.
    --  ------------------------------
-   procedure Set_Context (Context   : in out Security_Context;
-                          Manager   : in Security.Permissions.Permission_Manager_Access;
-                          Principal : in Security.Permissions.Principal_Access) is
-   begin
-      Context.Manager   := Manager;
-      Context.Principal := Principal;
-   end Set_Context;
-
-   --  ------------------------------
-   --  Get the current security context.
-   --  Returns null if the current thread is not associated with any security context.
-   --  ------------------------------
-   function Current return Security_Context_Access is
-   begin
-      return Task_Context.Value;
-   end Current;
-
-   --  ------------------------------
-   --  Check if the permission identified by <b>Permission</b> is allowed according to
-   --  the current security context.  The result is cached in the security context and
-   --  returned in <b>Result</b>.
-   --  ------------------------------
-   function Has_Permission (Permission : in Permissions.Permission_Index) return Boolean is
+   function Has_Permission
+     (Permission : in Permissions.Permission_Index) return Boolean is
       Result  : Boolean;
       Context : constant Security_Context_Access := Current;
    begin
@@ -181,9 +122,9 @@ package body Security.Contexts is
    end Has_Permission;
 
    --  ------------------------------
-   --  Check if the permission identified by <b>Permission</b> is allowed according to
-   --  the current security context.  The result is cached in the security context and
-   --  returned in <b>Result</b>.
+   --  Check if the permission identified by <b>Permission</b> is allowed
+   --  according to the current security context.  The result is cached in the
+   --  security context and returned in <b>Result</b>.
    --  ------------------------------
    function Has_Permission (Permission : in String) return Boolean is
       Result  : Boolean;
@@ -196,5 +137,72 @@ package body Security.Contexts is
          return Result;
       end if;
    end Has_Permission;
+
+   --  ------------------------------
+   --  Check if the permission identified by <b>Permission</b> is allowed
+   --  according to the current security context.  The result is cached in the
+   --  security context and returned in <b>Result</b>.
+   --  ------------------------------
+   procedure Has_Permission
+     (Context    : in out Security_Context;
+      Permission : in Security.Permissions.Permission_Index;
+      Result     : out Boolean) is
+      use type Security.Permissions.Controller_Access;
+      use type Security.Permissions.Permission_Manager_Access;
+   begin
+      if Context.Manager = null then
+         Result := False;
+         return;
+      end if;
+      declare
+         C : constant Permissions.Controller_Access :=
+               Context.Manager.Get_Controller (Permission);
+      begin
+         if C = null then
+            Result := False;
+         else
+            Result := C.Has_Permission (Context);
+         end if;
+      end;
+   end Has_Permission;
+
+   --  ------------------------------
+   --  Check if the permission identified by <b>Permission</b> is allowed
+   --  according to the current security context.  The result is cached in the
+   --  security context and returned in <b>Result</b>.
+   --  ------------------------------
+   procedure Has_Permission (Context    : in out Security_Context;
+                             Permission : in String;
+                             Result     : out Boolean) is
+      Index : constant Permissions.Permission_Index
+        := Permissions.Get_Permission_Index (Permission);
+   begin
+      Security_Context'Class (Context).Has_Permission (Index, Result);
+   end Has_Permission;
+
+   --  ------------------------------
+   --  Initializes the service context.  By creating the
+   --  <b>Security_Context</b> variable, the instance will be associated with
+   --  the current task attribute.  If the current task already has a security
+   --  context, the new security context is installed, the old one being kept.
+   --  ------------------------------
+   overriding
+   procedure Initialize (Context : in out Security_Context) is
+   begin
+      Context.Previous := Task_Context.Value;
+      Task_Context.Set_Value (Context'Unchecked_Access);
+   end Initialize;
+
+   --  ------------------------------
+   --  Set the current application and user context.
+   --  ------------------------------
+   procedure Set_Context
+     (Context   : in out Security_Context;
+      Manager   : in Security.Permissions.Permission_Manager_Access;
+      Principal : in Security.Permissions.Principal_Access) is
+   begin
+      Context.Manager   := Manager;
+      Context.Principal := Principal;
+   end Set_Context;
 
 end Security.Contexts;

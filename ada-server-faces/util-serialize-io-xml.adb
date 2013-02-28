@@ -33,67 +33,55 @@ package body Util.Serialize.IO.XML is
    use Unicode.CES;
    use Ada.Strings.Unbounded;
 
-   --  Return the location where the exception was raised.
-   function Get_Location (Except : Sax.Exceptions.Sax_Parse_Exception'Class)
-                          return String is separate;
+   --  Close the current XML entity if an entity was started
+   procedure Close_Current (Stream : in out Output_Stream'Class);
 
    --  ------------------------------
-   --  Warning
+   --  Characters
    --  ------------------------------
    overriding
-   procedure Warning (Handler : in out Xhtml_Reader;
-                      Except  : Sax.Exceptions.Sax_Parse_Exception'Class) is
-      pragma Warnings (Off, Handler);
+   procedure Characters (Handler : in out Xhtml_Reader;
+                         Ch      : in Unicode.CES.Byte_Sequence) is
    begin
-      AWS.OpenID.Log.Warning (Get_Message (Except));
-   end Warning;
+      Collect_Text (Handler, Ch);
+   end Characters;
 
    --  ------------------------------
-   --  Error
+   --  Close the current XML entity if an entity was started
    --  ------------------------------
-   overriding
-   procedure Error (Handler : in out Xhtml_Reader;
-                    Except  : in Sax.Exceptions.Sax_Parse_Exception'Class) is
-      Msg : constant String := Get_Message (Except);
-      Pos : constant Natural := Util.Strings.Index (Msg, ' ');
+   procedure Close_Current (Stream : in out Output_Stream'Class) is
    begin
-      --  The SAX error message contains the line+file name.  Remove it because this part
-      --  will be added by the <b>Error</b> procedure.
-      if Pos > Msg'First and then Msg (Pos - 1) = ':' then
-         Handler.Handler.Error (Msg (Pos + 1 .. Msg'Last));
-      else
-         Handler.Handler.Error (Msg);
+      if Stream.Close_Start then
+         Stream.Write ('>');
+         Stream.Close_Start := False;
       end if;
-   end Error;
+   end Close_Current;
 
-   --  ------------------------------
-   --  Fatal_Error
-   --  ------------------------------
-   overriding
-   procedure Fatal_Error (Handler : in out Xhtml_Reader;
-                          Except  : in Sax.Exceptions.Sax_Parse_Exception'Class) is
+   procedure Collect_Text (Handler : in out Xhtml_Reader;
+                           Content : Unicode.CES.Byte_Sequence) is
    begin
-      Handler.Error (Except);
-   end Fatal_Error;
+      Append (Handler.Text, Content);
+   end Collect_Text;
 
    --  ------------------------------
-   --  Set_Document_Locator
+   --  Terminates a XML array.
    --  ------------------------------
    overriding
-   procedure Set_Document_Locator (Handler : in out Xhtml_Reader;
-                                   Loc     : in out Sax.Locators.Locator) is
-   begin
-      Handler.Handler.Locator := Loc;
-   end Set_Document_Locator;
-
-   --  ------------------------------
-   --  Start_Document
-   --  ------------------------------
-   overriding
-   procedure Start_Document (Handler : in out Xhtml_Reader) is
+   procedure End_Array (Stream : in out Output_Stream) is
    begin
       null;
-   end Start_Document;
+   end End_Array;
+
+   --  ------------------------------
+   --  End_Cdata
+   --  ------------------------------
+   overriding
+   procedure End_Cdata (Handler : in out Xhtml_Reader) is
+      pragma Unmodified (Handler);
+      pragma Unreferenced (Handler);
+   begin
+      AWS.OpenID.Log.Info ("End CDATA");
+   end End_Cdata;
 
    --  ------------------------------
    --  End_Document
@@ -105,15 +93,43 @@ package body Util.Serialize.IO.XML is
    end End_Document;
 
    --  ------------------------------
-   --  Start_Prefix_Mapping
+   --  End_Element
    --  ------------------------------
    overriding
-   procedure Start_Prefix_Mapping (Handler : in out Xhtml_Reader;
-                                   Prefix  : in Unicode.CES.Byte_Sequence;
-                                   URI     : in Unicode.CES.Byte_Sequence) is
+   procedure End_Element
+     (Handler       : in out Xhtml_Reader;
+      Namespace_URI : in Unicode.CES.Byte_Sequence := "";
+      Local_Name    : in Unicode.CES.Byte_Sequence := "";
+      Qname         : in Unicode.CES.Byte_Sequence := "") is
+      pragma Unreferenced (Namespace_URI, Qname);
+      use AWS.OpenID.Log;
    begin
-      null;
-   end Start_Prefix_Mapping;
+      Handler.Handler.Finish_Object (Local_Name);
+      if Length (Handler.Text) > 0 then
+         Debug ("Close object " & Local_Name & " -> " &
+                  To_String (Handler.Text));
+         Handler.Handler.Set_Member
+           (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
+         Set_Unbounded_String (Handler.Text, "");
+      else
+         Debug ("Close object " & Local_Name);
+         Handler.Handler.Set_Member
+           (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
+      end if;
+   end End_Element;
+
+   --  ------------------------------
+   --  Terminates the current XML object.
+   --  ------------------------------
+   overriding
+   procedure End_Entity (Stream : in out Output_Stream;
+                         Name   : in String) is
+   begin
+      Close_Current (Stream);
+      Stream.Write ("</");
+      Stream.Write (Name);
+      Stream.Write ('>');
+   end End_Entity;
 
    --  ------------------------------
    --  End_Prefix_Mapping
@@ -126,72 +142,52 @@ package body Util.Serialize.IO.XML is
    end End_Prefix_Mapping;
 
    --  ------------------------------
-   --  Start_Element
+   --  Error
    --  ------------------------------
    overriding
-   procedure Start_Element (Handler       : in out Xhtml_Reader;
-                            Namespace_URI : in Unicode.CES.Byte_Sequence := "";
-                            Local_Name    : in Unicode.CES.Byte_Sequence := "";
-                            Qname         : in Unicode.CES.Byte_Sequence := "";
-                            Atts          : in Sax.Attributes.Attributes'Class) is
-      pragma Unreferenced (Namespace_URI, Qname);
-
-      Attr_Count : Natural;
+   procedure Error (Handler : in out Xhtml_Reader;
+                    Except  : in Sax.Exceptions.Sax_Parse_Exception'Class) is
+      Msg : constant String := Get_Message (Except);
+      Pos : constant Natural := Util.Strings.Index (Msg, ' ');
    begin
-      AWS.OpenID.Log.Debug ("Start object " & Local_Name);
-
-      Handler.Handler.Start_Object (Local_Name);
-      Attr_Count := Get_Length (Atts);
-      for I in 0 .. Attr_Count - 1 loop
-         declare
-            Name  : constant String := Get_Qname (Atts, I);
-            Value : constant String := Get_Value (Atts, I);
-         begin
-            Handler.Handler.Set_Member (Name      => Name,
-                                        Value     => Util.Beans.Objects.To_Object (Value),
-                                        Attribute => True);
-         end;
-      end loop;
-   end Start_Element;
-
-   --  ------------------------------
-   --  End_Element
-   --  ------------------------------
-   overriding
-   procedure End_Element (Handler       : in out Xhtml_Reader;
-                          Namespace_URI : in Unicode.CES.Byte_Sequence := "";
-                          Local_Name    : in Unicode.CES.Byte_Sequence := "";
-                          Qname         : in Unicode.CES.Byte_Sequence := "") is
-      pragma Unreferenced (Namespace_URI, Qname);
-      use AWS.OpenID.Log;
-   begin
-      Handler.Handler.Finish_Object (Local_Name);
-      if Length (Handler.Text) > 0 then
-         Debug ("Close object " & Local_Name & " -> " &
-                  To_String (Handler.Text));
-         Handler.Handler.Set_Member (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
-         Set_Unbounded_String (Handler.Text, "");
+      --  The SAX error message contains the line+file name.  Remove it because
+      --  this part will be added by the <b>Error</b> procedure.
+      if Pos > Msg'First and then Msg (Pos - 1) = ':' then
+         Handler.Handler.Error (Msg (Pos + 1 .. Msg'Last));
       else
-         Debug ("Close object " & Local_Name);
-         Handler.Handler.Set_Member (Local_Name, Util.Beans.Objects.To_Object (Handler.Text));
+         Handler.Handler.Error (Msg);
       end if;
-   end End_Element;
-
-   procedure Collect_Text (Handler : in out Xhtml_Reader;
-                           Content : Unicode.CES.Byte_Sequence) is
-   begin
-      Append (Handler.Text, Content);
-   end Collect_Text;
+   end Error;
 
    --  ------------------------------
-   --  Characters
+   --  Fatal_Error
    --  ------------------------------
    overriding
-   procedure Characters (Handler : in out Xhtml_Reader;
-                         Ch      : in Unicode.CES.Byte_Sequence) is
+   procedure Fatal_Error
+     (Handler : in out Xhtml_Reader;
+      Except  : in Sax.Exceptions.Sax_Parse_Exception'Class) is
    begin
-      Collect_Text (Handler, Ch);
-   end Characters;
+      Handler.Error (Except);
+   end Fatal_Error;
+
+   --  Return the location where the exception was raised.
+   function Get_Location (Except : Sax.Exceptions.Sax_Parse_Exception'Class)
+                          return String is separate;
+
+   --  ------------------------------
+   --  Get the current location (file and line) to report an error message.
+   --  ------------------------------
+   overriding
+   function Get_Location (Handler : in Parser) return String is
+      File : constant String :=
+               Util.Serialize.IO.Parser (Handler).Get_Location;
+   begin
+      if Handler.Locator = Sax.Locators.No_Locator then
+         return File;
+      else
+         return File & Sax.Locators.To_String (Handler.Locator);
+      end if;
+   end Get_Location;
 
    --  ------------------------------
    --  Ignorable_Whitespace
@@ -206,108 +202,6 @@ package body Util.Serialize.IO.XML is
    end Ignorable_Whitespace;
 
    --  ------------------------------
-   --  Processing_Instruction
-   --  ------------------------------
-   overriding
-   procedure Processing_Instruction (Handler : in out Xhtml_Reader;
-                                     Target  : in Unicode.CES.Byte_Sequence;
-                                     Data    : in Unicode.CES.Byte_Sequence) is
-      pragma Unreferenced (Handler);
-   begin
-      AWS.OpenID.Log.Error ("Processing instruction: " & Target & ": " & Data);
-   end Processing_Instruction;
-
-   --  ------------------------------
-   --  Skipped_Entity
-   --  ------------------------------
-   overriding
-   procedure Skipped_Entity (Handler : in out Xhtml_Reader;
-                             Name    : in Unicode.CES.Byte_Sequence) is
-      pragma Unmodified (Handler);
-   begin
-      null;
-   end Skipped_Entity;
-
-   --  ------------------------------
-   --  Start_Cdata
-   --  ------------------------------
-   overriding
-   procedure Start_Cdata (Handler : in out Xhtml_Reader) is
-      pragma Unmodified (Handler);
-      pragma Unreferenced (Handler);
-   begin
-      AWS.OpenID.Log.Info ("Start CDATA");
-   end Start_Cdata;
-
-   --  ------------------------------
-   --  End_Cdata
-   --  ------------------------------
-   overriding
-   procedure End_Cdata (Handler : in out Xhtml_Reader) is
-      pragma Unmodified (Handler);
-      pragma Unreferenced (Handler);
-   begin
-      AWS.OpenID.Log.Info ("End CDATA");
-   end End_Cdata;
-
-   --  ------------------------------
-   --  Resolve_Entity
-   --  ------------------------------
-   overriding
-   function Resolve_Entity (Handler   : Xhtml_Reader;
-                            Public_ID : Unicode.CES.Byte_Sequence;
-                            System_ID : Unicode.CES.Byte_Sequence)
-                            return Input_Sources.Input_Source_Access is
-      pragma Unreferenced (Handler);
-   begin
-      AWS.OpenID.Log.Error
-        ("Cannot resolve entity " & Public_ID & " - " & System_ID);
-      return null;
-   end Resolve_Entity;
-
-   overriding
-   procedure Start_DTD (Handler   : in out Xhtml_Reader;
-                        Name      : Unicode.CES.Byte_Sequence;
-                        Public_ID : Unicode.CES.Byte_Sequence := "";
-                        System_ID : Unicode.CES.Byte_Sequence := "") is
-   begin
-      null;
-   end Start_DTD;
-
-   --  ------------------------------
-   --  Set the XHTML reader to ignore or not the white spaces.
-   --  When set to True, the ignorable white spaces will not be kept.
-   --  ------------------------------
-   procedure Set_Ignore_White_Spaces (Reader : in out Parser;
-                                      Value  : in Boolean) is
-   begin
-      Reader.Ignore_White_Spaces := Value;
-   end Set_Ignore_White_Spaces;
-
-   --  ------------------------------
-   --  Set the XHTML reader to ignore empty lines.
-   --  ------------------------------
-   procedure Set_Ignore_Empty_Lines (Reader : in out Parser;
-                                     Value  : in Boolean) is
-   begin
-      Reader.Ignore_Empty_Lines := Value;
-   end Set_Ignore_Empty_Lines;
-
-   --  ------------------------------
-   --  Get the current location (file and line) to report an error message.
-   --  ------------------------------
-   overriding
-   function Get_Location (Handler : in Parser) return String is
-      File : constant String := Util.Serialize.IO.Parser (Handler).Get_Location;
-   begin
-      if Handler.Locator = Sax.Locators.No_Locator then
-         return File;
-      else
-         return File & Sax.Locators.To_String (Handler.Locator);
-      end if;
-   end Get_Location;
-
-   --  ------------------------------
    --  Parse an XML stream, and calls the appropriate SAX callbacks for each
    --  event.
    --  This is not re-entrant: you can not call Parse with the same Parser
@@ -316,8 +210,9 @@ package body Util.Serialize.IO.XML is
 
    --  Parse the stream using the JSON parser.
    overriding
-   procedure Parse (Handler : in out Parser;
-                    Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class) is
+   procedure Parse
+     (Handler : in out Parser;
+      Stream  : in out Util.Streams.Buffered.Buffered_Stream'Class) is
 
       type String_Access is access all String (1 .. 32);
 
@@ -336,14 +231,27 @@ package body Util.Serialize.IO.XML is
       --  True if From is past the last character in the string.
       overriding
       function Eof (From : in Stream_Input) return Boolean;
+
+      --  True if From is past the last character in the string.
+      overriding
+      function Eof (From : in Stream_Input) return Boolean is
+      begin
+         if From.Index < From.Last then
+            return False;
+         end if;
+         return Stream.Is_Eof;
+      end Eof;
+
       procedure Fill (From : in out Stream_Input'Class);
 
       procedure Fill (From : in out Stream_Input'Class) is
       begin
          --  Move to the buffer start
          if From.Last > From.Index and From.Index > From.Buffer'First then
-            From.Buffer (From.Buffer'First .. From.Last - 1 - From.Index + From.Buffer'First) :=
-              From.Buffer (From.Index .. From.Last - 1);
+            From.Buffer
+              (From.Buffer'First .. From.Last - 1 -
+                 From.Index + From.Buffer'First) :=
+                From.Buffer (From.Index .. From.Last - 1);
             From.Last  := From.Last - From.Index + From.Buffer'First;
             From.Index := From.Buffer'First;
          end if;
@@ -373,16 +281,6 @@ package body Util.Serialize.IO.XML is
          From.Encoding.Read (From.Buffer.all, From.Index, C);
       end Next_Char;
 
-      --  True if From is past the last character in the string.
-      overriding
-      function Eof (From : in Stream_Input) return Boolean is
-      begin
-         if From.Index < From.Last then
-            return False;
-         end if;
-         return Stream.Is_Eof;
-      end Eof;
-
       Input      : Stream_Input;
       Xml_Parser : Xhtml_Reader;
       Buf        : aliased String (1 .. 32);
@@ -398,8 +296,8 @@ package body Util.Serialize.IO.XML is
       Sax.Readers.Reader (Xml_Parser).Parse (Input);
       Handler.Locator := Sax.Locators.No_Locator;
 
-      --  Ignore the Program_Error exception that SAX could raise if we know that the
-      --  error was reported.
+      --  Ignore the Program_Error exception that SAX could raise if we know
+      --  that the error was reported.
    exception
       when Program_Error =>
          Handler.Locator := Sax.Locators.No_Locator;
@@ -412,30 +310,142 @@ package body Util.Serialize.IO.XML is
          raise;
    end Parse;
 
-   --  Close the current XML entity if an entity was started
-   procedure Close_Current (Stream : in out Output_Stream'Class);
+   --  ------------------------------
+   --  Processing_Instruction
+   --  ------------------------------
+   overriding
+   procedure Processing_Instruction (Handler : in out Xhtml_Reader;
+                                     Target  : in Unicode.CES.Byte_Sequence;
+                                     Data    : in Unicode.CES.Byte_Sequence) is
+      pragma Unreferenced (Handler);
+   begin
+      AWS.OpenID.Log.Error ("Processing instruction: " & Target & ": " & Data);
+   end Processing_Instruction;
 
    --  ------------------------------
-   --  Close the current XML entity if an entity was started
+   --  Resolve_Entity
    --  ------------------------------
-   procedure Close_Current (Stream : in out Output_Stream'Class) is
+   overriding
+   function Resolve_Entity (Handler   : Xhtml_Reader;
+                            Public_ID : Unicode.CES.Byte_Sequence;
+                            System_ID : Unicode.CES.Byte_Sequence)
+                            return Input_Sources.Input_Source_Access is
+      pragma Unreferenced (Handler);
    begin
-      if Stream.Close_Start then
-         Stream.Write ('>');
-         Stream.Close_Start := False;
-      end if;
-   end Close_Current;
+      AWS.OpenID.Log.Error
+        ("Cannot resolve entity " & Public_ID & " - " & System_ID);
+      return null;
+   end Resolve_Entity;
 
    --  ------------------------------
-   --  Write the value as a XML string.  Special characters are escaped using the XML
-   --  escape rules.
+   --  Set_Document_Locator
    --  ------------------------------
-   procedure Write_String (Stream : in out Output_Stream;
-                           Value  : in String) is
+   overriding
+   procedure Set_Document_Locator (Handler : in out Xhtml_Reader;
+                                   Loc     : in out Sax.Locators.Locator) is
    begin
-      Close_Current (Stream);
-      Stream.Write (Value);
-   end Write_String;
+      Handler.Handler.Locator := Loc;
+   end Set_Document_Locator;
+
+   --  ------------------------------
+   --  Set the XHTML reader to ignore empty lines.
+   --  ------------------------------
+   procedure Set_Ignore_Empty_Lines (Reader : in out Parser;
+                                     Value  : in Boolean) is
+   begin
+      Reader.Ignore_Empty_Lines := Value;
+   end Set_Ignore_Empty_Lines;
+
+   --  ------------------------------
+   --  Set the XHTML reader to ignore or not the white spaces.
+   --  When set to True, the ignorable white spaces will not be kept.
+   --  ------------------------------
+   procedure Set_Ignore_White_Spaces (Reader : in out Parser;
+                                      Value  : in Boolean) is
+   begin
+      Reader.Ignore_White_Spaces := Value;
+   end Set_Ignore_White_Spaces;
+
+   --  ------------------------------
+   --  Skipped_Entity
+   --  ------------------------------
+   overriding
+   procedure Skipped_Entity (Handler : in out Xhtml_Reader;
+                             Name    : in Unicode.CES.Byte_Sequence) is
+      pragma Unmodified (Handler);
+   begin
+      null;
+   end Skipped_Entity;
+
+   --  ------------------------------
+   --  Starts a XML array.
+   --  ------------------------------
+   overriding
+   procedure Start_Array (Stream : in out Output_Stream;
+                          Length : in Ada.Containers.Count_Type) is
+   begin
+      null;
+   end Start_Array;
+
+   --  ------------------------------
+   --  Start_Cdata
+   --  ------------------------------
+   overriding
+   procedure Start_Cdata (Handler : in out Xhtml_Reader) is
+      pragma Unmodified (Handler);
+      pragma Unreferenced (Handler);
+   begin
+      AWS.OpenID.Log.Info ("Start CDATA");
+   end Start_Cdata;
+
+   --  ------------------------------
+   --  Start_Document
+   --  ------------------------------
+   overriding
+   procedure Start_Document (Handler : in out Xhtml_Reader) is
+   begin
+      null;
+   end Start_Document;
+
+   overriding
+   procedure Start_DTD (Handler   : in out Xhtml_Reader;
+                        Name      : Unicode.CES.Byte_Sequence;
+                        Public_ID : Unicode.CES.Byte_Sequence := "";
+                        System_ID : Unicode.CES.Byte_Sequence := "") is
+   begin
+      null;
+   end Start_DTD;
+
+   --  ------------------------------
+   --  Start_Element
+   --  ------------------------------
+   overriding
+   procedure Start_Element
+     (Handler       : in out Xhtml_Reader;
+      Namespace_URI : in Unicode.CES.Byte_Sequence := "";
+      Local_Name    : in Unicode.CES.Byte_Sequence := "";
+      Qname         : in Unicode.CES.Byte_Sequence := "";
+      Atts          : in Sax.Attributes.Attributes'Class) is
+      pragma Unreferenced (Namespace_URI, Qname);
+
+      Attr_Count : Natural;
+   begin
+      AWS.OpenID.Log.Debug ("Start object " & Local_Name);
+
+      Handler.Handler.Start_Object (Local_Name);
+      Attr_Count := Get_Length (Atts);
+      for I in 0 .. Attr_Count - 1 loop
+         declare
+            Name  : constant String := Get_Qname (Atts, I);
+            Value : constant String := Get_Value (Atts, I);
+         begin
+            Handler.Handler.Set_Member
+              (Name      => Name,
+               Value     => Util.Beans.Objects.To_Object (Value),
+               Attribute => True);
+         end;
+      end loop;
+   end Start_Element;
 
    --  ------------------------------
    --  Start a new XML object.
@@ -451,17 +461,26 @@ package body Util.Serialize.IO.XML is
    end Start_Entity;
 
    --  ------------------------------
-   --  Terminates the current XML object.
+   --  Start_Prefix_Mapping
    --  ------------------------------
    overriding
-   procedure End_Entity (Stream : in out Output_Stream;
-                         Name   : in String) is
+   procedure Start_Prefix_Mapping (Handler : in out Xhtml_Reader;
+                                   Prefix  : in Unicode.CES.Byte_Sequence;
+                                   URI     : in Unicode.CES.Byte_Sequence) is
    begin
-      Close_Current (Stream);
-      Stream.Write ("</");
-      Stream.Write (Name);
-      Stream.Write ('>');
-   end End_Entity;
+      null;
+   end Start_Prefix_Mapping;
+
+   --  ------------------------------
+   --  Warning
+   --  ------------------------------
+   overriding
+   procedure Warning (Handler : in out Xhtml_Reader;
+                      Except  : Sax.Exceptions.Sax_Parse_Exception'Class) is
+      pragma Warnings (Off, Handler);
+   begin
+      AWS.OpenID.Log.Warning (Get_Message (Except));
+   end Warning;
 
    --  ------------------------------
    --  Write a XML name/value attribute.
@@ -533,22 +552,14 @@ package body Util.Serialize.IO.XML is
    end Write_Entity;
 
    --  ------------------------------
-   --  Starts a XML array.
+   --  Write the value as a XML string.  Special characters are escaped using
+   --  the XML escape rules.
    --  ------------------------------
-   overriding
-   procedure Start_Array (Stream : in out Output_Stream;
-                          Length : in Ada.Containers.Count_Type) is
+   procedure Write_String (Stream : in out Output_Stream;
+                           Value  : in String) is
    begin
-      null;
-   end Start_Array;
-
-   --  ------------------------------
-   --  Terminates a XML array.
-   --  ------------------------------
-   overriding
-   procedure End_Array (Stream : in out Output_Stream) is
-   begin
-      null;
-   end End_Array;
+      Close_Current (Stream);
+      Stream.Write (Value);
+   end Write_String;
 
 end Util.Serialize.IO.XML;
