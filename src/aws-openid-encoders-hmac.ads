@@ -15,8 +15,5 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-package AWS.OpenID is
-
-   pragma Pure (AWS.OpenID);
-
-end AWS.OpenID;
+package AWS.OpenID.Encoders.HMAC is
+end AWS.OpenID.Encoders.HMAC;

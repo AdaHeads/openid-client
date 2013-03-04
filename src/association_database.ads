@@ -15,7 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Security.OpenID;
+--  with Security.OpenID;
+with AWS.OpenID.Security;
 
 package Association_Database is
 
@@ -23,12 +24,12 @@ package Association_Database is
    --  TODO: write comment
 
    function Has
-     (Handle : in Security.OpenID.Association_Handle)
+     (Handle : in AWS.OpenID.Security.Association_Handle)
       return Boolean;
    --  TODO: write comment
 
    procedure Insert
-     (Item : in Security.OpenID.Association);
+     (Item : in AWS.OpenID.Security.Association);
    --  TODO: write comment
 
    procedure Load
@@ -36,8 +37,8 @@ package Association_Database is
    --  TODO: write comment
 
    function Look_Up
-     (Handle : in Security.OpenID.Association_Handle)
-      return Security.OpenID.Association;
+     (Handle : in AWS.OpenID.Security.Association_Handle)
+      return AWS.OpenID.Security.Association;
    --  TODO: write comment
 
    procedure Save

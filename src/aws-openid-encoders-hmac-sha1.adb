@@ -16,13 +16,13 @@
 --  limitations under the License.
 -----------------------------------------------------------------------
 
-with Util.Encoders.Base16;
-with Util.Encoders.Base64;
+with AWS.OpenID.Encoders.Base16;
+with AWS.OpenID.Encoders.Base64;
 
 --  The <b>Util.Encodes.HMAC.SHA1</b> package generates HMAC-SHA1
 --  authentication.
 --  (See RFC 2104 - HMAC : Keyed - Hashing for Message Authentication).
-package body Util.Encoders.HMAC.SHA1 is
+package body AWS.OpenID.Encoders.HMAC.SHA1 is
 
    IPAD : constant Ada.Streams.Stream_Element := 16#36#;
    OPAD : constant Ada.Streams.Stream_Element := 16#5c#;
@@ -33,11 +33,11 @@ package body Util.Encoders.HMAC.SHA1 is
    --  <b>Hash</b>.
    --  ------------------------------
    procedure Finish (E    : in out Context;
-                     Hash : out Util.Encoders.SHA1.Hash_Array) is
+                     Hash : out AWS.OpenID.Encoders.SHA1.Hash_Array) is
       use type Ada.Streams.Stream_Element;
       use type Ada.Streams.Stream_Element_Offset;
    begin
-      Util.Encoders.SHA1.Finish (E.SHA, Hash);
+      AWS.OpenID.Encoders.SHA1.Finish (E.SHA, Hash);
 
       --  Hash the key in the SHA1 context.
       declare
@@ -51,10 +51,10 @@ package body Util.Encoders.HMAC.SHA1 is
                Block (I) := OPAD;
             end loop;
          end if;
-         Util.Encoders.SHA1.Update (E.SHA, Block);
+         AWS.OpenID.Encoders.SHA1.Update (E.SHA, Block);
       end;
-      Util.Encoders.SHA1.Update (E.SHA, Hash);
-      Util.Encoders.SHA1.Finish (E.SHA, Hash);
+      AWS.OpenID.Encoders.SHA1.Update (E.SHA, Hash);
+      AWS.OpenID.Encoders.SHA1.Finish (E.SHA, Hash);
    end Finish;
 
    --  ------------------------------
@@ -63,13 +63,13 @@ package body Util.Encoders.HMAC.SHA1 is
    --  <b>Hash</b>.
    --  ------------------------------
    procedure Finish (E    : in out Context;
-                     Hash : out Util.Encoders.SHA1.Digest) is
+                     Hash : out AWS.OpenID.Encoders.SHA1.Digest) is
       Buf : Ada.Streams.Stream_Element_Array (1 .. Hash'Length);
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      H       : Util.Encoders.SHA1.Hash_Array;
-      B       : Util.Encoders.Base16.Encoder;
+      H       : AWS.OpenID.Encoders.SHA1.Hash_Array;
+      B       : AWS.OpenID.Encoders.Base16.Encoder;
       Last    : Ada.Streams.Stream_Element_Offset;
       Encoded : Ada.Streams.Stream_Element_Offset;
    begin
@@ -79,14 +79,16 @@ package body Util.Encoders.HMAC.SHA1 is
 
    --  Computes the HMAC-SHA1 with the private key and the data collected by
    --  the <b>Update</b> procedures.  Returns the base64 hash in <b>Hash</b>.
-   procedure Finish_Base64 (E    : in out Context;
-                            Hash : out Util.Encoders.SHA1.Base64_Digest) is
+   procedure Finish_Base64
+     (E    : in out Context;
+      Hash : out AWS.OpenID.Encoders.SHA1.Base64_Digest)
+   is
       Buf : Ada.Streams.Stream_Element_Array (1 .. Hash'Length);
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      H       : Util.Encoders.SHA1.Hash_Array;
-      B       : Util.Encoders.Base64.Encoder;
+      H       : AWS.OpenID.Encoders.SHA1.Hash_Array;
+      B       : AWS.OpenID.Encoders.Base64.Encoder;
       Last    : Ada.Streams.Stream_Element_Offset;
       Encoded : Ada.Streams.Stream_Element_Offset;
    begin
@@ -126,8 +128,8 @@ package body Util.Encoders.HMAC.SHA1 is
    begin
       --  Reduce the key
       if Key'Length > 64 then
-         Util.Encoders.SHA1.Update (E.SHA, Key);
-         Util.Encoders.SHA1.Finish (E.SHA, E.Key (0 .. 19));
+         AWS.OpenID.Encoders.SHA1.Update (E.SHA, Key);
+         AWS.OpenID.Encoders.SHA1.Finish (E.SHA, E.Key (0 .. 19));
          E.Key_Len := 19;
       else
          E.Key_Len := Key'Length - 1;
@@ -144,7 +146,7 @@ package body Util.Encoders.HMAC.SHA1 is
          for I in E.Key_Len + 1 .. 63 loop
             Block (I) := IPAD;
          end loop;
-         Util.Encoders.SHA1.Update (E.SHA, Block);
+         AWS.OpenID.Encoders.SHA1.Update (E.SHA, Block);
       end;
    end Set_Key;
 
@@ -168,9 +170,9 @@ package body Util.Encoders.HMAC.SHA1 is
    --  hexadecimal string.
    --  ------------------------------
    function Sign (Key  : in String;
-                  Data : in String) return Util.Encoders.SHA1.Digest is
+                  Data : in String) return AWS.OpenID.Encoders.SHA1.Digest is
       Ctx    : Context;
-      Result : Util.Encoders.SHA1.Digest;
+      Result : AWS.OpenID.Encoders.SHA1.Digest;
    begin
       Set_Key (Ctx, Key);
       Update (Ctx, Data);
@@ -183,10 +185,10 @@ package body Util.Encoders.HMAC.SHA1 is
    function Sign_Base64
      (Key  : in String;
       Data : in String)
-      return Util.Encoders.SHA1.Base64_Digest
+      return AWS.OpenID.Encoders.SHA1.Base64_Digest
    is
       Ctx    : Context;
-      Result : Util.Encoders.SHA1.Base64_Digest;
+      Result : AWS.OpenID.Encoders.SHA1.Base64_Digest;
    begin
       Set_Key (Ctx, Key);
       Update (Ctx, Data);
@@ -224,7 +226,7 @@ package body Util.Encoders.HMAC.SHA1 is
    procedure Update (E : in out Context;
                      S : in String) is
    begin
-      Util.Encoders.SHA1.Update (E.SHA, S);
+      AWS.OpenID.Encoders.SHA1.Update (E.SHA, S);
    end Update;
 
    --  ------------------------------
@@ -233,7 +235,7 @@ package body Util.Encoders.HMAC.SHA1 is
    procedure Update (E : in out Context;
                      S : in Ada.Streams.Stream_Element_Array) is
    begin
-      Util.Encoders.SHA1.Update (E.SHA, S);
+      AWS.OpenID.Encoders.SHA1.Update (E.SHA, S);
    end Update;
 
-end Util.Encoders.HMAC.SHA1;
+end AWS.OpenID.Encoders.HMAC.SHA1;

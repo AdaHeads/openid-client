@@ -15,14 +15,18 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  AWS.Log;
+with AWS.Log;
 
 package AWS.OpenID.Log is
-   procedure Write_To_Dev_Null (Message : in     String) is null;
+
+   procedure Write_To_Dev_Null
+     (Message : in String)
+   is null;
+   --  TODO: write comment
 
    Info    : not null AWS.Log.Callback := Write_To_Dev_Null'Access;
    Debug   : not null AWS.Log.Callback := Write_To_Dev_Null'Access;
    Error   : not null AWS.Log.Callback := Write_To_Dev_Null'Access;
    Warning : not null AWS.Log.Callback := Write_To_Dev_Null'Access;
+
 end AWS.OpenID.Log;

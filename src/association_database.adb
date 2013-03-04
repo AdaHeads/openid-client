@@ -26,28 +26,28 @@ with AWS.OpenID.Log;
 package body Association_Database is
 
    package Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Security.OpenID.Association_Handle,
+     (Key_Type        => AWS.OpenID.Security.Association_Handle,
       Hash            => Ada.Strings.Unbounded.Hash,
       Equivalent_Keys => Ada.Strings.Unbounded."=",
-      Element_Type    => Security.OpenID.Association,
-      "="             => Security.OpenID."=");
+      Element_Type    => AWS.OpenID.Security.Association,
+      "="             => AWS.OpenID.Security."=");
 
    protected Database is
       procedure Clean_Up;
 
       function Has
-        (Handle : in Security.OpenID.Association_Handle)
+        (Handle : in AWS.OpenID.Security.Association_Handle)
          return Boolean;
 
       procedure Insert
-        (Item : in Security.OpenID.Association);
+        (Item : in AWS.OpenID.Security.Association);
 
       procedure Load
         (File_Name : in String);
 
       function Look_Up
-        (Handle : in Security.OpenID.Association_Handle)
-         return Security.OpenID.Association;
+        (Handle : in AWS.OpenID.Security.Association_Handle)
+         return AWS.OpenID.Security.Association;
 
       procedure Save
         (File_Name : in String);
@@ -76,7 +76,7 @@ package body Association_Database is
       -----------
 
       function Has
-        (Handle : in Security.OpenID.Association_Handle)
+        (Handle : in AWS.OpenID.Security.Association_Handle)
          return Boolean
       is
       begin
@@ -94,10 +94,10 @@ package body Association_Database is
       --------------
 
       procedure Insert
-        (Item : in Security.OpenID.Association)
+        (Item : in AWS.OpenID.Security.Association)
       is
-         Key : constant Security.OpenID.Association_Handle
-           := Security.OpenID.Handle (Item);
+         Key : constant AWS.OpenID.Security.Association_Handle
+           := AWS.OpenID.Security.Handle (Item);
       begin
          Maps.Insert (Container => Associations,
                       Key       => Key,
@@ -106,7 +106,7 @@ package body Association_Database is
          when others =>
             AWS.OpenID.Log.Error
               (Message => "Failed to insert <" &
-                          Security.OpenID.To_String (Item) &
+                          AWS.OpenID.Security.To_String (Item) &
                           "> into the association database with the handle <" &
                           Ada.Strings.Unbounded.To_String (Key) & ">.");
             AWS.OpenID.Log.Error
@@ -128,8 +128,8 @@ package body Association_Database is
 
          File    : Ada.Streams.Stream_IO.File_Type;
          Source  : Ada.Streams.Stream_IO.Stream_Access;
-         Key     : Security.OpenID.Association_Handle;
-         Element : Security.OpenID.Association;
+         Key     : AWS.OpenID.Security.Association_Handle;
+         Element : AWS.OpenID.Security.Association;
       begin
          Open (File => File,
                Name => File_Name,
@@ -137,8 +137,8 @@ package body Association_Database is
          Source := Stream (File);
 
          while not End_Of_File (File) loop
-            Key     := Security.OpenID.Association_Handle'Input (Source);
-            Element := Security.OpenID.Association'Input (Source);
+            Key     := AWS.OpenID.Security.Association_Handle'Input (Source);
+            Element := AWS.OpenID.Security.Association'Input (Source);
             Maps.Insert (Container => Associations,
                          Key       => Key,
                          New_Item  => Element);
@@ -152,8 +152,8 @@ package body Association_Database is
       ---------------
 
       function Look_Up
-        (Handle : in Security.OpenID.Association_Handle)
-         return Security.OpenID.Association
+        (Handle : in AWS.OpenID.Security.Association_Handle)
+         return AWS.OpenID.Security.Association
       is
       begin
          AWS.OpenID.Log.Info
@@ -181,10 +181,11 @@ package body Association_Database is
            (Position : in Maps.Cursor)
          is
          begin
-            Security.OpenID.Association_Handle'Output (Target,
-                                                       Maps.Key (Position));
-            Security.OpenID.Association'Output (Target,
-                                                Maps.Element (Position));
+            AWS.OpenID.Security.Association_Handle'Output
+              (Target,
+               Maps.Key (Position));
+            AWS.OpenID.Security.Association'Output (Target,
+                                                    Maps.Element (Position));
          end Save;
       begin
          Create (File => File,
@@ -219,7 +220,7 @@ package body Association_Database is
    -----------
 
    function Has
-     (Handle : in Security.OpenID.Association_Handle)
+     (Handle : in AWS.OpenID.Security.Association_Handle)
       return Boolean
    is
    begin
@@ -237,7 +238,7 @@ package body Association_Database is
    --------------
 
    procedure Insert
-     (Item : in Security.OpenID.Association)
+     (Item : in AWS.OpenID.Security.Association)
    is
    begin
       Database.Insert (Item => Item);
@@ -266,8 +267,8 @@ package body Association_Database is
    ---------------
 
    function Look_Up
-     (Handle : in Security.OpenID.Association_Handle)
-      return Security.OpenID.Association
+     (Handle : in AWS.OpenID.Security.Association_Handle)
+      return AWS.OpenID.Security.Association
    is
    begin
       return Database.Look_Up (Handle => Handle);

@@ -15,21 +15,19 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with
-  Ada.Command_Line,
-  Ada.Text_IO;
-with
-  AWS.Log,
-  AWS.Net.SSL,
-  AWS.OpenID.Log,
-  AWS.OpenID.State,
-  AWS.Server,
-  AWS.Server.Log,
-  AWS.Server.Status,
-  AWS.URL;
-with
-  Logger,
-  OpenID_Handler;
+with Ada.Text_IO;
+
+with AWS.Log;
+with AWS.Net.SSL;
+with AWS.OpenID.Log;
+with AWS.OpenID.State;
+with AWS.Server;
+with AWS.Server.Log;
+with AWS.Server.Status;
+with AWS.URL;
+
+with Logger;
+with OpenID_Handler;
 
 procedure OpenID_Demo is
    Web_Server : AWS.Server.HTTP;
@@ -54,9 +52,14 @@ begin
          Session        => True,
          Callback       => OpenID_Handler.Service'Access);
    else
-      Ada.Text_IO.Put_Line ("Compiled without support for secure HTTP.");
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      return;
+      AWS.Server.Start
+        (Web_Server     => Web_Server,
+         Name           => "OpenID_Demo",
+         Max_Connection => 10,
+         Port           => 8080,
+         Security       => False,
+         Session        => True,
+         Callback       => OpenID_Handler.Service'Access);
    end if;
 
    AWS.OpenID.State.Load (File_Name           => "openid_demo.state",

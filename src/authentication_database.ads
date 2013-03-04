@@ -18,7 +18,8 @@
 with AWS.Response;
 with AWS.Status;
 
-with Security.OpenID;
+--  with Security.OpenID;
+with AWS.OpenID.Security;
 
 package Authentication_Database is
 
@@ -44,7 +45,7 @@ package Authentication_Database is
    --  TODO: write comment
 
    procedure Register_Identity
-     (Source   : in     Security.OpenID.Authentication;
+     (Source   : in     AWS.OpenID.Security.Authentication;
       Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data);
    --  TODO: write comment

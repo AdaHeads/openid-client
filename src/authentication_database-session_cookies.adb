@@ -18,6 +18,7 @@
 with Ada.Exceptions;
 
 with AWS.Session;
+
 with AWS.OpenID.Log;
 
 package body Authentication_Database is
@@ -103,7 +104,7 @@ package body Authentication_Database is
    -------------------------
 
    procedure Register_Identity
-     (Source   : in     Security.OpenID.Authentication;
+     (Source   : in     AWS.OpenID.Security.Authentication;
       Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data)
    is
@@ -116,7 +117,7 @@ package body Authentication_Database is
       if ID /= AWS.Session.No_Session then
          AWS.Session.Set (SID   => ID,
                           Key   => Session_Key,
-                          Value => Security.OpenID.Identity (Source));
+                          Value => AWS.OpenID.Security.Identity (Source));
       end if;
    exception
       when Not_Authenticated =>

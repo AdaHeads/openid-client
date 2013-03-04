@@ -16,18 +16,24 @@
 -------------------------------------------------------------------------------
 
 package body AWS.OpenID.Dynamic_Dispatching is
+
+   ----------------
+   --  Register  --
+   ----------------
+
    procedure Register
-     (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler) is
+     (Dispatcher : in out AWS.Services.Dispatchers.URI.Handler)
+   is
       use AWS.Services.Dispatchers.URI;
    begin
-      Register (Dispatcher => Dispatcher,
-                URI        => Handlers.Log_In.URI,
-                Action     => Handlers.Log_In.Service'Access);
-      Register (Dispatcher => Dispatcher,
-                URI        => Handlers.Validate.URI,
-                Action     => Handlers.Validate.Service'Access);
-      Register (Dispatcher => Dispatcher,
-                URI        => Handlers.Log_Out.URI,
-                Action     => Handlers.Log_Out.Service'Access);
+      Dispatcher.Register (URI    => Handlers.Log_In.URI,
+                           Action => Handlers.Log_In.Service'Access);
+
+      Dispatcher.Register (URI    => Handlers.Validate.URI,
+                           Action => Handlers.Validate.Service'Access);
+
+      Dispatcher.Register (URI    => Handlers.Log_Out.URI,
+                           Action => Handlers.Log_Out.Service'Access);
    end Register;
+
 end AWS.OpenID.Dynamic_Dispatching;
