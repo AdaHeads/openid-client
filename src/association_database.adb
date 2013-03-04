@@ -36,18 +36,18 @@ package body Association_Database is
       procedure Clean_Up;
 
       function Has
-        (Handle : in Security.Openid.Association_Handle)
+        (Handle : in Security.OpenID.Association_Handle)
          return Boolean;
 
       procedure Insert
-        (Item : in Security.Openid.Association);
+        (Item : in Security.OpenID.Association);
 
       procedure Load
         (File_Name : in String);
 
       function Look_Up
-        (Handle : in Security.Openid.Association_Handle)
-         return Security.Openid.Association;
+        (Handle : in Security.OpenID.Association_Handle)
+         return Security.OpenID.Association;
 
       procedure Save
         (File_Name : in String);
@@ -76,7 +76,7 @@ package body Association_Database is
       -----------
 
       function Has
-        (Handle : in Security.Openid.Association_Handle)
+        (Handle : in Security.OpenID.Association_Handle)
          return Boolean
       is
       begin
@@ -94,10 +94,10 @@ package body Association_Database is
       --------------
 
       procedure Insert
-        (Item : in Security.Openid.Association)
+        (Item : in Security.OpenID.Association)
       is
-         Key : constant Security.Openid.Association_Handle
-           := Security.Openid.Handle (Item);
+         Key : constant Security.OpenID.Association_Handle
+           := Security.OpenID.Handle (Item);
       begin
          Maps.Insert (Container => Associations,
                       Key       => Key,
@@ -106,7 +106,7 @@ package body Association_Database is
          when others =>
             AWS.OpenID.Log.Error
               (Message => "Failed to insert <" &
-                          Security.Openid.To_String (Item) &
+                          Security.OpenID.To_String (Item) &
                           "> into the association database with the handle <" &
                           Ada.Strings.Unbounded.To_String (Key) & ">.");
             AWS.OpenID.Log.Error
@@ -128,8 +128,8 @@ package body Association_Database is
 
          File    : Ada.Streams.Stream_IO.File_Type;
          Source  : Ada.Streams.Stream_IO.Stream_Access;
-         Key     : Security.Openid.Association_Handle;
-         Element : Security.Openid.Association;
+         Key     : Security.OpenID.Association_Handle;
+         Element : Security.OpenID.Association;
       begin
          Open (File => File,
                Name => File_Name,
@@ -137,8 +137,8 @@ package body Association_Database is
          Source := Stream (File);
 
          while not End_Of_File (File) loop
-            Key     := Security.Openid.Association_Handle'Input (Source);
-            Element := Security.Openid.Association'Input (Source);
+            Key     := Security.OpenID.Association_Handle'Input (Source);
+            Element := Security.OpenID.Association'Input (Source);
             Maps.Insert (Container => Associations,
                          Key       => Key,
                          New_Item  => Element);
@@ -152,8 +152,8 @@ package body Association_Database is
       ---------------
 
       function Look_Up
-        (Handle : in Security.Openid.Association_Handle)
-         return Security.Openid.Association
+        (Handle : in Security.OpenID.Association_Handle)
+         return Security.OpenID.Association
       is
       begin
          AWS.OpenID.Log.Info
@@ -181,9 +181,9 @@ package body Association_Database is
            (Position : in Maps.Cursor)
          is
          begin
-            Security.Openid.Association_Handle'Output (Target,
+            Security.OpenID.Association_Handle'Output (Target,
                                                        Maps.Key (Position));
-            Security.Openid.Association'Output (Target,
+            Security.OpenID.Association'Output (Target,
                                                 Maps.Element (Position));
          end Save;
       begin
@@ -219,7 +219,7 @@ package body Association_Database is
    -----------
 
    function Has
-     (Handle : in Security.Openid.Association_Handle)
+     (Handle : in Security.OpenID.Association_Handle)
       return Boolean
    is
    begin
@@ -237,7 +237,7 @@ package body Association_Database is
    --------------
 
    procedure Insert
-     (Item : in Security.Openid.Association)
+     (Item : in Security.OpenID.Association)
    is
    begin
       Database.Insert (Item => Item);
@@ -266,8 +266,8 @@ package body Association_Database is
    ---------------
 
    function Look_Up
-     (Handle : in Security.Openid.Association_Handle)
-      return Security.Openid.Association
+     (Handle : in Security.OpenID.Association_Handle)
+      return Security.OpenID.Association
    is
    begin
       return Database.Look_Up (Handle => Handle);

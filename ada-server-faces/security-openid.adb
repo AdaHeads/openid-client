@@ -29,7 +29,7 @@ with Util.Encoders.HMAC.SHA1;
 
 with AWS.OpenID.Log;
 
-package body Security.Openid is
+package body Security.OpenID is
 
    use Ada.Strings.Fixed;
 
@@ -841,4 +841,4 @@ package body Security.Openid is
       end;
    end Verify_Signature;
 
-end Security.Openid;
+end Security.OpenID;

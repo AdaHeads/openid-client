@@ -152,16 +152,16 @@ package body Util.Encoders.HMAC.SHA1 is
    --  Sign the data string with the key and return the HMAC-SHA1 code in
    --  binary.
    --  ------------------------------
-   function Sign (Key  : in String;
-                  Data : in String) return Util.Encoders.SHA1.Hash_Array is
-      Ctx    : Context;
-      Result : Util.Encoders.SHA1.Hash_Array;
-   begin
-      Set_Key (Ctx, Key);
-      Update (Ctx, Data);
-      Finish (Ctx, Result);
-      return Result;
-   end Sign;
+--     function Sign (Key  : in String;
+--                    Data : in String) return Util.Encoders.SHA1.Hash_Array is
+--        Ctx    : Context;
+--        Result : Util.Encoders.SHA1.Hash_Array;
+--     begin
+--        Set_Key (Ctx, Key);
+--        Update (Ctx, Data);
+--        Finish (Ctx, Result);
+--        return Result;
+--     end Sign;
 
    --  ------------------------------
    --  Sign the data string with the key and return the HMAC-SHA1 code as
@@ -206,17 +206,19 @@ package body Util.Encoders.HMAC.SHA1 is
    --
    --  The <b>Encoding_Error</b> exception is raised if the input
    --  stream cannot be transformed.
-   overriding
-   procedure Transform
-     (E       : in Encoder;
-      Data    : in Ada.Streams.Stream_Element_Array;
-      Into    : out Ada.Streams.Stream_Element_Array;
-      Last    : out Ada.Streams.Stream_Element_Offset;
-      Encoded : out Ada.Streams.Stream_Element_Offset)
-   is
-   begin
-      null;
-   end Transform;
+--     overriding
+--     procedure Transform
+--       (E       : in Encoder;
+--        Data    : in Ada.Streams.Stream_Element_Array;
+--        Into    : out Ada.Streams.Stream_Element_Array;
+--        Last    : out Ada.Streams.Stream_Element_Offset;
+--        Encoded : out Ada.Streams.Stream_Element_Offset)
+--     is
+--        pragma Unreferenced (E, Data, Into);
+--     begin
+--        Last := 0;
+--        Encoded := 0;
+--     end Transform;
 
    --  ------------------------------
    --  Update the hash with the string.

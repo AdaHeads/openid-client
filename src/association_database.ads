@@ -15,7 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Security.Openid;
+with Security.OpenID;
 
 package Association_Database is
 
@@ -23,12 +23,12 @@ package Association_Database is
    --  TODO: write comment
 
    function Has
-     (Handle : in Security.Openid.Association_Handle)
+     (Handle : in Security.OpenID.Association_Handle)
       return Boolean;
    --  TODO: write comment
 
    procedure Insert
-     (Item : in Security.Openid.Association);
+     (Item : in Security.OpenID.Association);
    --  TODO: write comment
 
    procedure Load
@@ -36,8 +36,8 @@ package Association_Database is
    --  TODO: write comment
 
    function Look_Up
-     (Handle : in Security.Openid.Association_Handle)
-      return Security.Openid.Association;
+     (Handle : in Security.OpenID.Association_Handle)
+      return Security.OpenID.Association;
    --  TODO: write comment
 
    procedure Save

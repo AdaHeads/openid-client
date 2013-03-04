@@ -28,8 +28,8 @@ package Util.Encoders.HMAC.SHA1 is
 
    --  Sign the data string with the key and return the HMAC-SHA1 code in
    --  binary.
-   function Sign (Key  : in String;
-                  Data : in String) return Util.Encoders.SHA1.Hash_Array;
+--     function Sign (Key  : in String;
+--                    Data : in String) return Util.Encoders.SHA1.Hash_Array;
 
    --  Sign the data string with the key and return the HMAC-SHA1 code as
    --  hexadecimal string.
@@ -88,7 +88,7 @@ package Util.Encoders.HMAC.SHA1 is
    --  ------------------------------
    --  This <b>Encoder</b> translates the (binary) input stream into
    --  an SHA1 hexadecimal stream.  The encoding alphabet is: 0123456789ABCDEF.
-   type Encoder is new Util.Encoders.Transformer with private;
+--     type Encoder is new Util.Encoders.Transformer with private;
 
    --  Encodes the binary input stream represented by <b>Data</b> into
    --  an SHA-1 hash output stream <b>Into</b>.
@@ -102,16 +102,16 @@ package Util.Encoders.HMAC.SHA1 is
    --
    --  The <b>Encoding_Error</b> exception is raised if the input
    --  stream cannot be transformed.
-   overriding
-   procedure Transform (E       : in Encoder;
-                        Data    : in Ada.Streams.Stream_Element_Array;
-                        Into    : out Ada.Streams.Stream_Element_Array;
-                        Last    : out Ada.Streams.Stream_Element_Offset;
-                        Encoded : out Ada.Streams.Stream_Element_Offset);
+--     overriding
+--     procedure Transform (E       : in Encoder;
+--                          Data    : in Ada.Streams.Stream_Element_Array;
+--                          Into    : out Ada.Streams.Stream_Element_Array;
+--                          Last    : out Ada.Streams.Stream_Element_Offset;
+--                          Encoded : out Ada.Streams.Stream_Element_Offset);
 
 private
 
-   type Encoder is new Util.Encoders.Transformer with null record;
+--     type Encoder is new Util.Encoders.Transformer with null record;
 
    type Context is new Ada.Finalization.Limited_Controlled with record
       SHA     : Util.Encoders.SHA1.Context;

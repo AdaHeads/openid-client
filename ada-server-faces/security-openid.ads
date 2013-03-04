@@ -22,12 +22,12 @@ with Ada.Finalization;
 with AWS.Status;
 with Security.Permissions;
 
---  The <b>Security.Openid</b> package implements an authentication framework
+--  The <b>Security.OpenID</b> package implements an authentication framework
 --  based on OpenID 2.0.
 --
 --  See OpenID Authentication 2.0 - Final
 --  http://openid.net/specs/openid-authentication-2_0.html
-package Security.Openid is
+package Security.OpenID is
 
    Invalid_End_Point : exception;
 
@@ -241,4 +241,4 @@ private
    type Principal is new Security.Permissions.Principal with record
       Auth : Authentication;
    end record;
-end Security.Openid;
+end Security.OpenID;

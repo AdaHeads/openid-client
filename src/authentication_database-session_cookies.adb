@@ -103,7 +103,7 @@ package body Authentication_Database is
    -------------------------
 
    procedure Register_Identity
-     (Source   : in     Security.Openid.Authentication;
+     (Source   : in     Security.OpenID.Authentication;
       Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data)
    is
@@ -116,7 +116,7 @@ package body Authentication_Database is
       if ID /= AWS.Session.No_Session then
          AWS.Session.Set (SID   => ID,
                           Key   => Session_Key,
-                          Value => Security.Openid.Identity (Source));
+                          Value => Security.OpenID.Identity (Source));
       end if;
    exception
       when Not_Authenticated =>
