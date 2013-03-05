@@ -15,7 +15,6 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
---  with Security.OpenID;
 with AWS.OpenID.Security;
 
 package Association_Database is

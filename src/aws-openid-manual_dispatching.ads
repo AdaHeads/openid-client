@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Dispatchers.Callback;
 with AWS.Response;
 with AWS.Status;
 
@@ -22,10 +23,12 @@ generic
 
    Host_Name       : String;
    Log_In_Page     : String := "log_in";
-   Return_To_Page  : String := "return_to";
    Logged_In_Page  : String := "logged_in";
    Log_Out_Page    : String := "log_out";
    Logged_Out_Page : String := "logged_out";
+   Return_To_Page  : String := "return_to";
+   Protocol        : String := "https://";
+   --  Protocol is prefixed to Host_Name to build the full URL.
 
 package AWS.OpenID.Manual_Dispatching is
 
@@ -40,6 +43,9 @@ package AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
       --  TODO: write comment
+
+      Callback : AWS.Dispatchers.Callback.Handler
+        := AWS.Dispatchers.Callback.Create (Service'Access);
    end Log_In;
 
    package Validate is
@@ -49,6 +55,9 @@ package AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
       --  TODO: write comment
+
+      Callback : AWS.Dispatchers.Callback.Handler
+        := AWS.Dispatchers.Callback.Create (Service'Access);
    end Validate;
 
    package Logged_In is
@@ -62,20 +71,23 @@ package AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
       --  TODO: write comment
+
+      Callback : AWS.Dispatchers.Callback.Handler
+        := AWS.Dispatchers.Callback.Create (Service'Access);
    end Log_Out;
 
    package Logged_Out is
       URI : constant String := "/" & Logged_Out_Page;
    end Logged_Out;
 
-   function Is_Authenticated
-     (Request : in AWS.Status.Data)
-      return Boolean;
-   --  TODO: write comment
-
    function Authenticated_As
      (Request : in AWS.Status.Data)
       return String;
+   --  TODO: write comment
+
+   function Is_Authenticated
+     (Request : in AWS.Status.Data)
+      return Boolean;
    --  TODO: write comment
 
 end AWS.OpenID.Manual_Dispatching;

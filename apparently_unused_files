@@ -1,9 +1,0 @@
-#! /bin/zsh
-make 1>&2 || exit 1
-
-for f in */*.ad?; do
-   if [ ! -f obj/$(basename ${f%.ad?}).ali ]; then
-      basename $f
-   fi
-done \
-  | egrep -v '^(util-log-loggers-traceback-gnat[.]adb|util-serialize-io-xml-get_location-xmlada-.[.]adb|authentication_database[.]ads|authentication_database-hashed_map[.]adb|aws-openid-dynamic_dispatching[.]ad[sb])$'

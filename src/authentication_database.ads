@@ -18,7 +18,6 @@
 with AWS.Response;
 with AWS.Status;
 
---  with Security.OpenID;
 with AWS.OpenID.Security;
 
 package Authentication_Database is

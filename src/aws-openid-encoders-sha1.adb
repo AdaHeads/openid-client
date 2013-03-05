@@ -1,49 +1,77 @@
------------------------------------------------------------------------
---  util-encoders-sha1 -- Compute SHA-1 hash
---  Copyright (C) 2011 Stephane Carrez
---  Written by Stephane Carrez (Stephane.Carrez@gmail.com)
+-------------------------------------------------------------------------------
+--  The contents of this file originates from the Stephane Carrez project
+--  Ada Server Faces (util-encoders-sha1).
 --
---  Licensed under the Apache License, Version 2.0 (the "License");
---  you may not use this file except in compliance with the License.
---  You may obtain a copy of the License at
+--  The contents has been altered by AdaHeads K/S. The changes are primarily
+--  stylistic plus removal of code that isn't directly used to complete an
+--  OpenID authentication process. Changes to the actual code (logic) are not
+--  marked specifically. AdaHeads K/S does NOT claim copyright on this file.
 --
---      http://www.apache.org/licenses/LICENSE-2.0
+--  The header from the original file is included here for copyright and
+--  license information:
 --
---  Unless required by applicable law or agreed to in writing, software
---  distributed under the License is distributed on an "AS IS" BASIS,
---  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
---  See the License for the specific language governing permissions and
---  limitations under the License.
------------------------------------------------------------------------
+--  -----------------------------------------------------------------------
+--  --  util-encoders-sha1 -- Compute SHA-1 hash
+--  --  Copyright (C) 2011 Stephane Carrez
+--  --  Written by Stephane Carrez (Stephane.Carrez@gmail.com)
+--  --
+--  --  Licensed under the Apache License, Version 2.0 (the "License");
+--  --  you may not use this file except in compliance with the License.
+--  --  You may obtain a copy of the License at
+--  --
+--  --      http://www.apache.org/licenses/LICENSE-2.0
+--  --
+--  --  Unless required by applicable law or agreed to in writing, software
+--  --  distributed under the License is distributed on an "AS IS" BASIS,
+--  --  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+--  --  implied.
+--  --  See the License for the specific language governing permissions and
+--  --  limitations under the License.
+--  -----------------------------------------------------------------------
 
 with AWS.OpenID.Encoders.Base16;
 with AWS.OpenID.Encoders.Base64;
 
---  The <b>Util.Encodes.SHA1</b> package generates SHA-1 hash according to
---  RFC3174 or [FIPS-180-1].
 package body AWS.OpenID.Encoders.SHA1 is
 
    use Ada.Streams;
-
-   function F1 (B, C, D : in Unsigned_32) return Unsigned_32;
-   pragma Inline_Always (F1);
-
-   function F2 (B, C, D : in Unsigned_32) return Unsigned_32;
-   pragma Inline_Always (F2);
-
-   function F3 (B, C, D : in Unsigned_32) return Unsigned_32;
-   pragma Inline_Always (F3);
-
-   function F4 (B, C, D : in Unsigned_32) return Unsigned_32;
-   pragma Inline_Always (F4);
+   use Interfaces;
 
    Padding : constant String
      (1 .. 64) := (1 => Character'Val (16#80#), 2 .. 64 => ASCII.NUL);
 
-   --  ------------------------------
-   --  Process the message block collected in the context.
-   --  ------------------------------
-   procedure Compute (Ctx : in out Context) is
+   function F1
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32;
+   --  TODO: write comment
+
+   function F2
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32;
+   --  TODO: write comment
+
+   function F3
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32;
+   --  TODO: write comment
+
+   function F4
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32;
+   --  TODO: write comment
+
+   function To_Unsigned_32
+     (C3, C2, C1, C0 : in Character)
+      return Unsigned_32;
+   --  TODO: write comment
+
+   ---------------
+   --  Compute  --
+   ---------------
+
+   procedure Compute
+     (Ctx : in out Context)
+   is
       W : W_Array renames Ctx.W;
       H : H_Array renames Ctx.H;
 
@@ -111,33 +139,64 @@ package body AWS.OpenID.Encoders.SHA1 is
       H (4) := H (4) + E;
    end Compute;
 
-   function F1 (B, C, D : in Unsigned_32) return Unsigned_32 is
+   ----------
+   --  F1  --
+   ----------
+
+   function F1
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32
+   is
    begin
       return (B and C) or ((not B) and D);
    end F1;
 
-   function F2 (B, C, D : in Unsigned_32) return Unsigned_32 is
+   ----------
+   --  F2  --
+   ----------
+
+   function F2
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32
+   is
    begin
       return B xor C xor D;
    end F2;
 
-   function F3 (B, C, D : in Unsigned_32) return Unsigned_32 is
+   ----------
+   --  F3  --
+   ----------
+
+   function F3
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32
+   is
    begin
       return (B and C) or (B and D) or (C and D);
    end F3;
 
-   function F4 (B, C, D : in Unsigned_32) return Unsigned_32 is
+   ----------
+   --  F4  --
+   ----------
+
+   function F4
+     (B, C, D : in Unsigned_32)
+      return Unsigned_32
+   is
    begin
       return B xor C xor D;
    end F4;
 
-   --  ------------------------------
-   --  Computes the SHA1 hash and returns the raw binary hash in <b>Hash</b>.
-   --  ------------------------------
-   procedure Finish (E    : in out Context;
-                     Hash : out Hash_Array) is
-      N : constant Natural     := E.Pos * 4 + E.Pending_Pos + 1 + 8;
+   --------------
+   --  Finish  --
+   --------------
+
+   procedure Finish
+     (E    : in out Context;
+      Hash :    out Hash_Array)
+   is
       C : constant Unsigned_64 := E.Count * 8;
+      N : constant Natural := E.Pos * 4 + E.Pending_Pos + 1 + 8;
    begin
       --  Pad to 512-bit block with 0x80 and 64-bit bit count at the end.
       if N <= 64 then
@@ -199,49 +258,56 @@ package body AWS.OpenID.Encoders.SHA1 is
       E.Initialize;
    end Finish;
 
-   --  ------------------------------
-   --  Computes the SHA1 hash and returns the hexadecimal hash in <b>Hash</b>.
-   --  ------------------------------
-   procedure Finish (E    : in out Context;
-                     Hash : out Digest) is
+   --------------
+   --  Finish  --
+   --------------
+
+   procedure Finish
+     (E    : in out Context;
+      Hash :    out Digest)
+   is
       Buf : Ada.Streams.Stream_Element_Array (1 .. Hash'Length);
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      H       : Hash_Array;
       B       : AWS.OpenID.Encoders.Base16.Encoder;
-      Last    : Ada.Streams.Stream_Element_Offset;
       Encoded : Ada.Streams.Stream_Element_Offset;
-
+      H       : Hash_Array;
+      Last    : Ada.Streams.Stream_Element_Offset;
    begin
       Finish (E, H);
       B.Transform (Data => H, Into => Buf, Last => Last, Encoded => Encoded);
    end Finish;
 
-   --  ------------------------------
-   --  Computes the SHA1 hash and returns the base64 hash in <b>Hash</b>.
-   --  ------------------------------
-   procedure Finish_Base64 (E    : in out Context;
-                            Hash : out Base64_Digest) is
+   --------------
+   --  Finish  --
+   --------------
+
+   procedure Finish_Base64
+     (E    : in out Context;
+      Hash :    out Base64_Digest)
+   is
       Buf : Ada.Streams.Stream_Element_Array (1 .. Hash'Length);
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      H       : Hash_Array;
       B       : AWS.OpenID.Encoders.Base64.Encoder;
-      Last    : Ada.Streams.Stream_Element_Offset;
       Encoded : Ada.Streams.Stream_Element_Offset;
-
+      H       : Hash_Array;
+      Last    : Ada.Streams.Stream_Element_Offset;
    begin
       Finish (E, H);
       B.Transform (Data => H, Into => Buf, Last => Last, Encoded => Encoded);
    end Finish_Base64;
 
-   --  ------------------------------
-   --  Initialize the SHA-1 context.
-   --  ------------------------------
+   ------------------
+   --  Initialize  --
+   ------------------
+
    overriding
-   procedure Initialize (E : in out Context) is
+   procedure Initialize
+     (E : in out Context)
+   is
    begin
       E.Count := 0;
       E.Pending_Pos := 0;
@@ -253,74 +319,71 @@ package body AWS.OpenID.Encoders.SHA1 is
       E.H (4) := 16#C3D2E1F0#;
    end Initialize;
 
-   function To_Unsigned_32 (C3, C2, C1, C0 : in Character) return Unsigned_32;
-   pragma Inline_Always (To_Unsigned_32);
+   ----------------------
+   --  To_Unsigned_32  --
+   ----------------------
 
    function To_Unsigned_32
      (C3, C2, C1, C0 : in Character)
       return Unsigned_32
    is
    begin
-      return
-        (Character'Pos (C3)
-                     or Shift_Left (Unsigned_32 (Character'Pos (C2)), 8)
-                     or Shift_Left (Unsigned_32 (Character'Pos (C1)), 16)
-                     or Shift_Left (Unsigned_32 (Character'Pos (C0)), 24));
+      return (Character'Pos (C3)
+              or Shift_Left (Unsigned_32 (Character'Pos (C2)), 8)
+              or Shift_Left (Unsigned_32 (Character'Pos (C1)), 16)
+              or Shift_Left (Unsigned_32 (Character'Pos (C0)), 24));
    end To_Unsigned_32;
 
-   --  ------------------------------
-   --  Encodes the binary input stream represented by <b>Data</b> into
-   --  an SHA-1 hash output stream <b>Into</b>.
-   --
-   --  If the transformer does not have enough room to write the result,
-   --  it must return in <b>Encoded</b> the index of the last encoded
-   --  position in the <b>Data</b> stream.
-   --
-   --  The transformer returns in <b>Last</b> the last valid position
-   --  in the output stream <b>Into</b>.
-   --
-   --  The <b>Encoding_Error</b> exception is raised if the input
-   --  stream cannot be transformed.
-   --  ------------------------------
+   -----------------
+   --  Transform  --
+   -----------------
+
    overriding
-   procedure Transform (E       : in Encoder;
-                        Data    : in Ada.Streams.Stream_Element_Array;
-                        Into    : out Ada.Streams.Stream_Element_Array;
-                        Last    : out Ada.Streams.Stream_Element_Offset;
-                        Encoded : out Ada.Streams.Stream_Element_Offset) is
+   procedure Transform
+     (E       : in     Encoder;
+      Data    : in     Ada.Streams.Stream_Element_Array;
+      Into    :    out Ada.Streams.Stream_Element_Array;
+      Last    :    out Ada.Streams.Stream_Element_Offset;
+      Encoded :    out Ada.Streams.Stream_Element_Offset)
+   is
       pragma Unreferenced (E);
 
+      Hash        : Ada.Streams.Stream_Element_Array (0 .. 19);
       Hex_Encoder : AWS.OpenID.Encoders.Base16.Encoder;
       Sha_Encoder : Context;
-      Hash        : Ada.Streams.Stream_Element_Array (0 .. 19);
    begin
       Update (Sha_Encoder, Data);
       Finish (Sha_Encoder, Hash);
-      Hex_Encoder.Transform (Data => Hash,
-                             Into => Into,
-                             Last => Last,
+      Hex_Encoder.Transform (Data    => Hash,
+                             Into    => Into,
+                             Last    => Last,
                              Encoded => Encoded);
       Encoded := Data'Last;
    end Transform;
 
-   --  ------------------------------
-   --  Update the hash with the string.
-   --  ------------------------------
-   procedure Update (E : in out Context;
-                     S : in Ada.Streams.Stream_Element_Array) is
+   --------------
+   --  Update  --
+   --------------
+
+   procedure Update
+     (E : in out Context;
+      S : in     Ada.Streams.Stream_Element_Array)
+   is
       Buf : String (1 .. S'Length);
       for Buf'Address use S'Address;
       pragma Import (Ada, Buf);
-
    begin
       E.Update (Buf);
    end Update;
 
-   --  ------------------------------
-   --  Update the hash with the string.
-   --  ------------------------------
-   procedure Update (E : in out Context;
-                     S : in String) is
+   --------------
+   --  Update  --
+   --------------
+
+   procedure Update
+     (E : in out Context;
+      S : in String)
+   is
       I : Natural := S'First;
       N : Natural := E.Pos;
    begin

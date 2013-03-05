@@ -34,14 +34,16 @@ package body Authentication_Database is
       Response : in out AWS.Response.Data)
    is
       pragma Unreferenced (Response);
+
+      use Ada.Exceptions;
+      use AWS.OpenID;
    begin
       AWS.Session.Remove (SID => AWS.Status.Session (Request),
                           Key => Session_Key);
    exception
       when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database.Delete: " &
-              Ada.Exceptions.Exception_Name (E));
+         Log.Error ("Exception in Authentication_Database.Delete: " &
+                      Exception_Name (E));
          raise;
    end Delete_Identity;
 
@@ -53,6 +55,8 @@ package body Authentication_Database is
      (Request : in AWS.Status.Data)
       return String
    is
+      use Ada.Exceptions;
+      use AWS.OpenID;
    begin
       if AWS.Session.Exist (SID => AWS.Status.Session (Request),
                             Key => Session_Key)
@@ -66,9 +70,8 @@ package body Authentication_Database is
       when Not_Authenticated =>
          raise;
       when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database.Identity: " &
-              Ada.Exceptions.Exception_Name (E));
+         Log.Error ("Exception in Authentication_Database.Identity: " &
+                      Exception_Name (E));
          raise;
    end Identity;
 
@@ -80,16 +83,17 @@ package body Authentication_Database is
      (Request : in AWS.Status.Data)
       return Boolean
    is
+      use Ada.Exceptions;
+      use AWS.OpenID;
    begin
       return AWS.Session.Exist (SID => AWS.Status.Session (Request),
                                 Key => Session_Key);
    exception
       when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database." &
-              "Is_Authenticated: " &
-              Ada.Exceptions.Exception_Name (E) & " (" &
-              Ada.Exceptions.Exception_Information (E) & ")");
+         Log.Error ("Exception in Authentication_Database." &
+                      "Is_Authenticated: " &
+                      Exception_Name (E) & " (" &
+                      Exception_Information (E) & ")");
          raise;
    end Is_Authenticated;
 
@@ -97,7 +101,9 @@ package body Authentication_Database is
    --  Load  --
    ------------
 
-   procedure Load (File_Name : in String) renames AWS.Session.Load;
+   procedure Load
+     (File_Name : in String)
+      renames AWS.Session.Load;
 
    -------------------------
    --  Register_Identity  --
@@ -110,6 +116,8 @@ package body Authentication_Database is
    is
       pragma Unreferenced (Response);
 
+      use Ada.Exceptions;
+      use AWS.OpenID;
       use type AWS.Session.Id;
 
       ID : constant AWS.Session.Id := AWS.Status.Session (Request);
@@ -123,11 +131,10 @@ package body Authentication_Database is
       when Not_Authenticated =>
          raise;
       when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "Exception in Authentication_Database." &
-                       "Register_Identity: " &
-                       Ada.Exceptions.Exception_Name (E) & " (" &
-                       Ada.Exceptions.Exception_Information (E) & ")");
+         Log.Error ("Exception in Authentication_Database." &
+                      "Register_Identity: " &
+                      Exception_Name (E) & " (" &
+                      Exception_Information (E) & ")");
          raise;
    end Register_Identity;
 
@@ -135,6 +142,8 @@ package body Authentication_Database is
    --  Save  --
    ------------
 
-   procedure Save (File_Name : in String) renames AWS.Session.Save;
+   procedure Save
+     (File_Name : in String)
+      renames AWS.Session.Save;
 
 end Authentication_Database;

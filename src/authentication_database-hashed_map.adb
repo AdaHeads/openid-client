@@ -22,6 +22,7 @@ with Ada.Numerics.Discrete_Random;
 with Ada.Strings.Fixed.Hash;
 
 with AWS.Cookie;
+
 with AWS.OpenID.Log;
 
 package body Authentication_Database is
@@ -64,6 +65,7 @@ package body Authentication_Database is
       Authentications : Maps.Map := Maps.Empty_Map;
       Token_Generator : Random_Characters.Generator;
    end Database;
+   --  TODO: Write comment
 
    protected body Database is
 
@@ -98,9 +100,8 @@ package body Authentication_Database is
       is
          use AWS.OpenID;
       begin
-         Log.Info
-           (Message => "Looking up if <" & Token &
-              "> exists in the authentication database.");
+         Log.Info ("Looking up if <" & Token &
+                     "> exists in the authentication database.");
 
          return Authentications.Contains (Token);
       end Has;
@@ -115,9 +116,8 @@ package body Authentication_Database is
       is
          use AWS.OpenID;
       begin
-         Log.Info
-           (Message => "Looking <" & Token &
-              "> up in the authentication database.");
+         Log.Info ("Looking <" & Token &
+                     "> up in the authentication database.");
 
          return Authentications.Element (Token);
       exception
@@ -156,8 +156,8 @@ package body Authentication_Database is
                loop
                   Token (Index) := Random_Characters.Random (Token_Generator);
 
-                  exit when
-                    Is_Letter (Token (Index)) or Is_Digit (Token (Index));
+                  exit when Is_Letter (Token (Index)) or
+                    Is_Digit (Token (Index));
                end loop;
             end loop;
          end Generate_Random;
@@ -167,24 +167,20 @@ package body Authentication_Database is
             Generate_Random (Token);
 
             if not Authentications.Contains (Token) then
-               Authentications.Insert (Key      => Token,
-                                       New_Item => Identity);
+               Authentications.Insert (Token, Identity);
 
                exit Search_For_Unused_Token;
             end if;
          end loop Search_For_Unused_Token;
       exception
          when others =>
-            Log.Error
-              (Message => "Failed to insert <" & Identity & "> into the " &
-                 "authentication database with the token <" &
-                 Token & ">.");
-            Log.Error
-              (Message => "Current database capacity: " &
-                 Authentications.Capacity'Img);
-            Log.Error
-              (Message => "Hash value: " &
-                 Ada.Strings.Fixed.Hash (Token)'Img);
+            Log.Error ("Failed to insert <" & Identity & "> into the " &
+                         "authentication database with the token <" &
+                         Token & ">.");
+            Log.Error ("Current database capacity: " &
+                         Authentications.Capacity'Img);
+            Log.Error ("Hash value: " &
+                         Ada.Strings.Fixed.Hash (Token)'Img);
 
             raise;
       end Insert;
@@ -199,6 +195,7 @@ package body Authentication_Database is
      (Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data)
    is
+      use Ada.Exceptions;
       use AWS.OpenID;
 
       Token : Authentication_Token;
@@ -212,9 +209,8 @@ package body Authentication_Database is
                          Key     => Token_Cookie_Name);
    exception
       when E : others =>
-         Log.Error
-           (Message => "Exception in Authentication_Database.Delete: " &
-              Ada.Exceptions.Exception_Name (E));
+         Log.Error ("Exception in Authentication_Database.Delete: " &
+                      Exception_Name (E));
          raise;
    end Delete_Identity;
 
@@ -226,6 +222,7 @@ package body Authentication_Database is
      (Request : in AWS.Status.Data)
       return String
    is
+      use Ada.Exceptions;
       use AWS.OpenID;
    begin
       return Database.Identity (AWS.Cookie.Get (Request, Token_Cookie_Name));
@@ -233,9 +230,8 @@ package body Authentication_Database is
       when Not_Authenticated | Constraint_Error =>
          raise;
       when E : others =>
-         Log.Error
-           (Message => "Exception in Authentication_Database.Identity: " &
-              Ada.Exceptions.Exception_Name (E));
+         Log.Error ("Exception in Authentication_Database.Identity: " &
+                      Exception_Name (E));
          raise;
    end Identity;
 
@@ -247,6 +243,7 @@ package body Authentication_Database is
      (Request  : in AWS.Status.Data)
       return Boolean
    is
+      use Ada.Exceptions;
       use AWS.OpenID;
    begin
       return Database.Has (AWS.Cookie.Get (Request, Token_Cookie_Name));
@@ -254,11 +251,10 @@ package body Authentication_Database is
       when Constraint_Error =>
          return False;
       when E : others =>
-         Log.Error
-           (Message => "Exception in Authentication_Database." &
-              "Is_Authenticated: " &
-              Ada.Exceptions.Exception_Name (E) & " (" &
-              Ada.Exceptions.Exception_Information (E) & ")");
+         Log.Error ("Exception in Authentication_Database." &
+                      "Is_Authenticated: " &
+                      Exception_Name (E) & " (" &
+                      Exception_Information (E) & ")");
          raise;
    end Is_Authenticated;
 
@@ -284,6 +280,7 @@ package body Authentication_Database is
    is
       pragma Unreferenced (Request);
 
+      use Ada.Exceptions;
       use AWS.OpenID;
 
       Token : Authentication_Token;
@@ -302,11 +299,10 @@ package body Authentication_Database is
       when Not_Authenticated =>
          raise;
       when E : others =>
-         Log.Error
-           (Message => "Exception in Authentication_Database." &
-              "Register_Identity: " &
-              Ada.Exceptions.Exception_Name (E) & " (" &
-              Ada.Exceptions.Exception_Information (E) & ")");
+         Log.Error ("Exception in Authentication_Database." &
+                      "Register_Identity: " &
+                      Exception_Name (E) & " (" &
+                      Exception_Information (E) & ")");
          raise;
    end Register_Identity;
 

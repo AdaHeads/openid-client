@@ -1,19 +1,32 @@
 -------------------------------------------------------------------------------
---                                                                           --
---                      Copyright (C) 2012-, AdaHeads K/S                    --
---                                                                           --
---  This is free software;  you can redistribute it and/or modify it         --
---  under terms of the  GNU General Public License  as published by the      --
---  Free Software  Foundation;  either version 3,  or (at your  option) any  --
---  later version. This library is distributed in the hope that it will be   --
---  useful, but WITHOUT ANY WARRANTY;  without even the implied warranty of  --
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                     --
---  You should have received a copy of the GNU General Public License and    --
---  a copy of the GCC Runtime Library Exception along with this program;     --
---  see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
---  <http://www.gnu.org/licenses/>.                                          --
---                                                                           --
--------------------------------------------------------------------------------
+--  The contents of this file originates from the Stephane Carrez project
+--  Ada Server Faces (security-openid).
+--
+--  The contents has been altered by AdaHeads K/S. The changes are primarily
+--  stylistic plus removal of code that isn't directly used to complete an
+--  OpenID authentication process. Changes to the actual code (logic) are not
+--  marked specifically. AdaHeads K/S does NOT claim copyright on this file.
+--
+--  The header from the original file is included here for copyright and
+--  license information:
+--
+--  -----------------------------------------------------------------------
+--  --  security-openid -- Open ID 2.0 Support
+--  --  Copyright (C) 2009, 2010, 2011 Stephane Carrez
+--  --  Written by Stephane Carrez (Stephane.Carrez@gmail.com)
+--  --
+--  --  Licensed under the Apache License, Version 2.0 (the "License");
+--  --  you may not use this file except in compliance with the License.
+--  --  You may obtain a copy of the License at
+--  --
+--  --      http://www.apache.org/licenses/LICENSE-2.0
+--  --
+--  --  Unless required by applicable law or agreed to in writing, software
+--  --  distributed under the License is distributed on an "AS IS" BASIS,
+--  --  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--  --  See the License for the specific language governing permissions and
+--  --  limitations under the License.
+--  -----------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
 
@@ -487,9 +500,6 @@ package body AWS.OpenID.Security is
    --  Verify  --
    --------------
 
-   --  ------------------------------
-   --  Verify the authentication result
-   --  ------------------------------
    function Verify
      (Realm   : in Manager;
       Assoc   : in Association;

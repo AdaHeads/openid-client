@@ -17,14 +17,11 @@
 
 with Ada.Strings.Unbounded;
 
-with AWS.OpenID.Error_Messages;
-
 with Association_Database;
 with Authentication_Database;
 
+with AWS.OpenID.Error_Messages;
 private with AWS.OpenID.Security;
-
-pragma Elaborate (AWS.OpenID.Security);
 
 package body AWS.OpenID.Manual_Dispatching is
 
@@ -99,7 +96,7 @@ package body AWS.OpenID.Manual_Dispatching is
          if AWS.OpenID.Security.Authenticated (Authentication) then
             return Result : AWS.Response.Data do
                Result :=
-                 AWS.Response.URL ("https://" & Host_Name & Logged_In.URI);
+                 AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
 
                Authentication_Database.Register_Identity
                  (Source   => Authentication,
@@ -126,7 +123,7 @@ package body AWS.OpenID.Manual_Dispatching is
          Response : AWS.Response.Data;
       begin
          Response :=
-           AWS.Response.URL ("https://" & Host_Name & Logged_Out.URI);
+           AWS.Response.URL (Protocol & Host_Name & Logged_Out.URI);
 
          Authentication_Database.Delete_Identity (Request  => Request,
                                                   Response => Response);
@@ -162,7 +159,7 @@ package body AWS.OpenID.Manual_Dispatching is
 begin
 
    AWS.OpenID.Security.Initialize (Realm     => Realm,
-                                   Domain    => "https://" & Host_Name & "/",
+                                   Domain    => Protocol & Host_Name & "/",
                                    Return_To => Return_To_Page);
 
 end AWS.OpenID.Manual_Dispatching;
