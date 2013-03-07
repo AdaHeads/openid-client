@@ -159,7 +159,7 @@ package body AWS.OpenID.Manual_Dispatching is
 begin
 
    AWS.OpenID.Security.Initialize (Realm     => Realm,
-                                   Domain    => Protocol & Host_Name & "/",
+                                   Domain    => Protocol & Host_Name,
                                    Return_To => Return_To_Page);
 
 end AWS.OpenID.Manual_Dispatching;
