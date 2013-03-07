@@ -23,8 +23,8 @@ with AWS.OpenID.Log;
 with AWS.OpenID.State;
 with AWS.Server;
 with AWS.Server.Log;
-with AWS.Server.Status;
 
+with Configuration;
 with Logger;
 with OpenID_Handler;
 
@@ -57,7 +57,7 @@ begin
                          Split_Mode      => AWS.Log.Daily);
 
    Ada.Text_IO.Put_Line ("Please visit <" &
-                         AWS.Server.Status.Local_URL (Web_Server) & ">.");
+                         Configuration.Host_Name & ">.");
 
    AWS.Server.Wait (AWS.Server.Q_Key_Pressed);
 
