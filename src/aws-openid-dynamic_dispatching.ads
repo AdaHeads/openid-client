@@ -23,10 +23,11 @@ with AWS.OpenID.Manual_Dispatching;
 generic
 
    Host_Name       : String;
-   Log_In_Page     : String := "login";
-   Logged_In_Page  : String := "logged_in";
-   Logged_Out_Page : String := "logged_out";
-   Return_To_Page  : String := "return_to";
+   Log_In_Page     : String := "/login";
+   Logged_In_Page  : String := "/logged_in";
+   Log_Out_Page    : String := "/log_out";
+   Logged_Out_Page : String := "/logged_out";
+   Return_To_Page  : String := "/return_to";
    Protocol        : String := "https://";
    --  Protocol is prefixed to Host_Name to build the full URL.
 
@@ -36,6 +37,7 @@ package AWS.OpenID.Dynamic_Dispatching is
      (Host_Name       => Host_Name,
       Log_In_Page     => Log_In_Page,
       Logged_In_Page  => Logged_In_Page,
+      Log_Out_Page    => Log_Out_Page,
       Logged_Out_Page => Logged_Out_Page,
       Return_To_Page  => Return_To_Page,
       Protocol        => Protocol);

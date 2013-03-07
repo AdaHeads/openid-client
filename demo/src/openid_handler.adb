@@ -15,9 +15,11 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+with AWS.Status;
+with AWS.Dispatchers.Callback;
+with AWS.Messages;
+with AWS.MIME;
 
-with AWS.OpenID.Log;
 with AWS.OpenID.Manual_Dispatching;
 
 with Configuration;
@@ -25,56 +27,102 @@ with Configuration;
 package body OpenID_Handler is
 
    package OpenID is new AWS.OpenID.Manual_Dispatching
-     (Host_Name       => Configuration.Host_Name,
-      Logged_Out_Page => "");
+     (Host_Name => Configuration.Host_Name);
 
-   ---------------
-   --  Service  --
-   ---------------
-
-   function Service
+   function Error
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
+   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                          Filename     => "error.html",
+                          Status_Code  => AWS.Messages.S500));
+
+   function Index
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                          Filename     => "index.html"));
+
+   function Logged_In
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                          Filename     => "logged_in.html"));
+
+   function Logged_Out
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                          Filename     => "logged_out.html"));
+
+   function Not_Authenticated
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                          Filename     => "not_authenticated.html"));
+
+   function Style_CSS
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                          Filename     => "style.css"));
+
+   ----------------------
+   --  Get_Dispatcher  --
+   ----------------------
+
+   function Get_Dispatcher
+     return AWS.Services.Dispatchers.URI.Handler
    is
    begin
-      AWS.OpenID.Log.Info
-        (Message => "Request URI: <" & AWS.Status.URI (Request) & ">");
+      return D : AWS.Services.Dispatchers.URI.Handler do
+         D.Register_Default_Callback
+           (AWS.Dispatchers.Callback.Create (Not_Authenticated'Access));
 
-      if AWS.Status.URI (Request) = OpenID.Log_In.URI then
-         return OpenID.Log_In.Service (Request);
-      elsif AWS.Status.URI (Request) = OpenID.Validate.URI then
-         return OpenID.Validate.Service (Request);
-      elsif AWS.Status.URI (Request) = OpenID.Log_Out.URI then
-         return OpenID.Log_Out.Service (Request);
-      elsif AWS.Status.URI (Request) = "/error" then
-         return AWS.Response.File (Content_Type  => "text/html",
-                                   Filename      => "error.html");
-      elsif AWS.Status.URI (Request) = "/style" then
-         return AWS.Response.File (Content_Type  => "text/css",
-                                   Filename      => "style.css");
-      elsif AWS.Status.URI (Request) = "/favicon.ico" then
-         AWS.OpenID.Log.Info
-           (Message => "Redirecting to <http://www.jacob-sparre.dk/icon>");
+         D.Register (URI => "/", Action => Index'Access);
+         D.Register (URI => "/index", Action => Index'Access);
+         D.Register (URI => "/index.html", Action => Index'Access);
 
-         return AWS.Response.Moved ("http://www.jacob-sparre.dk/icon");
-      elsif OpenID.Is_Authenticated (Request) then
-         return AWS.Response.URL ("http://www.jacob-sparre.dk/?" &
-                                    OpenID.Authenticated_As (Request));
-      elsif AWS.Status.URI (Request) = OpenID.Logged_Out.URI then
-         return AWS.Response.File (Content_Type  => "text/html",
-                                   Filename      => "index.html");
-      else
-         return AWS.Response.File (Content_Type  => "text/html",
-                                   Filename      => "not_authenticated.html");
-      end if;
-   exception
-      when E : others =>
-         AWS.OpenID.Log.Error
-           (Message => "OpenID demo failed at URI <" &
-              AWS.Status.URI (Request) & "> with exception " &
-              Ada.Exceptions.Exception_Name (E) & ": " &
-              Ada.Exceptions.Exception_Message (E));
-         raise;
-   end Service;
+         D.Register (URI    => OpenID.Log_In.URI,
+                     Action => OpenID.Log_In.Callback);
+
+         D.Register (URI    => OpenID.Validate.URI,
+                     Action => OpenID.Validate.Callback);
+
+         D.Register (URI    => OpenID.Log_Out.URI,
+                     Action => OpenID.Log_Out.Callback);
+
+         D.Register (URI    => OpenID.Logged_In.URI,
+                     Action => Logged_In'Access);
+
+         D.Register (URI    => OpenID.Logged_Out.URI,
+                     Action => Logged_Out'Access);
+
+         D.Register (URI    => "/error",
+                     Action => Error'Access);
+         --  TODO: What is this for? I can't find any references to any /error
+         --  interface anywhere.
+
+         D.Register (URI    => "/style.css",
+                     Action => Style_CSS'Access);
+      end return;
+      --  return D;
+   end Get_Dispatcher;
+
+   --------------
+   --  Whoops  --
+   --------------
+
+   procedure Whoops
+     (E      : in     Ada.Exceptions.Exception_Occurrence;
+      Log    : in out AWS.Log.Object;
+      Error  : in     AWS.Exceptions.Data;
+      Answer : in out AWS.Response.Data)
+   is
+      pragma Unreferenced (E, Log, Error);
+   begin
+      Answer := AWS.Response.File (Content_Type  => "text/html",
+                                   Filename      => "error.html",
+                                   Status_Code   => AWS.Messages.S500);
+   end Whoops;
 
 end OpenID_Handler;

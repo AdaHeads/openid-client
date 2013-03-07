@@ -22,11 +22,11 @@ with AWS.Status;
 generic
 
    Host_Name       : String;
-   Log_In_Page     : String := "log_in";
-   Logged_In_Page  : String := "logged_in";
-   Log_Out_Page    : String := "log_out";
-   Logged_Out_Page : String := "logged_out";
-   Return_To_Page  : String := "return_to";
+   Log_In_Page     : String := "/log_in";
+   Logged_In_Page  : String := "/logged_in";
+   Log_Out_Page    : String := "/log_out";
+   Logged_Out_Page : String := "/logged_out";
+   Return_To_Page  : String := "/return_to";
    Protocol        : String := "https://";
    --  Protocol is prefixed to Host_Name to build the full URL.
 
@@ -37,7 +37,7 @@ package AWS.OpenID.Manual_Dispatching is
    Provider_Parameter_Name : constant String := "openid";
 
    package Log_In is
-      URI : constant String := "/" & Log_In_Page;
+      URI : constant String := Log_In_Page;
 
       function Service
         (Request : in AWS.Status.Data)
@@ -49,7 +49,7 @@ package AWS.OpenID.Manual_Dispatching is
    end Log_In;
 
    package Validate is
-      URI : constant String := "/" & Return_To_Page;
+      URI : constant String := Return_To_Page;
 
       function Service
         (Request : in AWS.Status.Data)
@@ -61,11 +61,11 @@ package AWS.OpenID.Manual_Dispatching is
    end Validate;
 
    package Logged_In is
-      URI : constant String := "/" & Logged_In_Page;
+      URI : constant String := Logged_In_Page;
    end Logged_In;
 
    package Log_Out is
-      URI : constant String := "/" & Log_Out_Page;
+      URI : constant String := Log_Out_Page;
 
       function Service
         (Request : in AWS.Status.Data)
@@ -77,7 +77,7 @@ package AWS.OpenID.Manual_Dispatching is
    end Log_Out;
 
    package Logged_Out is
-      URI : constant String := "/" & Logged_Out_Page;
+      URI : constant String := Logged_Out_Page;
    end Logged_Out;
 
    function Authenticated_As

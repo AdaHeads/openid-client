@@ -15,14 +15,23 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
+with AWS.Exceptions;
+with AWS.Log;
 with AWS.Response;
-with AWS.Status;
+with AWS.Services.Dispatchers.URI;
 
 package OpenID_Handler is
 
-   function Service
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data;
-   --  TODO: write comment
+   function Get_Dispatcher
+     return AWS.Services.Dispatchers.URI.Handler;
+
+   procedure Whoops
+     (E      : in     Ada.Exceptions.Exception_Occurrence;
+      Log    : in out AWS.Log.Object;
+      Error  : in     AWS.Exceptions.Data;
+      Answer : in out AWS.Response.Data);
+   --  Take care of unhandled exceptions.
 
 end OpenID_Handler;

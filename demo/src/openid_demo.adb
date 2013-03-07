@@ -17,14 +17,13 @@
 
 with Ada.Text_IO;
 
+with AWS.Config;
 with AWS.Log;
-with AWS.Net.SSL;
 with AWS.OpenID.Log;
 with AWS.OpenID.State;
 with AWS.Server;
 with AWS.Server.Log;
 with AWS.Server.Status;
-with AWS.URL;
 
 with Logger;
 with OpenID_Handler;
@@ -42,28 +41,17 @@ begin
    Ada.Text_IO.Put_Line ("AWS " & AWS.Version);
    Ada.Text_IO.Put_Line ("Enter 'q' key to exit...");
 
-   if AWS.Net.SSL.Is_Supported then
-      AWS.Server.Start
-        (Web_Server     => Web_Server,
-         Name           => "OpenID_Demo",
-         Max_Connection => 10,
-         Port           => AWS.URL.Default_HTTPS_Port,
-         Security       => True,
-         Session        => True,
-         Callback       => OpenID_Handler.Service'Access);
-   else
-      AWS.Server.Start
-        (Web_Server     => Web_Server,
-         Name           => "OpenID_Demo",
-         Max_Connection => 10,
-         Port           => 8080,
-         Security       => False,
-         Session        => True,
-         Callback       => OpenID_Handler.Service'Access);
-   end if;
+   AWS.Server.Set_Unexpected_Exception_Handler
+     (Web_Server => Web_Server,
+      Handler    => OpenID_Handler.Whoops'Access);
+
+   AWS.Server.Start (Web_Server => Web_Server,
+                     Dispatcher => OpenID_Handler.Get_Dispatcher,
+                     Config     => AWS.Config.Get_Current);
 
    AWS.OpenID.State.Load (File_Name           => "openid_demo.state",
                           Suppress_Exceptions => True);
+
    AWS.Server.Log.Start (Web_Server      => Web_Server,
                          Filename_Prefix => "openid_demo",
                          Split_Mode      => AWS.Log.Daily);
@@ -72,7 +60,9 @@ begin
                          AWS.Server.Status.Local_URL (Web_Server) & ">.");
 
    AWS.Server.Wait (AWS.Server.Q_Key_Pressed);
+
    AWS.OpenID.State.Save (File_Name => "openid_demo.state");
+
    AWS.Server.Shutdown (Web_Server);
 
    Logger.Close;
