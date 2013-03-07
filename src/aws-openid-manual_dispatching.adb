@@ -101,13 +101,13 @@ package body AWS.OpenID.Manual_Dispatching is
             Put_Line ("5");
             return Result : AWS.Response.Data do
                Put_Line ("6");
-               Result :=
-                 AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
-               Put_Line ("7");
                Authentication_Database.Register_Identity
                  (Source   => Authentication,
                   Request  => Request,
                   Response => Result);
+               Put_Line ("7");
+               Result :=
+                 AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
                Put_Line ("8");
             end return;
          else

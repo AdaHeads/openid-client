@@ -14,7 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO; use Ada.Text_IO;
+
 with Ada.Exceptions;
 
 with AWS.Session;
@@ -122,26 +122,19 @@ package body Authentication_Database is
 
       ID : constant AWS.Session.Id := AWS.Status.Session (Request);
    begin
-      Put_Line ("register 1");
       if ID /= AWS.Session.No_Session then
-         Put_Line ("register 2");
          AWS.Session.Set (SID   => ID,
                           Key   => Session_Key,
                           Value => AWS.OpenID.Security.Identity (Source));
-         Put_Line ("register 3");
       end if;
-      Put_Line ("register 4");
    exception
       when Not_Authenticated =>
-         Put_Line ("register 5");
          raise;
       when E : others =>
-         Put_Line ("register 6");
          Log.Error ("Exception in Authentication_Database." &
                       "Register_Identity: " &
                       Exception_Name (E) & " (" &
                       Exception_Information (E) & ")");
-         Put_Line ("register 7");
          raise;
    end Register_Identity;
 
