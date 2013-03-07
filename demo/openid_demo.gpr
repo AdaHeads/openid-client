@@ -1,21 +1,17 @@
---  O mighty Emacs, please use -*- Ada -*- mode in this lowly file.
-
 with "aws";
-with "xmlada";
+with "openid_client";
 
-project OpenID is
-   type Authentication_Database_Type is ("session_cookies", "hashed_map");
-   Authentication_Database : Authentication_Database_Type :=
-     External ("AUTHENTICATION_DATABASE_IMPLEMENTATION", "session_cookies");
+project OpenID_Demo is
 
    type Build_Type is ("Debug", "Production");
    Build : Build_Type := External ("BUILDTYPE", "Production");
 
-   for Source_Dirs use ("src", "generated", "demo");
+   Source_Options := ("src", "generated");
+   for Source_Dirs use Source_Options;
 
-   for Main use ("openid_demo");
+   for Main use ("openid_demo.adb");
 
-   for Exec_Dir use "demo";
+   for Exec_Dir use "exe";
 
    case Build is
       when "Production" =>
@@ -55,8 +51,4 @@ project OpenID is
       end case;
    end Compiler;
 
-   package Naming is
-      for Implementation ("Authentication_Database")
-        use "authentication_database-" & Authentication_Database & ".adb";
-   end Naming;
-end OpenID;
+end OpenID_Demo;

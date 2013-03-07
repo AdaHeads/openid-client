@@ -1,0 +1,11 @@
+with "aws";
+with "xmlada";
+
+project OpenID_Client is
+
+   for Source_Dirs use ("../../include/openid_client");
+   for Externally_Built use "True";
+   for Library_Dir use "../../openid_client";
+   for Library_Name use "openid_client";
+
+end OpenID_Client;

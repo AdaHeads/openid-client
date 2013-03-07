@@ -1,21 +1,25 @@
-# use glob syntax.
-syntax: glob
+# Do not track build objects.
+build*/*
+library/*
+!build*/.gitignore
+!library/.gitignore
 
-*.o
-*.ali
+# Do not track demo build objects.
+demo/build_debug/*
+demo/build_production/*
+!demo/build_debug/.gitignore
+!demo/build_production/.gitignore
+
+# Do not track the openid_demo executable, log and associations files in exe/
+demo/exe/openid_demo
+demo/exe/*.log
+demo/exe/openid_demo.state.associations
+demo/exe/openid_demo.state.authentications
+
+# Do not track the demo generated files
+demo/generated
+
+# Do not track emacs temporary and backup files
+\#*#
 *~
-b__*.ads
-b__*.adb
-b~*.ads
-b~*.adb
 
-build_debug
-build_production
-
-generated
-
-demo/openid_demo
-demo/openid_demo-201?-??-??.log
-demo/openid_demo.state.associations
-demo/openid_demo.state.authentications
-demo/aws-openid.log

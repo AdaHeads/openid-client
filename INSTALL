@@ -1,0 +1,16 @@
+Before trying to compile OpenID-Client, be sure to read the README and make sure that
+all the dependencies are met.
+
+Building and installing OpenID-Client is as simple as:
+
+    Edit makefile.setup to suit your needs
+    $ make
+    $ make install
+
+If you have a multicore system you can prepend make with PROCESSORS=n to speed
+things up.
+
+You can remove OpenID-Client from your system by doing:
+
+    $ make distclean
+

@@ -1,0 +1,3 @@
+# The directory where openid-client is installed.
+#   Note: Do not add the trailing slash.
+prefix=/usr/gnat
