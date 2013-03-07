@@ -13,7 +13,7 @@ debug:
 	BUILDTYPE=Debug gnatmake -j${PROCESSORS} -P openid_demo
 
 clean:
-	gnatclean -P yolk_demo
+	gnatclean -P openid_demo
 	BUILDTYPE=Debug gnatclean -P openid_demo
 	@rm -rf build_debug/configuration*
 	@rm -rf build_production/configuration.*
