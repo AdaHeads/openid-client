@@ -48,6 +48,8 @@ package Authentication_Database is
       Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data);
    --  TODO: write comment
+   --  TODO: Why do we have an in out AWS.Response.Data here? What is it used
+   --  for?
 
    procedure Save
      (File_Name : in String);

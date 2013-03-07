@@ -14,8 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Exceptions;
+
 with Ada.Strings.Unbounded;
 
 with Association_Database;
@@ -88,36 +87,23 @@ package body AWS.OpenID.Manual_Dispatching is
          Association    : AWS.OpenID.Security.Association;
          Authentication : AWS.OpenID.Security.Authentication;
       begin
-         Put_Line ("1");
          Handle := AWS.OpenID.Security.Handle (Response => Request);
-         Put_Line ("2");
          Association := Association_Database.Look_Up (Handle => Handle);
-         Put_Line ("3");
          Authentication := AWS.OpenID.Security.Verify (Realm   => Realm,
                                                        Assoc   => Association,
                                                        Request => Request);
-         Put_Line ("4");
 
          if AWS.OpenID.Security.Authenticated (Authentication) then
-            Put_Line ("5");
             return Result : AWS.Response.Data do
-               Put_Line ("6");
-               begin
-                  Authentication_Database.Register_Identity
-                    (Source   => Authentication,
-                     Request  => Request,
-                     Response => Result);
-               exception
-                  when E : others =>
-                     Put_Line (Ada.Exceptions.Exception_Information (E));
-               end;
-               Put_Line ("7");
                Result :=
                  AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
-               Put_Line ("8");
+
+               Authentication_Database.Register_Identity
+                 (Source   => Authentication,
+                  Request  => Request,
+                  Response => Result);
             end return;
          else
-            Put_Line ("9");
             return AWS.OpenID.Error_Messages.Authentication_Failed;
          end if;
       end Service;

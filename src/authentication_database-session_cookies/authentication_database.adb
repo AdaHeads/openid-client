@@ -129,6 +129,7 @@ package body Authentication_Database is
       end if;
    exception
       when Not_Authenticated =>
+         --  TODO: Why is this here? Where can it possibly be raised?
          raise;
       when E : others =>
          Log.Error ("Exception in Authentication_Database." &

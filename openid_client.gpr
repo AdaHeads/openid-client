@@ -1,5 +1,4 @@
 with "aws";
-with "xmlada";
 
 project OpenID_Client is
 

@@ -26,6 +26,7 @@ package OpenID_Handler is
 
    function Get_Dispatcher
      return AWS.Services.Dispatchers.URI.Handler;
+   --  Return the dispatcher for the web server.
 
    procedure Whoops
      (E      : in     Ada.Exceptions.Exception_Occurrence;
