@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 
 with Association_Database;
@@ -101,10 +102,15 @@ package body AWS.OpenID.Manual_Dispatching is
             Put_Line ("5");
             return Result : AWS.Response.Data do
                Put_Line ("6");
-               Authentication_Database.Register_Identity
-                 (Source   => Authentication,
-                  Request  => Request,
-                  Response => Result);
+               begin
+                  Authentication_Database.Register_Identity
+                    (Source   => Authentication,
+                     Request  => Request,
+                     Response => Result);
+               exception
+                  when E : others =>
+                     Put_Line (Ada.Exceptions.Exception_Information (E));
+               end;
                Put_Line ("7");
                Result :=
                  AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
