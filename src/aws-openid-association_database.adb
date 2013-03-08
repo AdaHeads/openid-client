@@ -23,7 +23,7 @@ with Ada.Strings.Unbounded.Hash;
 
 with AWS.OpenID.Log;
 
-package body Association_Database is
+package body AWS.OpenID.Association_Database is
 
    package Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => AWS.OpenID.Security.Association_Handle,
@@ -33,50 +33,36 @@ package body Association_Database is
       "="             => AWS.OpenID.Security."=");
 
    protected Database is
-      procedure Clean_Up;
-      --  TODO: write comment
-
       function Has
         (Handle : in AWS.OpenID.Security.Association_Handle)
          return Boolean;
-      --  TODO: write comment
+      --  Return True if Handle is in the associations database.
 
       procedure Insert
         (Item : in AWS.OpenID.Security.Association);
-      --  TODO: write comment
+      --  Insert Item into the associations database.
 
       procedure Load
         (File_Name : in String);
-      --  TODO: write comment
+      --  Load File_Name into the associations database.
 
       function Look_Up
         (Handle : in AWS.OpenID.Security.Association_Handle)
          return AWS.OpenID.Security.Association;
-      --  TODO: write comment
+      --  Reuturn the Handle association.
 
       procedure Save
         (File_Name : in String);
-      --  TODO: write comment
+      --  Save the association database to File_Name
    private
       Associations : Maps.Map := Maps.Empty_Map;
    end Database;
-   --  TODO: write comment
 
    ----------------
    --  Database  --
    ----------------
 
    protected body Database is
-
-      ----------------
-      --  Clean_Up  --
-      ----------------
-
-      procedure Clean_Up
-      is
-      begin
-         raise Program_Error;
-      end Clean_Up;
 
       -----------
       --  Has  --
@@ -209,24 +195,6 @@ package body Association_Database is
 
    end Database;
 
-   ----------------
-   --  Clean_Up  --
-   ----------------
-
-   procedure Clean_Up
-   is
-      use Ada.Exceptions;
-      use AWS.OpenID;
-   begin
-      Database.Clean_Up;
-   exception
-      when E : others =>
-         Log.Error ("Exception in Association_Database.Clean_Up: " &
-                      Exception_Name (E) & " (" &
-                      Exception_Information (E) & ")");
-         raise;
-   end Clean_Up;
-
    -----------
    --  Has  --
    -----------
@@ -306,4 +274,4 @@ package body Association_Database is
       Database.Save (File_Name);
    end Save;
 
-end Association_Database;
+end AWS.OpenID.Association_Database;

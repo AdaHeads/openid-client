@@ -34,7 +34,7 @@ with Ada.Streams;
 with Ada.Finalization;
 with Ada.Strings.Unbounded;
 
-package AWS.OpenID.Encoders is
+private package AWS.OpenID.Encoders is
 
    Encoding_Error : exception;
 

@@ -15,44 +15,30 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with AWS.Response;
-with AWS.Status;
-
 with AWS.OpenID.Security;
 
-package Authentication_Database is
+package AWS.OpenID.Association_Database is
 
-   Not_Authenticated : exception;
-
-   procedure Delete_Identity
-     (Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data);
-   --  TODO: write comment
-
-   function Identity
-     (Request : in AWS.Status.Data)
-      return String;
-   --  TODO: write comment
-
-   function Is_Authenticated
-     (Request  : in AWS.Status.Data)
+   function Has
+     (Handle : in AWS.OpenID.Security.Association_Handle)
       return Boolean;
-   --  TODO: write comment
+   --  Return True if Handle is in the associations database.
+
+   procedure Insert
+     (Item : in AWS.OpenID.Security.Association);
+   --  Insert Item into the associations database.
 
    procedure Load
      (File_Name : in String);
-   --  TODO: write comment
+   --  Load File_Name into the associations database.
 
-   procedure Register_Identity
-     (Source   : in     AWS.OpenID.Security.Authentication;
-      Request  : in     AWS.Status.Data;
-      Response : in out AWS.Response.Data);
-   --  TODO: write comment
-   --  TODO: Why do we have an in out AWS.Response.Data here? What is it used
-   --  for?
+   function Look_Up
+     (Handle : in AWS.OpenID.Security.Association_Handle)
+      return AWS.OpenID.Security.Association;
+   --  Reuturn the Handle association.
 
    procedure Save
      (File_Name : in String);
-   --  TODO: write comment
+   --  Save the association database to File_Name
 
-end Authentication_Database;
+end AWS.OpenID.Association_Database;

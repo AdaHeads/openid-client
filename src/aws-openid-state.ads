@@ -20,7 +20,7 @@ package AWS.OpenID.State is
    procedure Load
      (File_Name           : in String;
       Suppress_Exceptions : in Boolean := False);
-   --  TODO: write comment
+   --  Load the File_Name.[associations | authentications] files.
 
    procedure Save
      (File_Name : in String);

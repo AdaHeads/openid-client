@@ -16,6 +16,7 @@
 -------------------------------------------------------------------------------
 
 with AWS.Messages;
+with AWS.MIME;
 
 package body AWS.OpenID.Error_Messages is
 
@@ -24,13 +25,16 @@ package body AWS.OpenID.Error_Messages is
    -----------------------------
 
    function Authentication_Failed
+     (Request : in AWS.Status.Data)
      return AWS.Response.Data
    is
+      pragma Unreferenced (Request);
    begin
       return AWS.Response.Build
-        (Content_Type => "text/html; charset=iso-8859-1",
+        (Content_Type => AWS.MIME.Text_HTML,
          Status_Code  => AWS.Messages.S403,
-         Message_Body => "<html><head><title>Authentication failed" &
+         Message_Body =>
+           "<html><head><title>Authentication failed" &
            "</title></head><body></body><h1>" &
            "Authentication failed</h1><p>Your OpenID " &
            "provider failed to authenticate you " &
@@ -42,17 +46,21 @@ package body AWS.OpenID.Error_Messages is
    -------------------------
 
    function Invalid_End_Point
-     (URL : in String)
+     (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use AWS.Status;
+
+      Provider : constant String
+        := Parameters (Request).Get (Provider_Parameter_Name);
    begin
       return AWS.Response.Build
-        (Content_Type => "text/html; charset=iso-8859-1",
+        (Content_Type => AWS.MIME.Text_HTML,
          Status_Code  => AWS.Messages.S403,
          Message_Body =>
            "<html><head><title>Invalid end-point</title>" &
            "</head><body></body><h1>Invalid end-point" &
-           "</h1><p><q><code>" & URL & "</code></q> " &
+           "</h1><p><q><code>" & Provider & "</code></q> " &
            "does not refer to a valid end-point.</p>" &
            "</html>");
    end Invalid_End_Point;
@@ -62,16 +70,21 @@ package body AWS.OpenID.Error_Messages is
    -------------------
 
    function Invalid_URL
-     (URL : in String)
+     (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use AWS.Status;
+
+      Provider : constant String
+        := Parameters (Request).Get (Provider_Parameter_Name);
    begin
       return AWS.Response.Build
-        (Content_Type => "text/html; charset=iso-8859-1",
+        (Content_Type => AWS.MIME.Text_HTML,
          Status_Code  => AWS.Messages.S403,
-         Message_Body => "<html><head><title>Invalid URL</title>" &
+         Message_Body =>
+           "<html><head><title>Invalid URL</title>" &
            "</head><body></body><h1>Invalid URL</h1>" &
-           "<p><q><code>" & URL & "</code></q> is not " &
+           "<p><q><code>" & Provider & "</code></q> is not " &
            "a valid URL.</p></html>");
    end Invalid_URL;
 
@@ -80,18 +93,22 @@ package body AWS.OpenID.Error_Messages is
    -------------------------
 
    function Provider_Off_Line
-     (URL : in String)
+     (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
+      use AWS.Status;
+
+      Provider : constant String
+        := Parameters (Request).Get (Provider_Parameter_Name);
    begin
       return AWS.Response.Build
-        (Content_Type => "text/html; charset=iso-8859-1",
+        (Content_Type => AWS.MIME.Text_HTML,
          Status_Code  => AWS.Messages.S403,
          Message_Body =>
            "<html><head><title>Provider off-line</title>" &
            "</head><body></body><h1>Provider off-line" &
            "</h1><p>The OpenID provider at <q><code>" &
-           URL & "</code></q> seems to be off-line at " &
+           Provider & "</code></q> seems to be off-line at " &
            "the moment.</p></html>");
    end Provider_Off_Line;
 

@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Response;
 with AWS.Services.Dispatchers.URI;
 with AWS.Status;
 
@@ -22,6 +23,10 @@ with AWS.OpenID.Manual_Dispatching;
 
 generic
 
+   Authentication_Failed : AWS.Response.Callback;
+   Invalid_End_Point     : AWS.Response.Callback;
+   Invalid_URL           : AWS.Response.Callback;
+   Provider_Off_Line     : AWS.Response.Callback;
    Host_Name       : String;
    Log_In_Page     : String := "/login";
    Logged_In_Page  : String := "/logged_in";
@@ -34,13 +39,17 @@ generic
 package AWS.OpenID.Dynamic_Dispatching is
 
    package Handlers is new AWS.OpenID.Manual_Dispatching
-     (Host_Name       => Host_Name,
-      Log_In_Page     => Log_In_Page,
-      Logged_In_Page  => Logged_In_Page,
-      Log_Out_Page    => Log_Out_Page,
-      Logged_Out_Page => Logged_Out_Page,
-      Return_To_Page  => Return_To_Page,
-      Protocol        => Protocol);
+     (Authentication_Failed => Authentication_Failed,
+      Invalid_End_Point     => Invalid_End_Point,
+      Invalid_URL           => Invalid_URL,
+      Provider_Off_Line     => Provider_Off_Line,
+      Host_Name             => Host_Name,
+      Log_In_Page           => Log_In_Page,
+      Logged_In_Page        => Logged_In_Page,
+      Log_Out_Page          => Log_Out_Page,
+      Logged_Out_Page       => Logged_Out_Page,
+      Return_To_Page        => Return_To_Page,
+      Protocol              => Protocol);
 
    Not_Authenticated : exception renames Handlers.Not_Authenticated;
 

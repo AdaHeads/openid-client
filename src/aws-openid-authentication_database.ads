@@ -15,33 +15,42 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with AWS.Response;
+with AWS.Status;
+
 with AWS.OpenID.Security;
 
-package Association_Database is
+package AWS.OpenID.Authentication_Database is
 
-   procedure Clean_Up;
-   --  TODO: write comment
+   Not_Authenticated : exception;
 
-   function Has
-     (Handle : in AWS.OpenID.Security.Association_Handle)
+   procedure Delete_Identity
+     (Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data);
+   --  Delete an identity from the authentication database.
+
+   function Identity
+     (Request : in AWS.Status.Data)
+      return String;
+   --  Return the identity string from the authentication database.
+
+   function Is_Authenticated
+     (Request  : in AWS.Status.Data)
       return Boolean;
-   --  TODO: write comment
-
-   procedure Insert
-     (Item : in AWS.OpenID.Security.Association);
-   --  TODO: write comment
+   --  Return True if the user is authenticated.
 
    procedure Load
      (File_Name : in String);
-   --  TODO: write comment
+   --  Load File_Name into the authentication database.
 
-   function Look_Up
-     (Handle : in AWS.OpenID.Security.Association_Handle)
-      return AWS.OpenID.Security.Association;
-   --  TODO: write comment
+   procedure Register_Identity
+     (Source   : in     AWS.OpenID.Security.Authentication;
+      Request  : in     AWS.Status.Data;
+      Response : in out AWS.Response.Data);
+   --  Register a new identity in the authentication database.
 
    procedure Save
      (File_Name : in String);
-   --  TODO: write comment
+   --  Save the authentication database in File_Name.
 
-end Association_Database;
+end AWS.OpenID.Authentication_Database;

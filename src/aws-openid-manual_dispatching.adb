@@ -17,10 +17,9 @@
 
 with Ada.Strings.Unbounded;
 
-with Association_Database;
-with Authentication_Database;
+with AWS.OpenID.Association_Database;
+with AWS.OpenID.Authentication_Database;
 
-with AWS.OpenID.Error_Messages;
 private with AWS.OpenID.Security;
 
 package body AWS.OpenID.Manual_Dispatching is
@@ -49,17 +48,17 @@ package body AWS.OpenID.Manual_Dispatching is
                                           Result => End_Point);
          exception
             when Constraint_Error =>
-               return AWS.OpenID.Error_Messages.Invalid_URL (Provider);
+               return Invalid_URL (Request);
             when AWS.OpenID.Security.Invalid_End_Point =>
-               return AWS.OpenID.Error_Messages.Invalid_End_Point (Provider);
+               return Invalid_End_Point (Request);
             when AWS.OpenID.Security.Service_Error =>
-               return AWS.OpenID.Error_Messages.Provider_Off_Line (Provider);
+               return Provider_Off_Line (Request);
          end;
 
          AWS.OpenID.Security.Associate (Realm  => Realm,
                                         OP     => End_Point,
                                         Result => Association);
-         Association_Database.Insert (Item => Association);
+         AWS.OpenID.Association_Database.Insert (Item => Association);
 
          declare
             URL : constant String := AWS.OpenID.Security.Get_Authentication_URL
@@ -88,7 +87,7 @@ package body AWS.OpenID.Manual_Dispatching is
          Authentication : AWS.OpenID.Security.Authentication;
       begin
          Handle := AWS.OpenID.Security.Handle (Response => Request);
-         Association := Association_Database.Look_Up (Handle => Handle);
+         Association := AWS.OpenID.Association_Database.Look_Up (Handle);
          Authentication := AWS.OpenID.Security.Verify (Realm   => Realm,
                                                        Assoc   => Association,
                                                        Request => Request);
@@ -98,13 +97,13 @@ package body AWS.OpenID.Manual_Dispatching is
                Result :=
                  AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
 
-               Authentication_Database.Register_Identity
+               AWS.OpenID.Authentication_Database.Register_Identity
                  (Source   => Authentication,
                   Request  => Request,
                   Response => Result);
             end return;
          else
-            return AWS.OpenID.Error_Messages.Authentication_Failed;
+            return Authentication_Failed (Request);
          end if;
       end Service;
 
@@ -125,8 +124,10 @@ package body AWS.OpenID.Manual_Dispatching is
          Response :=
            AWS.Response.URL (Protocol & Host_Name & Logged_Out.URI);
 
-         Authentication_Database.Delete_Identity (Request  => Request,
-                                                  Response => Response);
+         AWS.OpenID.Authentication_Database.Delete_Identity
+           (Request  => Request,
+            Response => Response);
+
          return Response;
       end Service;
 
@@ -141,7 +142,7 @@ package body AWS.OpenID.Manual_Dispatching is
       return String
    is
    begin
-      return Authentication_Database.Identity (Request => Request);
+      return AWS.OpenID.Authentication_Database.Identity (Request => Request);
    end Authenticated_As;
 
    ------------------------
@@ -153,7 +154,8 @@ package body AWS.OpenID.Manual_Dispatching is
       return Boolean
    is
    begin
-      return Authentication_Database.Is_Authenticated (Request => Request);
+      return AWS.OpenID.Authentication_Database.Is_Authenticated
+        (Request => Request);
    end Is_Authenticated;
 
 begin

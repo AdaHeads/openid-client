@@ -15,8 +15,8 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
-with Association_Database;
-with Authentication_Database;
+with AWS.OpenID.Association_Database;
+with AWS.OpenID.Authentication_Database;
 
 package body AWS.OpenID.State is
 
@@ -31,7 +31,7 @@ package body AWS.OpenID.State is
    begin
       Load_Association_Data :
       begin
-         Association_Database.Load (File_Name & ".associations");
+         AWS.OpenID.Association_Database.Load (File_Name & ".associations");
       exception
          when others =>
             if not Suppress_Exceptions then
@@ -41,7 +41,8 @@ package body AWS.OpenID.State is
 
       Load_Authentication_Data :
       begin
-         Authentication_Database.Load (File_Name & ".authentications");
+         AWS.OpenID.Authentication_Database.Load
+           (File_Name & ".authentications");
       exception
          when others =>
             if not Suppress_Exceptions then
@@ -58,8 +59,8 @@ package body AWS.OpenID.State is
      (File_Name : in String)
    is
    begin
-      Association_Database.Save (File_Name & ".associations");
-      Authentication_Database.Save (File_Name & ".authentications");
+      AWS.OpenID.Association_Database.Save (File_Name & ".associations");
+      AWS.OpenID.Authentication_Database.Save (File_Name & ".authentications");
    end Save;
 
 end AWS.OpenID.State;

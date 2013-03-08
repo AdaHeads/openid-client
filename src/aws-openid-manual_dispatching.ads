@@ -21,20 +21,44 @@ with AWS.Status;
 
 generic
 
-   Host_Name       : String;
-   Log_In_Page     : String := "/log_in";
-   Logged_In_Page  : String := "/logged_in";
-   Log_Out_Page    : String := "/log_out";
-   Logged_Out_Page : String := "/logged_out";
-   Return_To_Page  : String := "/return_to";
-   Protocol        : String := "https://";
+   Authentication_Failed : AWS.Response.Callback;
+   --  Is called when the OpenID authentication has failed.
+
+   Host_Name             : String;
+   --  The hostname. This is is appended to Protocol and the resulting string
+   --  prefixed to the various Log* strings to create the URL's needed to
+   --  handle an OpenID authentication request.
+
+   Invalid_End_Point     : AWS.Response.Callback;
+   --  Is called when the OpenID end point is bad.
+
+   Invalid_URL           : AWS.Response.Callback;
+   --  Is called when the OpenID provider URL isn't valid.
+
+   Log_In_Page           : String := "/log_in";
+   --  This is where the OpenID login procedure starts.
+
+   Logged_In_Page        : String := "/logged_in";
+   --  We're redirected to this page when the OpenID authentication succeeded.
+
+   Log_Out_Page          : String := "/log_out";
+   --  This is where we go to log out.
+
+   Logged_Out_Page       : String := "/logged_out";
+   --  We're redirected here when a log out request succeeded.
+
+   Protocol              : String := "https://";
    --  Protocol is prefixed to Host_Name to build the full URL.
+
+   Provider_Off_Line     : AWS.Response.Callback;
+   --  Is called when the OpenID provider is offline.
+
+   Return_To_Page        : String := "/return_to";
+   --  The page we return to after the OpenID authentication is completed.
 
 package AWS.OpenID.Manual_Dispatching is
 
    Not_Authenticated : exception;
-
-   Provider_Parameter_Name : constant String := "openid";
 
    package Log_In is
       URI : constant String := Log_In_Page;
@@ -44,7 +68,7 @@ package AWS.OpenID.Manual_Dispatching is
          return AWS.Response.Data;
       --  TODO: write comment
 
-      Callback : AWS.Dispatchers.Callback.Handler
+      Callback : constant AWS.Dispatchers.Callback.Handler
         := AWS.Dispatchers.Callback.Create (Service'Access);
    end Log_In;
 
@@ -54,9 +78,11 @@ package AWS.OpenID.Manual_Dispatching is
       function Service
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
-      --  TODO: write comment
+      --  Upon successful completion of OpenID login, add the user to the
+      --  authentication database and forward to the Logged_In.URI. On
+      --  failure ???????
 
-      Callback : AWS.Dispatchers.Callback.Handler
+      Callback : constant AWS.Dispatchers.Callback.Handler
         := AWS.Dispatchers.Callback.Create (Service'Access);
    end Validate;
 
@@ -70,9 +96,10 @@ package AWS.OpenID.Manual_Dispatching is
       function Service
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
-      --  TODO: write comment
+      --  Delete the user from the authentication database and forward to
+      --  Logged_Out.URI.
 
-      Callback : AWS.Dispatchers.Callback.Handler
+      Callback : constant AWS.Dispatchers.Callback.Handler
         := AWS.Dispatchers.Callback.Create (Service'Access);
    end Log_Out;
 
@@ -83,11 +110,11 @@ package AWS.OpenID.Manual_Dispatching is
    function Authenticated_As
      (Request : in AWS.Status.Data)
       return String;
-   --  TODO: write comment
+   --  Return the identity of the user.
 
    function Is_Authenticated
      (Request : in AWS.Status.Data)
       return Boolean;
-   --  TODO: write comment
+   --  Return True if the user is authenticated.
 
 end AWS.OpenID.Manual_Dispatching;

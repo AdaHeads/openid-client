@@ -16,25 +16,27 @@
 -------------------------------------------------------------------------------
 
 with AWS.Response;
+with AWS.Status;
 
-private package AWS.OpenID.Error_Messages is
+package AWS.OpenID.Error_Messages is
 
    function Authentication_Failed
+     (Request : in AWS.Status.Data)
      return AWS.Response.Data;
    --  TODO: write comment
 
    function Invalid_End_Point
-     (URL : in String)
+     (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  TODO: write comment
 
    function Invalid_URL
-     (URL : in String)
+     (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  TODO: write comment
 
    function Provider_Off_Line
-     (URL : in String)
+     (Request : in AWS.Status.Data)
       return AWS.Response.Data;
    --  TODO: write comment
 

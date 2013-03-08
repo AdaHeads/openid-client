@@ -25,7 +25,7 @@ with AWS.Cookie;
 
 with AWS.OpenID.Log;
 
-package body Authentication_Database is
+package body AWS.OpenID.Authentication_Database is
 
    Token_Lifetime    : constant Duration := 3600.0;
    Token_Cookie_Name : constant String := "token";
@@ -45,22 +45,22 @@ package body Authentication_Database is
    protected Database is
       procedure Delete
         (Token : in String);
-      --  TODO: write comment
+      --  Delete Token from the authentication database.
 
       function Has
         (Token : in String)
          return Boolean;
-      --  TODO: write comment
+      --  Return True if Token exists in the authentication database.
 
       function Identity
         (Token : in String)
          return String;
-      --  TODO: write comment
+      --  Return the identity of Token.
 
       procedure Insert
         (Identity : in     String;
          Token    :    out Authentication_Token);
-      --  TODO: write comment.
+      --  Insert identity into the authentiation database with Token as key.
    private
       Authentications : Maps.Map := Maps.Empty_Map;
       Token_Generator : Random_Characters.Generator;
@@ -317,4 +317,4 @@ package body Authentication_Database is
       null;
    end Save;
 
-end Authentication_Database;
+end AWS.OpenID.Authentication_Database;

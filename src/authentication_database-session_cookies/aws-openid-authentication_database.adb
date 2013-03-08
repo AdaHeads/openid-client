@@ -21,7 +21,7 @@ with AWS.Session;
 
 with AWS.OpenID.Log;
 
-package body Authentication_Database is
+package body AWS.OpenID.Authentication_Database is
 
    Session_Key : constant String := "OpenID.Identity";
 
@@ -128,9 +128,6 @@ package body Authentication_Database is
                           Value => AWS.OpenID.Security.Identity (Source));
       end if;
    exception
-      when Not_Authenticated =>
-         --  TODO: Why is this here? Where can it possibly be raised?
-         raise;
       when E : others =>
          Log.Error ("Exception in Authentication_Database." &
                       "Register_Identity: " &
@@ -147,4 +144,4 @@ package body Authentication_Database is
      (File_Name : in String)
       renames AWS.Session.Save;
 
-end Authentication_Database;
+end AWS.OpenID.Authentication_Database;

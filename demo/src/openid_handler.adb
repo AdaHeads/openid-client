@@ -20,21 +20,21 @@ with AWS.Dispatchers.Callback;
 with AWS.Messages;
 with AWS.MIME;
 
+with AWS.OpenID.Error_Messages;
 with AWS.OpenID.Manual_Dispatching;
 
 with Configuration;
 
 package body OpenID_Handler is
 
-   package OpenID is new AWS.OpenID.Manual_Dispatching
-     (Host_Name => Configuration.Host_Name);
+   use AWS.OpenID.Error_Messages;
 
-   function Error
-     (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
-                          Filename     => "error.html",
-                          Status_Code  => AWS.Messages.S500));
+   package OpenID is new AWS.OpenID.Manual_Dispatching
+     (Authentication_Failed => Authentication_Failed'Access,
+      Invalid_End_Point     => Invalid_End_Point'Access,
+      Invalid_URL           => Invalid_URL'Access,
+      Provider_Off_Line     => Provider_Off_Line'Access,
+      Host_Name             => Configuration.Host_Name);
 
    function Index
      (Request : in AWS.Status.Data)
@@ -96,11 +96,6 @@ package body OpenID_Handler is
 
          D.Register (URI    => OpenID.Logged_Out.URI,
                      Action => Logged_Out'Access);
-
-         D.Register (URI    => "/error",
-                     Action => Error'Access);
-         --  TODO: What is this for? I can't find any references to any /error
-         --  interface anywhere.
 
          D.Register (URI    => "/style.css",
                      Action => Style_CSS'Access);
