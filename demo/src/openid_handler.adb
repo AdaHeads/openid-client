@@ -33,7 +33,7 @@ package body OpenID_Handler is
      (Authentication_Failed => Authentication_Failed'Access,
       Invalid_End_Point     => Invalid_End_Point'Access,
       Invalid_URL           => Invalid_URL'Access,
-      Provider_Off_Line     => Provider_Off_Line'Access,
+      Provider_Offline      => Provider_Offline'Access,
       Host_Name             => Configuration.Host_Name);
 
    function Index

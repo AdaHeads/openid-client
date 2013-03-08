@@ -50,7 +50,7 @@ generic
    Protocol              : String := "https://";
    --  Protocol is prefixed to Host_Name to build the full URL.
 
-   Provider_Off_Line     : AWS.Response.Callback;
+   Provider_Offline      : AWS.Response.Callback;
    --  Is called when the OpenID provider is offline.
 
    Return_To_Page        : String := "/return_to";
@@ -58,15 +58,13 @@ generic
 
 package AWS.OpenID.Manual_Dispatching is
 
-   Not_Authenticated : exception;
-
    package Log_In is
       URI : constant String := Log_In_Page;
 
       function Service
         (Request : in AWS.Status.Data)
          return AWS.Response.Data;
-      --  TODO: write comment
+      --  Redirect to the OpenID provider.
 
       Callback : constant AWS.Dispatchers.Callback.Handler
         := AWS.Dispatchers.Callback.Create (Service'Access);
@@ -80,7 +78,7 @@ package AWS.OpenID.Manual_Dispatching is
          return AWS.Response.Data;
       --  Upon successful completion of OpenID login, add the user to the
       --  authentication database and forward to the Logged_In.URI. On
-      --  failure ???????
+      --  failure call the Authentication_Failed callback.
 
       Callback : constant AWS.Dispatchers.Callback.Handler
         := AWS.Dispatchers.Callback.Create (Service'Access);

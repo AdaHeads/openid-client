@@ -48,28 +48,23 @@ package body AWS.OpenID.Security is
       Start_Tag : String;
       End_Tag   : String)
       return String;
-   --  TODO: write comment
 
    procedure Extract_Profile
      (Prefix  : in     String;
       Request : in     AWS.Status.Data;
       Result  : in out Authentication);
-   --  TODO: write comment
 
    procedure Extract_Value
      (Into    : in out Unbounded_String;
       Request : in AWS.Status.Data;
       Name    : in String);
-   --  TODO: write comment
 
    function Get_Association_Query
      return String;
-   --  TODO: write comment
 
    procedure Log_Verification
      (Succeeded : in Boolean;
       Message   : in String);
-   --  TODO: write comment
 
    -----------------
    --  Associate  --

@@ -93,14 +93,12 @@ private
          Into    : in out Output;
          Last    :    out Output_Index;
          Encoded :    out Index);
-      --  TODO: write comment
 
       procedure Decode
         (From    : in     Input;
          Into    : in out Output;
          Last    :    out Output_Index;
          Encoded :    out Index);
-      --  TODO: write comment
 
    end Encoding;
 

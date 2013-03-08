@@ -57,7 +57,6 @@ package body AWS.OpenID.Encoders.Base16 is
       function To_Output_Char
         (Ch : Input_Char)
          return Code;
-      --  TODO: write comment
 
       --------------
       --  Decode  --

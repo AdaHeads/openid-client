@@ -23,21 +23,21 @@ package AWS.OpenID.Error_Messages is
    function Authentication_Failed
      (Request : in AWS.Status.Data)
      return AWS.Response.Data;
-   --  TODO: write comment
+   --  Return a 403 and generate a generic authentication failed error message.
 
    function Invalid_End_Point
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  TODO: write comment
+   --  Return a 403 and generate a generic invalid end point error message.
 
    function Invalid_URL
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  TODO: write comment
+   --  Return a 403 and generate a generic invalid URL error message.
 
-   function Provider_Off_Line
+   function Provider_Offline
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
-   --  TODO: write comment
+   --  Return a 403 and generate a generic provider offline error message.
 
 end AWS.OpenID.Error_Messages;

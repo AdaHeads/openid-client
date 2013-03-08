@@ -60,12 +60,10 @@ package AWS.OpenID.Security is
    function Handle
      (Item : in Association)
       return Association_Handle;
-   --  TODO: write comment
 
    function Handle
      (Response : in AWS.Status.Data)
       return Association_Handle;
-   --  TODO: write comment
 
    function To_String
      (Assoc : Association)
@@ -77,17 +75,14 @@ package AWS.OpenID.Security is
    function Authenticated
      (Auth : in Authentication)
       return Boolean;
-   --  TODO: write comment
 
    function Status
      (Auth : in Authentication)
       return Auth_Result;
-   --  TODO: write comment
 
    function Identity
      (Auth : in Authentication)
       return String;
-   --  TODO: write comment
 
    type Manager is tagged limited private;
 
@@ -131,28 +126,24 @@ package AWS.OpenID.Security is
       OP    : in End_Point;
       Assoc : in Association)
       return String;
-   --  TODO: write comment
 
    function Verify
      (Realm   : in Manager;
       Assoc   : in Association;
       Request : in AWS.Status.Data)
       return Authentication;
-   --  Verify the authentication result
 
    procedure Verify_Discovered
      (Realm   : in     Manager;
       Assoc   : in     Association;
       Request : in     AWS.Status.Data;
       Result  :    out Authentication);
-   --  Verify the authentication result
 
    procedure Verify_Signature
      (Realm   : in     Manager;
       Assoc   : in     Association;
       Request : in     AWS.Status.Data;
       Result  : in out Authentication);
-   --  Verify the signature part of the result.
 
    procedure Discover_XRDS
      (Realm  : in out Manager;

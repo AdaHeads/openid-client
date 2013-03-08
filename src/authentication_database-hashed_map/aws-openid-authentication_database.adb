@@ -65,7 +65,6 @@ package body AWS.OpenID.Authentication_Database is
       Authentications : Maps.Map := Maps.Empty_Map;
       Token_Generator : Random_Characters.Generator;
    end Database;
-   --  TODO: Write comment
 
    protected body Database is
 
@@ -141,7 +140,6 @@ package body AWS.OpenID.Authentication_Database is
 
          procedure Generate_Random
            (Token : out Authentication_Token);
-         --  TODO: write comment
 
          -----------------------
          --  Generate_Random  --

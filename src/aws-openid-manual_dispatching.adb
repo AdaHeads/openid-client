@@ -52,7 +52,7 @@ package body AWS.OpenID.Manual_Dispatching is
             when AWS.OpenID.Security.Invalid_End_Point =>
                return Invalid_End_Point (Request);
             when AWS.OpenID.Security.Service_Error =>
-               return Provider_Off_Line (Request);
+               return Provider_Offline (Request);
          end;
 
          AWS.OpenID.Security.Associate (Realm  => Realm,

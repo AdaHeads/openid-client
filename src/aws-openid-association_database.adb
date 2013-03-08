@@ -164,7 +164,6 @@ package body AWS.OpenID.Association_Database is
 
          procedure Save
            (Position : in Maps.Cursor);
-         --  TODO: write comment
 
          File    : File_Type;
          Target  : Stream_Access;

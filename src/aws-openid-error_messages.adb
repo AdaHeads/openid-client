@@ -88,11 +88,11 @@ package body AWS.OpenID.Error_Messages is
            "a valid URL.</p></html>");
    end Invalid_URL;
 
-   -------------------------
-   --  Provider_Off_Line  --
-   -------------------------
+   ------------------------
+   --  Provider_Offline  --
+   ------------------------
 
-   function Provider_Off_Line
+   function Provider_Offline
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
@@ -105,11 +105,11 @@ package body AWS.OpenID.Error_Messages is
         (Content_Type => AWS.MIME.Text_HTML,
          Status_Code  => AWS.Messages.S403,
          Message_Body =>
-           "<html><head><title>Provider off-line</title>" &
-           "</head><body></body><h1>Provider off-line" &
+           "<html><head><title>Provider offline</title>" &
+           "</head><body></body><h1>Provider offline" &
            "</h1><p>The OpenID provider at <q><code>" &
-           Provider & "</code></q> seems to be off-line at " &
+           Provider & "</code></q> seems to be offline at " &
            "the moment.</p></html>");
-   end Provider_Off_Line;
+   end Provider_Offline;
 
 end AWS.OpenID.Error_Messages;

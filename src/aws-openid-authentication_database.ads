@@ -22,8 +22,6 @@ with AWS.OpenID.Security;
 
 package AWS.OpenID.Authentication_Database is
 
-   Not_Authenticated : exception;
-
    procedure Delete_Identity
      (Request  : in     AWS.Status.Data;
       Response : in out AWS.Response.Data);

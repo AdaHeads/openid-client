@@ -19,6 +19,8 @@ package AWS.OpenID is
 
    pragma Pure (AWS.OpenID);
 
+   Not_Authenticated : exception;
+
    Provider_Parameter_Name : constant String := "openid";
 
 end AWS.OpenID;

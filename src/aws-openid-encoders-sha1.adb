@@ -42,28 +42,31 @@ package body AWS.OpenID.Encoders.SHA1 is
 
    function F1
      (B, C, D : in Unsigned_32)
-      return Unsigned_32;
-   --  TODO: write comment
+      return Unsigned_32
+   is ((B and C) or ((not B) and D));
 
    function F2
      (B, C, D : in Unsigned_32)
-      return Unsigned_32;
-   --  TODO: write comment
+      return Unsigned_32
+   is (B xor C xor D);
 
    function F3
      (B, C, D : in Unsigned_32)
-      return Unsigned_32;
-   --  TODO: write comment
+      return Unsigned_32
+   is ((B and C) or (B and D) or (C and D));
 
    function F4
      (B, C, D : in Unsigned_32)
-      return Unsigned_32;
-   --  TODO: write comment
+      return Unsigned_32
+   is (B xor C xor D);
 
    function To_Unsigned_32
      (C3, C2, C1, C0 : in Character)
-      return Unsigned_32;
-   --  TODO: write comment
+      return Unsigned_32
+   is (Character'Pos (C3)
+       or Shift_Left (Unsigned_32 (Character'Pos (C2)), 8)
+       or Shift_Left (Unsigned_32 (Character'Pos (C1)), 16)
+       or Shift_Left (Unsigned_32 (Character'Pos (C0)), 24));
 
    ---------------
    --  Compute  --
@@ -138,54 +141,6 @@ package body AWS.OpenID.Encoders.SHA1 is
       H (3) := H (3) + D;
       H (4) := H (4) + E;
    end Compute;
-
-   ----------
-   --  F1  --
-   ----------
-
-   function F1
-     (B, C, D : in Unsigned_32)
-      return Unsigned_32
-   is
-   begin
-      return (B and C) or ((not B) and D);
-   end F1;
-
-   ----------
-   --  F2  --
-   ----------
-
-   function F2
-     (B, C, D : in Unsigned_32)
-      return Unsigned_32
-   is
-   begin
-      return B xor C xor D;
-   end F2;
-
-   ----------
-   --  F3  --
-   ----------
-
-   function F3
-     (B, C, D : in Unsigned_32)
-      return Unsigned_32
-   is
-   begin
-      return (B and C) or (B and D) or (C and D);
-   end F3;
-
-   ----------
-   --  F4  --
-   ----------
-
-   function F4
-     (B, C, D : in Unsigned_32)
-      return Unsigned_32
-   is
-   begin
-      return B xor C xor D;
-   end F4;
 
    --------------
    --  Finish  --
@@ -318,21 +273,6 @@ package body AWS.OpenID.Encoders.SHA1 is
       E.H (3) := 16#10325476#;
       E.H (4) := 16#C3D2E1F0#;
    end Initialize;
-
-   ----------------------
-   --  To_Unsigned_32  --
-   ----------------------
-
-   function To_Unsigned_32
-     (C3, C2, C1, C0 : in Character)
-      return Unsigned_32
-   is
-   begin
-      return (Character'Pos (C3)
-              or Shift_Left (Unsigned_32 (Character'Pos (C2)), 8)
-              or Shift_Left (Unsigned_32 (Character'Pos (C1)), 16)
-              or Shift_Left (Unsigned_32 (Character'Pos (C0)), 24));
-   end To_Unsigned_32;
 
    -----------------
    --  Transform  --
