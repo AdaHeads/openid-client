@@ -21,6 +21,7 @@ with AWS.Dispatchers.Callback;
 with AWS.Messages;
 with AWS.MIME;
 
+with AWS.OpenID.Authentication_Database;
 with AWS.OpenID.Error_Messages;
 with AWS.OpenID.Manual_Dispatching;
 
@@ -43,9 +44,7 @@ package body OpenID_Handler is
 
    function Logged_In
      (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
-                          Filename     => "logged_in.html"));
+      return AWS.Response.Data;
 
    function Logged_Out
      (Request : in AWS.Status.Data)
@@ -112,9 +111,8 @@ package body OpenID_Handler is
    is
       Session_ID  : constant AWS.Session.Id := AWS.Status.Session (Request);
    begin
-      if AWS.Session.Get (Session_ID, "logged_in") then
-         --  We're already logged in
-         null;
+      if AWS.OpenID.Authentication_Database.Is_Authenticated (Request) then
+         return AWS.Response.URL (OpenID.Logged_In.URI);
       else
          AWS.Session.Set (SID   => Session_ID,
                           Key   => "logged_in",
@@ -125,6 +123,28 @@ package body OpenID_Handler is
       return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
                                 Filename     => "index.html");
    end Index;
+
+   -----------------
+   --  Logged_In  --
+   -----------------
+
+   function Logged_In
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      Session_ID  : constant AWS.Session.Id := AWS.Status.Session (Request);
+   begin
+      if AWS.OpenID.Authentication_Database.Is_Authenticated (Request) then
+         AWS.Session.Set (SID   => Session_ID,
+                          Key   => "logged_in",
+                          Value => True);
+
+         return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                                   Filename     => "logged_in.html");
+      else
+         return AWS.Response.URL ("/");
+      end if;
+   end Logged_In;
 
    --------------
    --  Whoops  --
