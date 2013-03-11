@@ -14,7 +14,8 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
+with Ada.Text_IO;
+with AWS.Session;
 with AWS.Status;
 with AWS.Dispatchers.Callback;
 with AWS.Messages;
@@ -38,9 +39,7 @@ package body OpenID_Handler is
 
    function Index
      (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
-                          Filename     => "index.html"));
+      return AWS.Response.Data;
 
    function Logged_In
      (Request : in AWS.Status.Data)
@@ -102,6 +101,21 @@ package body OpenID_Handler is
       end return;
       --  return D;
    end Get_Dispatcher;
+
+   -------------
+   --  Index  --
+   -------------
+
+   function Index
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      Session_ID  : constant AWS.Session.Id := AWS.Status.Session (Request);
+   begin
+      Ada.Text_IO.Put_Line (AWS.Session.Image (Session_ID));
+      return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                                Filename     => "index.html");
+   end Index;
 
    --------------
    --  Whoops  --
