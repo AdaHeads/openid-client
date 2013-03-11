@@ -14,7 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
+
 with AWS.Session;
 with AWS.Status;
 with AWS.Dispatchers.Callback;
@@ -119,7 +119,6 @@ package body OpenID_Handler is
                           Value => False);
       end if;
 
-      Ada.Text_IO.Put_Line (AWS.Session.Image (Session_ID));
       return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
                                 Filename     => "index.html");
    end Index;
