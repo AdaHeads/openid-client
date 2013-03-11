@@ -19,26 +19,46 @@ with AWS.OpenID.Security;
 
 package AWS.OpenID.Association_Database is
 
-   function Has
+   type Has_Association_Handle_Type is access function
+     (Handle : in AWS.OpenID.Security.Association_Handle)
+      return Boolean;
+
+   function Has_Handle
      (Handle : in AWS.OpenID.Security.Association_Handle)
       return Boolean;
    --  Return True if Handle is in the associations database.
 
-   procedure Insert
+   Has : Has_Association_Handle_Type := Has_Handle'Access;
+
+   type Insert_Association_Type is access procedure
+     (Item : in AWS.OpenID.Security.Association);
+
+   procedure Insert_Association
      (Item : in AWS.OpenID.Security.Association);
    --  Insert Item into the associations database.
 
+   Insert : Insert_Association_Type := Insert_Association'Access;
+
    procedure Load
      (File_Name : in String);
-   --  Load File_Name into the associations database.
+   --  Load File_Name into the associations database. Do not call Load if
+   --  you've setup your own Has, Insert and Look_Up handlers.
 
-   function Look_Up
+   type Look_Up_Association_Handle_Type is access function
+     (Handle : in AWS.OpenID.Security.Association_Handle)
+     return AWS.OpenID.Security.Association;
+
+   function Look_Up_Association_Handle
      (Handle : in AWS.OpenID.Security.Association_Handle)
       return AWS.OpenID.Security.Association;
    --  Reuturn the Handle association.
 
+   Look_Up : Look_Up_Association_Handle_Type :=
+               Look_Up_Association_Handle'Access;
+
    procedure Save
      (File_Name : in String);
-   --  Save the association database to File_Name
+   --  Save the association database to File_Name. Do not call Save if you've
+   --  set your own Has, Insert and Look_Up handlers.
 
 end AWS.OpenID.Association_Database;

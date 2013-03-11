@@ -111,9 +111,11 @@ package body AWS.OpenID.Association_Database is
       --  Load  --
       ------------
 
-      procedure Load (File_Name : in String)
+      procedure Load
+        (File_Name : in String)
       is
          use Ada.Streams.Stream_IO;
+         use AWS.OpenID.Security;
 
          File    : File_Type;
          Source  : Stream_Access;
@@ -129,7 +131,9 @@ package body AWS.OpenID.Association_Database is
             Key     := AWS.OpenID.Security.Association_Handle'Input (Source);
             Element := AWS.OpenID.Security.Association'Input (Source);
 
-            Associations.Insert (Key, Element);
+            if not Is_Expired (Element) then
+               Associations.Insert (Key, Element);
+            end if;
          end loop;
 
          Close (File);
@@ -175,12 +179,15 @@ package body AWS.OpenID.Association_Database is
          procedure Save
            (Position : in Maps.Cursor)
          is
+            use AWS.OpenID.Security;
          begin
-            AWS.OpenID.Security.Association_Handle'Output
-              (Target, Maps.Key (Position));
+            if not Is_Expired (Maps.Element (Position)) then
+               AWS.OpenID.Security.Association_Handle'Output
+                 (Target, Maps.Key (Position));
 
-            AWS.OpenID.Security.Association'Output
-              (Target, Maps.Element (Position));
+               AWS.OpenID.Security.Association'Output
+                 (Target, Maps.Element (Position));
+            end if;
          end Save;
       begin
          Create (File => File,
@@ -194,11 +201,11 @@ package body AWS.OpenID.Association_Database is
 
    end Database;
 
-   -----------
-   --  Has  --
-   -----------
+   ------------------
+   --  Has_Handle  --
+   ------------------
 
-   function Has
+   function Has_Handle
      (Handle : in AWS.OpenID.Security.Association_Handle)
       return Boolean
    is
@@ -211,13 +218,13 @@ package body AWS.OpenID.Association_Database is
          Log.Error ("Exception in Association_Database.Has: " &
                       Exception_Name (E));
          raise;
-   end Has;
+   end Has_Handle;
 
-   --------------
-   --  Insert  --
-   --------------
+   --------------------------
+   --  Insert_Association  --
+   --------------------------
 
-   procedure Insert
+   procedure Insert_Association
      (Item : in AWS.OpenID.Security.Association)
    is
       use Ada.Exceptions;
@@ -230,7 +237,7 @@ package body AWS.OpenID.Association_Database is
                       Exception_Name (E) & " (" &
                       Exception_Information (E) & ")");
          raise;
-   end Insert;
+   end Insert_Association;
 
    ------------
    --  Load  --
@@ -243,11 +250,11 @@ package body AWS.OpenID.Association_Database is
       Database.Load (File_Name);
    end Load;
 
-   ---------------
-   --  Look_Up  --
-   ---------------
+   ----------------------------------
+   --  Look_Up_Association_Handle  --
+   ----------------------------------
 
-   function Look_Up
+   function Look_Up_Association_Handle
      (Handle : in AWS.OpenID.Security.Association_Handle)
       return AWS.OpenID.Security.Association
    is
@@ -260,7 +267,7 @@ package body AWS.OpenID.Association_Database is
          Log.Error ("Exception in Association_Database.Look_Up: " &
                       Exception_Name (E));
          raise;
-   end Look_Up;
+   end Look_Up_Association_Handle;
 
    ------------
    --  Save  --
