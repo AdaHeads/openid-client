@@ -65,6 +65,11 @@ package AWS.OpenID.Security is
      (Response : in AWS.Status.Data)
       return Association_Handle;
 
+   function Is_Expired
+     (Item : in Association)
+      return Boolean;
+   --  Return True if Item is Expired.
+
    function To_String
      (Assoc : Association)
       return String;

@@ -77,6 +77,7 @@ package body AWS.OpenID.Security is
    is
       pragma Unreferenced (Realm);
 
+      use Ada.Calendar;
       use AWS.OpenID;
       use AWS.Response;
       use type AWS.Messages.Status_Code;
@@ -134,10 +135,17 @@ package body AWS.OpenID.Security is
             elsif Key = "expires_in" then
                declare
                   Val : constant String := Slice (Output, N + 1, Last);
-                  --  Expires : Integer := Integer'Value (Val);
                begin
                   AWS.OpenID.Log.Info ("Expires: |" & Val & "|");
-                  Result.Expired := Ada.Calendar.Clock;
+                  Result.Expired := Clock + Duration'Value (Val);
+               exception
+                  when Constraint_Error =>
+                     --  expires_in could not be cast to a Duration.
+                     Log.Error
+                       (URI & " returned a bad expires_in value: " & Val);
+
+                     raise Service_Error with
+                       "Assocation error. Bad expires_in value given: " & Val;
                end;
             elsif Key /= "ns" then
                AWS.OpenID.Log.Error ("Key not recognized: " & Key);
@@ -446,6 +454,19 @@ package body AWS.OpenID.Security is
       Realm.Realm := To_Unbounded_String (Domain);
       Realm.Return_To := To_Unbounded_String (Domain & Return_To);
    end Initialize;
+
+   ------------------
+   --  Is_Expired  --
+   ------------------
+
+   function Is_Expired
+     (Item : in Association)
+      return Boolean
+   is
+      use Ada.Calendar;
+   begin
+      return Item.Expired < Clock;
+   end Is_Expired;
 
    ------------------------
    --  Log_Verification  --
