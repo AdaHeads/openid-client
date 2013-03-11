@@ -87,6 +87,11 @@ package body AWS.OpenID.Manual_Dispatching is
          Authentication : AWS.OpenID.Security.Authentication;
       begin
          Handle := AWS.OpenID.Security.Handle (Response => Request);
+
+         if not AWS.OpenID.Association_Database.Has (Handle) then
+            return Authentication_Failed (Request);
+         end if;
+
          Association := AWS.OpenID.Association_Database.Look_Up (Handle);
          Authentication := AWS.OpenID.Security.Verify (Realm   => Realm,
                                                        Assoc   => Association,
