@@ -112,6 +112,15 @@ package body OpenID_Handler is
    is
       Session_ID  : constant AWS.Session.Id := AWS.Status.Session (Request);
    begin
+      if AWS.Session.Get (Session_ID, "logged_in") then
+         --  We're already logged in
+         null;
+      else
+         AWS.Session.Set (SID   => Session_ID,
+                          Key   => "logged_in",
+                          Value => False);
+      end if;
+
       Ada.Text_IO.Put_Line (AWS.Session.Image (Session_ID));
       return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
                                 Filename     => "index.html");
