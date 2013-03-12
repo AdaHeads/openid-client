@@ -14,7 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
+
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 with Ada.Exceptions;
@@ -82,17 +82,13 @@ package body AWS.OpenID.Association_Database is
       is
          use AWS.OpenID.Security;
       begin
-         Ada.Text_IO.Put_Line ("Before first loop");
          for C in Associations.Iterate loop
-            Ada.Text_IO.Put_Line ("Inside first loop");
             if Is_Expired (Maps.Element (C)) then
-               Ada.Text_IO.Put_Line ("not Is_Expired inside first loop");
                Stale_Associations.Append (Maps.Key (C));
             end if;
          end loop;
-         Ada.Text_IO.Put_Line ("After first loop");
+
          for Handle of Stale_Associations loop
-            Ada.Text_IO.Put_Line (Ada.Strings.Unbounded.To_String (Handle));
             Associations.Exclude (Handle);
          end loop;
       end Clean_Up;

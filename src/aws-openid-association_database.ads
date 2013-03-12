@@ -20,7 +20,10 @@ with AWS.OpenID.Security;
 package AWS.OpenID.Association_Database is
 
    procedure Clean_Up;
-   --  Remove all stale Associations from the database.
+   --  Remove all stale Associations from the database. Calling Clean_Up is a
+   --  manual process. The library does _NOT_ handle this automatically. It is
+   --  left to the user of the library to decide when and how often to clean
+   --  the associations database.
 
    type Has_Association_Handle_Type is access function
      (Handle : in AWS.OpenID.Security.Association_Handle)
