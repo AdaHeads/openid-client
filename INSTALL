@@ -1,5 +1,5 @@
-Before trying to compile OpenID-Client, be sure to read the README and make sure that
-all the dependencies are met.
+Before trying to compile OpenID-Client, be sure to read the README and make
+sure that all the dependencies are met.
 
 Building and installing OpenID-Client is as simple as:
 
@@ -13,4 +13,11 @@ things up.
 You can remove OpenID-Client from your system by doing:
 
     $ make distclean
+
+To try the demo:
+
+    $ cd demo/
+    $ SERVER_NAME=your.server.name make
+    $ cd exe/
+    $ ./openid_demo
 

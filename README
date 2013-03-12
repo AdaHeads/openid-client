@@ -1,16 +1,17 @@
 OpenID authentication for the Ada Web Server library (AWS).
 
-Build (with demo application):
+Note that this library in large parts are based on code by Stephane Carrez from
+his Ada Server Faces projec[1]. Copyright and license notices are kept in situ
+for these files. Everything not specifically marked as originating from the
+Ada Server Faces[1] project is GPLv3 and copyright AdaHeads K/S.
 
-   SERVER_NAME=your.server.name make
+It is our (AdaHeads K/S) intention to advocate for an inclusion of this library
+in the Ada Web Server[2] project, as the naming of the source files might
+indicate.
 
-Run demo application:
+This library depends on AWS[2], preferably being compiled with SSL support.
 
-   sudo ./demo/openid_demo
+See the INSTALL file for instructions on how to build and install the library.
 
-We start with a branch of "Ada Server Faces" which means that the code in
-this repository for the time being is under the Apache 2 license.
-This is compatible with GPL-3 (but apparently not with GPL-2), so
-applications compiled with this will end up being either Apache-2 or
-GPL-3 licensed.
-
+[1] http://code.google.com/p/ada-asf/
+[2]
