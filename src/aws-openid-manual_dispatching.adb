@@ -44,7 +44,6 @@ package body AWS.OpenID.Manual_Dispatching is
          Association : Security.Association;
       begin
          if Authentication_Database.Is_Authenticated (Request) then
-            --  We're already logged in. Redirect user to logged in URI.
             return AWS.Response.URL (Logged_In.URI);
          end if;
 
