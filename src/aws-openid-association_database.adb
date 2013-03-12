@@ -14,7 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
+with Ada.Text_IO;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 with Ada.Exceptions;
@@ -89,6 +89,7 @@ package body AWS.OpenID.Association_Database is
          end loop;
 
          for Handle of Stale_Associations loop
+            Ada.Text_IO.Put_Line (Ada.Strings.Unbounded.To_String (Handle));
             Associations.Exclude (Handle);
          end loop;
       end Clean_Up;
