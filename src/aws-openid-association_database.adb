@@ -86,12 +86,11 @@ package body AWS.OpenID.Association_Database is
             if not Is_Expired (Maps.Element (C)) then
                Stale_Associations.Append (Maps.Key (C));
             end if;
-            Associations.Delete (C);
          end loop;
 
---           for Handle of Stale_Associations loop
---              Associations.Exclude (Handle);
---           end loop;
+         for Handle of Stale_Associations loop
+            Associations.Exclude (Handle);
+         end loop;
       end Clean_Up;
 
       -----------
