@@ -96,7 +96,7 @@ package body AWS.OpenID.Manual_Dispatching is
          Authentication := AWS.OpenID.Security.Verify (Realm   => Realm,
                                                        Assoc   => Association,
                                                        Request => Request);
-
+         AWS.OpenID.Association_Database.Clean_Up;
          if AWS.OpenID.Security.Authenticated (Authentication) then
             return Result : AWS.Response.Data do
                Result :=

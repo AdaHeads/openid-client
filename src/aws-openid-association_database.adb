@@ -15,6 +15,7 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Streams.Stream_IO;
@@ -32,7 +33,16 @@ package body AWS.OpenID.Association_Database is
       Element_Type    => AWS.OpenID.Security.Association,
       "="             => AWS.OpenID.Security."=");
 
+   package Stale_List is new Ada.Containers.Doubly_Linked_Lists
+     (Element_Type => AWS.OpenID.Security.Association_Handle,
+      "="          => Ada.Strings.Unbounded."=");
+
+   Stale_Associations : Stale_List.List;
+
    protected Database is
+      procedure Clean_Up;
+      --  Delete all expired Associations.
+
       function Has
         (Handle : in AWS.OpenID.Security.Association_Handle)
          return Boolean;
@@ -63,6 +73,26 @@ package body AWS.OpenID.Association_Database is
    ----------------
 
    protected body Database is
+
+      ----------------
+      --  Clean_Up  --
+      ----------------
+
+      procedure Clean_Up
+      is
+         use AWS.OpenID.Security;
+      begin
+         for C in Associations.Iterate loop
+            if not Is_Expired (Maps.Element (C)) then
+               Stale_Associations.Append (Maps.Key (C));
+            end if;
+            Associations.Delete (C);
+         end loop;
+
+--           for Handle of Stale_Associations loop
+--              Associations.Exclude (Handle);
+--           end loop;
+      end Clean_Up;
 
       -----------
       --  Has  --
@@ -200,6 +230,16 @@ package body AWS.OpenID.Association_Database is
       end Save;
 
    end Database;
+
+   ----------------
+   --  Clean_Up  --
+   ----------------
+
+   procedure Clean_Up
+   is
+   begin
+      Database.Clean_Up;
+   end Clean_Up;
 
    ------------------
    --  Has_Handle  --

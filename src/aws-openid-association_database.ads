@@ -19,6 +19,9 @@ with AWS.OpenID.Security;
 
 package AWS.OpenID.Association_Database is
 
+   procedure Clean_Up;
+   --  Remove all stale Associations from the database.
+
    type Has_Association_Handle_Type is access function
      (Handle : in AWS.OpenID.Security.Association_Handle)
       return Boolean;
