@@ -26,21 +26,21 @@ package AWS.OpenID.Association_Database is
    --  the associations database.
 
    type Has_Association_Handle_Type is access function
-     (Handle : in AWS.OpenID.Security.Association_Handle)
+     (Handle : in Security.Association_Handle)
       return Boolean;
 
    function Has_Handle
-     (Handle : in AWS.OpenID.Security.Association_Handle)
+     (Handle : in Security.Association_Handle)
       return Boolean;
    --  Return True if Handle is in the associations database.
 
    Has : Has_Association_Handle_Type := Has_Handle'Access;
 
    type Insert_Association_Type is access procedure
-     (Item : in AWS.OpenID.Security.Association);
+     (Item : in Security.Association);
 
    procedure Insert_Association
-     (Item : in AWS.OpenID.Security.Association);
+     (Item : in Security.Association);
    --  Insert Item into the associations database.
 
    Insert : Insert_Association_Type := Insert_Association'Access;
@@ -51,12 +51,12 @@ package AWS.OpenID.Association_Database is
    --  you've setup your own Has, Insert and Look_Up handlers.
 
    type Look_Up_Association_Handle_Type is access function
-     (Handle : in AWS.OpenID.Security.Association_Handle)
-     return AWS.OpenID.Security.Association;
+     (Handle : in Security.Association_Handle)
+     return Security.Association;
 
    function Look_Up_Association_Handle
-     (Handle : in AWS.OpenID.Security.Association_Handle)
-      return AWS.OpenID.Security.Association;
+     (Handle : in Security.Association_Handle)
+      return Security.Association;
    --  Reuturn the Handle association.
 
    Look_Up : Look_Up_Association_Handle_Type :=

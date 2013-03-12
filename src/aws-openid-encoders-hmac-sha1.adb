@@ -43,12 +43,12 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
 
    procedure Finish
      (E    : in out Context;
-      Hash :    out AWS.OpenID.Encoders.SHA1.Hash_Array)
+      Hash :    out Encoders.SHA1.Hash_Array)
    is
       use type Ada.Streams.Stream_Element;
       use type Ada.Streams.Stream_Element_Offset;
    begin
-      AWS.OpenID.Encoders.SHA1.Finish (E.SHA, Hash);
+      Encoders.SHA1.Finish (E.SHA, Hash);
 
       --  Hash the key in the SHA1 context.
       declare
@@ -64,11 +64,11 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
             end loop;
          end if;
 
-         AWS.OpenID.Encoders.SHA1.Update (E.SHA, Block);
+         Encoders.SHA1.Update (E.SHA, Block);
       end;
 
-      AWS.OpenID.Encoders.SHA1.Update (E.SHA, Hash);
-      AWS.OpenID.Encoders.SHA1.Finish (E.SHA, Hash);
+      Encoders.SHA1.Update (E.SHA, Hash);
+      Encoders.SHA1.Finish (E.SHA, Hash);
    end Finish;
 
    --------------
@@ -77,15 +77,15 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
 
    procedure Finish
      (E    : in out Context;
-      Hash :    out AWS.OpenID.Encoders.SHA1.Digest)
+      Hash :    out Encoders.SHA1.Digest)
    is
       Buf : Ada.Streams.Stream_Element_Array (1 .. Hash'Length);
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      B       : AWS.OpenID.Encoders.Base16.Encoder;
+      B       : Encoders.Base16.Encoder;
       Encoded : Ada.Streams.Stream_Element_Offset;
-      H       : AWS.OpenID.Encoders.SHA1.Hash_Array;
+      H       : Encoders.SHA1.Hash_Array;
       Last    : Ada.Streams.Stream_Element_Offset;
    begin
       Finish (E, H);
@@ -98,15 +98,15 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
 
    procedure Finish_Base64
      (E    : in out Context;
-      Hash :    out AWS.OpenID.Encoders.SHA1.Base64_Digest)
+      Hash :    out Encoders.SHA1.Base64_Digest)
    is
       Buf : Ada.Streams.Stream_Element_Array (1 .. Hash'Length);
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      B       : AWS.OpenID.Encoders.Base64.Encoder;
+      B       : Encoders.Base64.Encoder;
       Encoded : Ada.Streams.Stream_Element_Offset;
-      H       : AWS.OpenID.Encoders.SHA1.Hash_Array;
+      H       : Encoders.SHA1.Hash_Array;
       Last    : Ada.Streams.Stream_Element_Offset;
    begin
       Finish (E, H);
@@ -171,10 +171,11 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
 
    function Sign
      (Key  : in String;
-      Data : in String) return AWS.OpenID.Encoders.SHA1.Digest
+      Data : in String)
+      return Encoders.SHA1.Digest
    is
       Ctx    : Context;
-      Result : AWS.OpenID.Encoders.SHA1.Digest;
+      Result : Encoders.SHA1.Digest;
    begin
       Set_Key (Ctx, Key);
       Update (Ctx, Data);
@@ -190,10 +191,10 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
    function Sign_Base64
      (Key  : in String;
       Data : in String)
-      return AWS.OpenID.Encoders.SHA1.Base64_Digest
+      return Encoders.SHA1.Base64_Digest
    is
       Ctx    : Context;
-      Result : AWS.OpenID.Encoders.SHA1.Base64_Digest;
+      Result : Encoders.SHA1.Base64_Digest;
    begin
       Set_Key (Ctx, Key);
       Update (Ctx, Data);
@@ -211,7 +212,7 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
       S : in     String)
    is
    begin
-      AWS.OpenID.Encoders.SHA1.Update (E.SHA, S);
+      Encoders.SHA1.Update (E.SHA, S);
    end Update;
 
    --------------
@@ -223,7 +224,7 @@ package body AWS.OpenID.Encoders.HMAC.SHA1 is
       S : in Ada.Streams.Stream_Element_Array)
    is
    begin
-      AWS.OpenID.Encoders.SHA1.Update (E.SHA, S);
+      Encoders.SHA1.Update (E.SHA, S);
    end Update;
 
 end AWS.OpenID.Encoders.HMAC.SHA1;

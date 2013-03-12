@@ -36,7 +36,7 @@ with Interfaces;
 package AWS.OpenID.Encoders.SHA1 is
 
    type Context is limited private;
-   type Encoder is new AWS.OpenID.Encoders.Transformer with private;
+   type Encoder is new Encoders.Transformer with private;
 
    subtype Base64_Digest is String (1 .. 28);
    subtype Digest is String (1 .. 40);
@@ -86,7 +86,7 @@ package AWS.OpenID.Encoders.SHA1 is
 
 private
 
-   type Encoder is new AWS.OpenID.Encoders.Transformer with null record;
+   type Encoder is new Encoders.Transformer with null record;
    type H_Array is array (0 .. 4) of Interfaces.Unsigned_32;
    type W_Array is array (0 .. 79) of Interfaces.Unsigned_32;
 

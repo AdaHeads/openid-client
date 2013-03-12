@@ -40,19 +40,19 @@ package AWS.OpenID.Encoders.HMAC.SHA1 is
 
    procedure Finish
      (E    : in out Context;
-      Hash :    out AWS.OpenID.Encoders.SHA1.Hash_Array);
+      Hash :    out Encoders.SHA1.Hash_Array);
    --  Computes the HMAC-SHA1 with the private key and the data collected by
    --  the Update procedures. Returns the raw binary hash in Hash.
 
    procedure Finish
      (E    : in out Context;
-      Hash :    out AWS.OpenID.Encoders.SHA1.Digest);
+      Hash :    out Encoders.SHA1.Digest);
    --  Computes the HMAC-SHA1 with the private key and the data collected by
    --  the Update procedures. Returns the hexadecimal hash in Hash.
 
    procedure Finish_Base64
      (E    : in out Context;
-      Hash :    out AWS.OpenID.Encoders.SHA1.Base64_Digest);
+      Hash :    out Encoders.SHA1.Base64_Digest);
    --  Computes the HMAC-SHA1 with the private key and the data collected by
    --  the Update procedures. Returns the base64 hash in Hash.
 
@@ -71,14 +71,14 @@ package AWS.OpenID.Encoders.HMAC.SHA1 is
    function Sign
      (Key  : in String;
       Data : in String)
-      return AWS.OpenID.Encoders.SHA1.Digest;
+      return Encoders.SHA1.Digest;
    --  Sign the data string with the key and return the HMAC-SHA1 code as
    --  hexadecimal string.
 
    function Sign_Base64
      (Key  : in String;
       Data : in String)
-      return AWS.OpenID.Encoders.SHA1.Base64_Digest;
+      return Encoders.SHA1.Base64_Digest;
    --  Sign the data string with the key and return the HMAC-SHA1 code as
    --  base64 string.
 
@@ -95,7 +95,7 @@ package AWS.OpenID.Encoders.HMAC.SHA1 is
 private
 
    type Context is new Ada.Finalization.Limited_Controlled with record
-      SHA     : AWS.OpenID.Encoders.SHA1.Context;
+      SHA     : Encoders.SHA1.Context;
       Key     : Ada.Streams.Stream_Element_Array (0 .. 63);
       Key_Len : Ada.Streams.Stream_Element_Offset;
    end record;

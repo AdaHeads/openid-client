@@ -75,7 +75,6 @@ package body AWS.OpenID.Authentication_Database is
       procedure Delete
         (Token : in String)
       is
-         use AWS.OpenID;
       begin
          Log.Info
            (Message => "Removing <" & Token &
@@ -97,7 +96,6 @@ package body AWS.OpenID.Authentication_Database is
         (Token : in String)
          return Boolean
       is
-         use AWS.OpenID;
       begin
          Log.Info ("Looking up if <" & Token &
                      "> exists in the authentication database.");
@@ -113,7 +111,6 @@ package body AWS.OpenID.Authentication_Database is
         (Token : in String)
          return String
       is
-         use AWS.OpenID;
       begin
          Log.Info ("Looking <" & Token &
                      "> up in the authentication database.");
@@ -136,8 +133,6 @@ package body AWS.OpenID.Authentication_Database is
         (Identity : in     String;
          Token    :    out Authentication_Token)
       is
-         use AWS.OpenID;
-
          procedure Generate_Random
            (Token : out Authentication_Token);
 
@@ -194,7 +189,6 @@ package body AWS.OpenID.Authentication_Database is
       Response : in out AWS.Response.Data)
    is
       use Ada.Exceptions;
-      use AWS.OpenID;
 
       Token : Authentication_Token;
    begin
@@ -221,7 +215,6 @@ package body AWS.OpenID.Authentication_Database is
       return String
    is
       use Ada.Exceptions;
-      use AWS.OpenID;
    begin
       return Database.Identity (AWS.Cookie.Get (Request, Token_Cookie_Name));
    exception
@@ -242,7 +235,6 @@ package body AWS.OpenID.Authentication_Database is
       return Boolean
    is
       use Ada.Exceptions;
-      use AWS.OpenID;
    begin
       return Database.Has (AWS.Cookie.Get (Request, Token_Cookie_Name));
    exception
@@ -279,7 +271,6 @@ package body AWS.OpenID.Authentication_Database is
       pragma Unreferenced (Request);
 
       use Ada.Exceptions;
-      use AWS.OpenID;
 
       Token : Authentication_Token;
    begin

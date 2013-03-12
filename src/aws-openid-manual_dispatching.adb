@@ -26,7 +26,7 @@ private with AWS.OpenID.Security;
 
 package body AWS.OpenID.Manual_Dispatching is
 
-   Realm : AWS.OpenID.Security.Manager;
+   Realm : Security.Manager;
 
    package body Log_In is
 
@@ -38,32 +38,39 @@ package body AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data
       is
-         End_Point   : AWS.OpenID.Security.End_Point;
-         Association : AWS.OpenID.Security.Association;
+         use Ada.Exceptions;
+
+         End_Point   : Security.End_Point;
+         Association : Security.Association;
       begin
+         if Authentication_Database.Is_Authenticated (Request) then
+            --  We're already logged in. Redirect user to logged in URI.
+            return AWS.Response.URL (Manual_Dispatching.Logged_In.URI);
+         end if;
+
          declare
             Provider : constant String
               := AWS.Status.Parameters (Request).Get (Provider_Parameter_Name);
          begin
-            AWS.OpenID.Security.Discover (Realm  => Realm,
-                                          Name   => Provider,
-                                          Result => End_Point);
+            Security.Discover (Realm  => Realm,
+                               Name   => Provider,
+                               Result => End_Point);
          exception
             when Constraint_Error =>
                return Invalid_URL (Request);
-            when AWS.OpenID.Security.Invalid_End_Point =>
+            when Security.Invalid_End_Point =>
                return Invalid_End_Point (Request);
-            when AWS.OpenID.Security.Service_Error =>
+            when Security.Service_Error =>
                return Provider_Offline (Request);
          end;
 
-         AWS.OpenID.Security.Associate (Realm  => Realm,
-                                        OP     => End_Point,
-                                        Result => Association);
-         AWS.OpenID.Association_Database.Insert (Item => Association);
+         Security.Associate (Realm  => Realm,
+                             OP     => End_Point,
+                             Result => Association);
+         Association_Database.Insert (Association);
 
          declare
-            URL : constant String := AWS.OpenID.Security.Get_Authentication_URL
+            URL : constant String := Security.Get_Authentication_URL
               (Realm => Realm,
                OP    => End_Point,
                Assoc => Association);
@@ -75,7 +82,8 @@ package body AWS.OpenID.Manual_Dispatching is
             Log.Error
               ("Exception in " &
                  "AWS.OpenID.Manual_Dispatching.Log_In.Service: " &
-                 Ada.Exceptions.Exception_Information (E));
+                 Exception_Information (E));
+
             if Authentication_Database.Is_Authenticated (Request) then
                --  For some odd reason we've got both an exception and the user
                --  is authenticated, which should never happen, so we do a
@@ -98,13 +106,13 @@ package body AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data
       is
-         use AWS.OpenID;
+         use Ada.Exceptions;
 
          Handle         : Ada.Strings.Unbounded.Unbounded_String;
          Association    : Security.Association;
          Authentication : Security.Authentication;
       begin
-         Handle := Security.Handle (Response => Request);
+         Handle := Security.Handle (Request);
 
          if not Association_Database.Has (Handle) then
             return Authentication_Failed (Request);
@@ -133,7 +141,8 @@ package body AWS.OpenID.Manual_Dispatching is
             Log.Error
               ("Exception in " &
                  "AWS.OpenID.Manual_Dispatching.Validate.Service: " &
-                 Ada.Exceptions.Exception_Information (E));
+                 Exception_Information (E));
+
             if Authentication_Database.Is_Authenticated (Request) then
                --  For some odd reason we've got both an exception and the user
                --  is authenticated, which should never happen, so we do a
@@ -156,12 +165,14 @@ package body AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data
       is
+         use Ada.Exceptions;
+
          Response : AWS.Response.Data;
       begin
          Response :=
            AWS.Response.URL (Protocol & Host_Name & Logged_Out.URI);
 
-         AWS.OpenID.Authentication_Database.Delete_Identity
+         Authentication_Database.Delete_Identity
            (Request  => Request,
             Response => Response);
 
@@ -171,7 +182,8 @@ package body AWS.OpenID.Manual_Dispatching is
             Log.Error
               ("Exception in " &
                  "AWS.OpenID.Manual_Dispatching.Log_Out.Service: " &
-                 Ada.Exceptions.Exception_Information (E));
+                 Exception_Information (E));
+
             if Authentication_Database.Is_Authenticated (Request) then
                --  This is really bad.
                Log.Error
@@ -194,7 +206,7 @@ package body AWS.OpenID.Manual_Dispatching is
       return String
    is
    begin
-      return AWS.OpenID.Authentication_Database.Identity (Request => Request);
+      return Authentication_Database.Identity (Request);
    end Authenticated_As;
 
    ------------------------
@@ -206,14 +218,13 @@ package body AWS.OpenID.Manual_Dispatching is
       return Boolean
    is
    begin
-      return AWS.OpenID.Authentication_Database.Is_Authenticated
-        (Request => Request);
+      return Authentication_Database.Is_Authenticated (Request);
    end Is_Authenticated;
 
 begin
 
-   AWS.OpenID.Security.Initialize (Realm     => Realm,
-                                   Domain    => Protocol & Host_Name,
-                                   Return_To => Return_To_Page);
+   Security.Initialize (Realm     => Realm,
+                        Domain    => Protocol & Host_Name,
+                        Return_To => Return_To_Page);
 
 end AWS.OpenID.Manual_Dispatching;

@@ -75,18 +75,18 @@ package body AWS.OpenID.Encoders is
       case Format is
          when Base64_Encoding | Base64_URL_Encoding =>
             return E : Encoder do
-               E.Encode := new AWS.OpenID.Encoders.Base64.Encoder;
-               E.Decode := new AWS.OpenID.Encoders.Base64.Decoder;
+               E.Encode := new Encoders.Base64.Encoder;
+               E.Decode := new Encoders.Base64.Decoder;
             end return;
          when Base16_Encoding | HEX_Encoding =>
             return E : Encoder do
-               E.Encode := new AWS.OpenID.Encoders.Base16.Encoder;
-               E.Decode := new AWS.OpenID.Encoders.Base16.Decoder;
+               E.Encode := new Encoders.Base16.Encoder;
+               E.Decode := new Encoders.Base16.Decoder;
             end return;
          when SHA1_Encoding =>
             return E : Encoder do
-               E.Encode := new AWS.OpenID.Encoders.SHA1.Encoder;
-               E.Decode := new AWS.OpenID.Encoders.Base64.Decoder;
+               E.Encode := new Encoders.SHA1.Encoder;
+               E.Decode := new Encoders.Base64.Decoder;
             end return;
       end case;
    end Create;

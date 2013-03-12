@@ -225,7 +225,7 @@ package body AWS.OpenID.Encoders.SHA1 is
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      B       : AWS.OpenID.Encoders.Base16.Encoder;
+      B       : Encoders.Base16.Encoder;
       Encoded : Ada.Streams.Stream_Element_Offset;
       H       : Hash_Array;
       Last    : Ada.Streams.Stream_Element_Offset;
@@ -246,7 +246,7 @@ package body AWS.OpenID.Encoders.SHA1 is
       for Buf'Address use Hash'Address;
       pragma Import (Ada, Buf);
 
-      B       : AWS.OpenID.Encoders.Base64.Encoder;
+      B       : Encoders.Base64.Encoder;
       Encoded : Ada.Streams.Stream_Element_Offset;
       H       : Hash_Array;
       Last    : Ada.Streams.Stream_Element_Offset;
@@ -289,7 +289,7 @@ package body AWS.OpenID.Encoders.SHA1 is
       pragma Unreferenced (E);
 
       Hash        : Ada.Streams.Stream_Element_Array (0 .. 19);
-      Hex_Encoder : AWS.OpenID.Encoders.Base16.Encoder;
+      Hex_Encoder : Encoders.Base16.Encoder;
       Sha_Encoder : Context;
    begin
       Update (Sha_Encoder, Data);

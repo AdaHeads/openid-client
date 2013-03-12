@@ -56,8 +56,8 @@ package body AWS.OpenID.Security is
 
    procedure Extract_Value
      (Into    : in out Unbounded_String;
-      Request : in AWS.Status.Data;
-      Name    : in String);
+      Request : in     AWS.Status.Data;
+      Name    : in     String);
 
    function Get_Association_Query
      return String;
@@ -78,7 +78,6 @@ package body AWS.OpenID.Security is
       pragma Unreferenced (Realm);
 
       use Ada.Calendar;
-      use AWS.OpenID;
       use AWS.Response;
       use type AWS.Messages.Status_Code;
 
@@ -127,7 +126,7 @@ package body AWS.OpenID.Security is
             elsif Key = "assoc_type" then
                Result.Assoc_Type := Unbounded_Slice (Output, N + 1, Last);
             elsif Key = "assoc_handle" then
-               AWS.OpenID.Log.Debug
+               Log.Debug
                  ("Extracting 'assoc_handle' from result...");
                Result.Assoc_Handle := Unbounded_Slice (Output, N + 1, Last);
             elsif Key = "mac_key" then
@@ -136,7 +135,7 @@ package body AWS.OpenID.Security is
                declare
                   Val : constant String := Slice (Output, N + 1, Last);
                begin
-                  AWS.OpenID.Log.Info ("Expires: |" & Val & "|");
+                  Log.Info ("Expires: |" & Val & "|");
                   Result.Expired := Clock + Duration'Value (Val);
                exception
                   when Constraint_Error =>
@@ -148,7 +147,7 @@ package body AWS.OpenID.Security is
                        "Assocation error. Bad expires_in value given: " & Val;
                end;
             elsif Key /= "ns" then
-               AWS.OpenID.Log.Error ("Key not recognized: " & Key);
+               Log.Error ("Key not recognized: " & Key);
             end if;
          end;
 
@@ -194,7 +193,6 @@ package body AWS.OpenID.Security is
       Result :    out End_Point)
    is
       use AWS.Headers.Set;
-      use AWS.OpenID;
       use AWS.Response;
       use type AWS.Messages.Status_Code;
 
@@ -326,7 +324,7 @@ package body AWS.OpenID.Security is
       URI : constant String := Extract (Content, "<URI>", "</URI>");
    begin
       if URI'Length = 0 then
-         AWS.OpenID.Log.Error ("Extract_XRDS: Content = """ & Content & """");
+         Log.Error ("Extract_XRDS: Content = """ & Content & """");
 
          raise Invalid_End_Point
            with "Cannot extract the <URI> from the XRDS document";
@@ -476,7 +474,6 @@ package body AWS.OpenID.Security is
      (Succeeded : in Boolean;
       Message   : in String)
    is
-      use AWS.OpenID;
    begin
       if Succeeded then
          Log.Info  ("OpenID verification: " & Message);
@@ -614,15 +611,16 @@ package body AWS.OpenID.Security is
    -------------------------
 
    procedure Verify_Discovered
-     (Realm   : in Manager;
-      Assoc   : in Association;
-      Request : in AWS.Status.Data;
-      Result  : out Authentication)
+     (Realm   : in     Manager;
+      Assoc   : in     Association;
+      Request : in     AWS.Status.Data;
+      Result  :    out Authentication)
    is
       pragma Unreferenced (Realm, Assoc);
    begin
       Result.Claimed_ID := To_Unbounded_String
         (AWS.Status.Parameter (Request, "openid.claimed_id"));
+
       Result.Identity   := To_Unbounded_String
         (AWS.Status.Parameter (Request, "openid.identity"));
    end Verify_Discovered;
@@ -632,15 +630,14 @@ package body AWS.OpenID.Security is
    ------------------------
 
    procedure Verify_Signature
-     (Realm   : in Manager;
-      Assoc   : in Association;
-      Request : in AWS.Status.Data;
+     (Realm   : in     Manager;
+      Assoc   : in     Association;
+      Request : in     AWS.Status.Data;
       Result  : in out Authentication)
    is
       pragma Unreferenced (Realm);
 
       use Ada.Strings.Fixed;
-      use AWS.OpenID;
       use type AWS.OpenID.Encoders.SHA1.Digest;
 
       Last   : Natural;
@@ -680,8 +677,8 @@ package body AWS.OpenID.Security is
                      Encoders.Create (Encoders.Base64_Encoding);
          S       : constant String :=
                      AWS.Status.Parameter (Request, "openid.sig");
-         Key     : constant String
-           := Decoder.Decode (To_String (Assoc.Mac_Key));
+         Key     : constant String :=
+                     Decoder.Decode (To_String (Assoc.Mac_Key));
          R       : constant Encoders.SHA1.Base64_Digest :=
                      Encoders.HMAC.SHA1.Sign_Base64 (Key, To_String (Sign));
       begin

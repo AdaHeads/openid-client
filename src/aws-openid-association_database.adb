@@ -27,14 +27,14 @@ with AWS.OpenID.Log;
 package body AWS.OpenID.Association_Database is
 
    package Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => AWS.OpenID.Security.Association_Handle,
+     (Key_Type        => Security.Association_Handle,
       Hash            => Ada.Strings.Unbounded.Hash,
       Equivalent_Keys => Ada.Strings.Unbounded."=",
-      Element_Type    => AWS.OpenID.Security.Association,
-      "="             => AWS.OpenID.Security."=");
+      Element_Type    => Security.Association,
+      "="             => Security."=");
 
    package Stale_List is new Ada.Containers.Doubly_Linked_Lists
-     (Element_Type => AWS.OpenID.Security.Association_Handle,
+     (Element_Type => Security.Association_Handle,
       "="          => Ada.Strings.Unbounded."=");
 
    Stale_Associations : Stale_List.List;
@@ -44,12 +44,12 @@ package body AWS.OpenID.Association_Database is
       --  Delete all expired Associations.
 
       function Has
-        (Handle : in AWS.OpenID.Security.Association_Handle)
+        (Handle : in Security.Association_Handle)
          return Boolean;
       --  Return True if Handle is in the associations database.
 
       procedure Insert
-        (Item : in AWS.OpenID.Security.Association);
+        (Item : in Security.Association);
       --  Insert Item into the associations database.
 
       procedure Load
@@ -57,8 +57,8 @@ package body AWS.OpenID.Association_Database is
       --  Load File_Name into the associations database.
 
       function Look_Up
-        (Handle : in AWS.OpenID.Security.Association_Handle)
-         return AWS.OpenID.Security.Association;
+        (Handle : in Security.Association_Handle)
+         return Security.Association;
       --  Reuturn the Handle association.
 
       procedure Save
@@ -80,10 +80,9 @@ package body AWS.OpenID.Association_Database is
 
       procedure Clean_Up
       is
-         use AWS.OpenID.Security;
       begin
          for C in Associations.Iterate loop
-            if Is_Expired (Maps.Element (C)) then
+            if Security.Is_Expired (Maps.Element (C)) then
                Stale_Associations.Append (Maps.Key (C));
             end if;
          end loop;
@@ -98,11 +97,10 @@ package body AWS.OpenID.Association_Database is
       -----------
 
       function Has
-        (Handle : in AWS.OpenID.Security.Association_Handle)
+        (Handle : in Security.Association_Handle)
          return Boolean
       is
          use Ada.Strings.Unbounded;
-         use AWS.OpenID;
       begin
          Log.Info ("Looking up if <" &
                      To_String (Handle) &
@@ -116,10 +114,9 @@ package body AWS.OpenID.Association_Database is
       --------------
 
       procedure Insert
-        (Item : in AWS.OpenID.Security.Association)
+        (Item : in Security.Association)
       is
          use Ada.Strings.Unbounded;
-         use AWS.OpenID;
 
          Key : constant Security.Association_Handle := Security.Handle (Item);
       begin
@@ -144,12 +141,11 @@ package body AWS.OpenID.Association_Database is
         (File_Name : in String)
       is
          use Ada.Streams.Stream_IO;
-         use AWS.OpenID.Security;
 
          File    : File_Type;
          Source  : Stream_Access;
-         Key     : AWS.OpenID.Security.Association_Handle;
-         Element : AWS.OpenID.Security.Association;
+         Key     : Security.Association_Handle;
+         Element : Security.Association;
       begin
          Open (File => File,
                Name => File_Name,
@@ -157,10 +153,10 @@ package body AWS.OpenID.Association_Database is
          Source := Stream (File);
 
          while not End_Of_File (File) loop
-            Key     := AWS.OpenID.Security.Association_Handle'Input (Source);
-            Element := AWS.OpenID.Security.Association'Input (Source);
+            Key     := Security.Association_Handle'Input (Source);
+            Element := Security.Association'Input (Source);
 
-            if not Is_Expired (Element) then
+            if not Security.Is_Expired (Element) then
                Associations.Insert (Key, Element);
             end if;
          end loop;
@@ -173,11 +169,10 @@ package body AWS.OpenID.Association_Database is
       ---------------
 
       function Look_Up
-        (Handle : in AWS.OpenID.Security.Association_Handle)
-         return AWS.OpenID.Security.Association
+        (Handle : in Security.Association_Handle)
+         return Security.Association
       is
          use Ada.Strings.Unbounded;
-         use AWS.OpenID;
       begin
          Log.Info ("Looking <" &
                      To_String (Handle) &
@@ -208,9 +203,8 @@ package body AWS.OpenID.Association_Database is
          procedure Save
            (Position : in Maps.Cursor)
          is
-            use AWS.OpenID.Security;
          begin
-            if not Is_Expired (Maps.Element (Position)) then
+            if not Security.Is_Expired (Maps.Element (Position)) then
                AWS.OpenID.Security.Association_Handle'Output
                  (Target, Maps.Key (Position));
 
@@ -245,11 +239,10 @@ package body AWS.OpenID.Association_Database is
    ------------------
 
    function Has_Handle
-     (Handle : in AWS.OpenID.Security.Association_Handle)
+     (Handle : in Security.Association_Handle)
       return Boolean
    is
       use Ada.Exceptions;
-      use AWS.OpenID;
    begin
       return Database.Has (Handle);
    exception
@@ -264,10 +257,9 @@ package body AWS.OpenID.Association_Database is
    --------------------------
 
    procedure Insert_Association
-     (Item : in AWS.OpenID.Security.Association)
+     (Item : in Security.Association)
    is
       use Ada.Exceptions;
-      use AWS.OpenID;
    begin
       Database.Insert (Item);
    exception
@@ -294,11 +286,10 @@ package body AWS.OpenID.Association_Database is
    ----------------------------------
 
    function Look_Up_Association_Handle
-     (Handle : in AWS.OpenID.Security.Association_Handle)
-      return AWS.OpenID.Security.Association
+     (Handle : in Security.Association_Handle)
+      return Security.Association
    is
       use Ada.Exceptions;
-      use AWS.OpenID;
    begin
       return Database.Look_Up (Handle);
    exception

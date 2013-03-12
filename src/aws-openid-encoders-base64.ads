@@ -34,16 +34,16 @@ with Interfaces;
 
 package AWS.OpenID.Encoders.Base64 is
 
-   type Decoder is new AWS.OpenID.Encoders.Transformer with private;
-   type Encoder is new AWS.OpenID.Encoders.Transformer with private;
+   type Decoder is new Encoders.Transformer with private;
+   type Encoder is new Encoders.Transformer with private;
 
    overriding
    procedure Transform
-     (E       : in Decoder;
-      Data    : in Ada.Streams.Stream_Element_Array;
-      Into    : out Ada.Streams.Stream_Element_Array;
-      Last    : out Ada.Streams.Stream_Element_Offset;
-      Encoded : out Ada.Streams.Stream_Element_Offset);
+     (E       : in     Decoder;
+      Data    : in     Ada.Streams.Stream_Element_Array;
+      Into    :    out Ada.Streams.Stream_Element_Array;
+      Last    :    out Ada.Streams.Stream_Element_Offset;
+      Encoded :    out Ada.Streams.Stream_Element_Offset);
    --  Decodes the Data base64 input stream into the Into binary output stream.
    --
    --  If the transformer does not have enough room to write the result, it
@@ -57,11 +57,11 @@ package AWS.OpenID.Encoders.Base64 is
 
    overriding
    procedure Transform
-     (E       : in Encoder;
-      Data    : in Ada.Streams.Stream_Element_Array;
-      Into    : out Ada.Streams.Stream_Element_Array;
-      Last    : out Ada.Streams.Stream_Element_Offset;
-      Encoded : out Ada.Streams.Stream_Element_Offset);
+     (E       : in     Encoder;
+      Data    : in     Ada.Streams.Stream_Element_Array;
+      Into    :    out Ada.Streams.Stream_Element_Array;
+      Last    :    out Ada.Streams.Stream_Element_Offset;
+      Encoded :    out Ada.Streams.Stream_Element_Offset);
    --  Encodes the Data base64 input stream into the Into binary output stream.
    --
    --  If the transformer does not have enough room to write the result, it
@@ -144,12 +144,12 @@ private
        Character'Pos ('+') => 62, Character'Pos ('/') => 63,
        others => 16#FF#);
 
-   type Decoder is new AWS.OpenID.Encoders.Transformer with
+   type Decoder is new Encoders.Transformer with
       record
          Values : Alphabet_Values_Access := BASE64_VALUES'Access;
       end record;
 
-   type Encoder is new AWS.OpenID.Encoders.Transformer with
+   type Encoder is new Encoders.Transformer with
       record
          Alphabet : Alphabet_Access := BASE64_ALPHABET'Access;
       end record;

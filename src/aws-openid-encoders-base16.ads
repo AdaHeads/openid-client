@@ -33,16 +33,16 @@ with Ada.Streams;
 
 package AWS.OpenID.Encoders.Base16 is
 
-   type Decoder is new AWS.OpenID.Encoders.Transformer with private;
-   type Encoder is new AWS.OpenID.Encoders.Transformer with private;
+   type Decoder is new Encoders.Transformer with private;
+   type Encoder is new Encoders.Transformer with private;
 
    overriding
    procedure Transform
-     (E       : in Decoder;
-      Data    : in Ada.Streams.Stream_Element_Array;
-      Into    : out Ada.Streams.Stream_Element_Array;
-      Last    : out Ada.Streams.Stream_Element_Offset;
-      Encoded : out Ada.Streams.Stream_Element_Offset);
+     (E       : in     Decoder;
+      Data    : in     Ada.Streams.Stream_Element_Array;
+      Into    :    out Ada.Streams.Stream_Element_Array;
+      Last    :    out Ada.Streams.Stream_Element_Offset;
+      Encoded :    out Ada.Streams.Stream_Element_Offset);
    --  Decodes the Data base16 input stream into the Into binary output stream.
    --
    --  If the transformer does not have enough room to write the result, it
@@ -56,11 +56,11 @@ package AWS.OpenID.Encoders.Base16 is
 
    overriding
    procedure Transform
-     (E       : in Encoder;
-      Data    : in Ada.Streams.Stream_Element_Array;
-      Into    : out Ada.Streams.Stream_Element_Array;
-      Last    : out Ada.Streams.Stream_Element_Offset;
-      Encoded : out Ada.Streams.Stream_Element_Offset);
+     (E       : in     Encoder;
+      Data    : in     Ada.Streams.Stream_Element_Array;
+      Into    :    out Ada.Streams.Stream_Element_Array;
+      Last    :    out Ada.Streams.Stream_Element_Offset;
+      Encoded :    out Ada.Streams.Stream_Element_Offset);
    --  Encodes the Data base16 input stream into the Into binary output stream.
    --
    --  If the transformer does not have enough room to write the result, it
@@ -74,8 +74,8 @@ package AWS.OpenID.Encoders.Base16 is
 
 private
 
-   type Decoder is new AWS.OpenID.Encoders.Transformer with null record;
-   type Encoder is new AWS.OpenID.Encoders.Transformer with null record;
+   type Decoder is new Encoders.Transformer with null record;
+   type Encoder is new Encoders.Transformer with null record;
 
    generic
 
