@@ -14,7 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;
+
 with AWS.Session;
 with AWS.Status;
 with AWS.Dispatchers.Callback;
@@ -168,11 +168,15 @@ package body OpenID_Handler is
       use AWS.OpenID;
    begin
       Increment_Hits (Request);
-      Ada.Text_IO.Put_Line ("Referer: " & AWS.Status.Referer (Request));
-      --  if not Authentication_Database.Is_Authenticated (Request) then
+
+      if Authentication_Database.Is_Authenticated (Request) then
+         --  Apparently we didn't manage to actually log out the user or we've
+         --  landed here by mistake. Whatever the reason, this is a problem.
+         raise Program_Error with "Logged_Out called, but user not logged out";
+      else
          return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
                                    Filename     => "logged_out.html");
-      --  end if;
+      end if;
    end Logged_Out;
 
    --------------
