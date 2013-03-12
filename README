@@ -14,4 +14,4 @@ This library depends on AWS[2], preferably being compiled with SSL support.
 See the INSTALL file for instructions on how to build and install the library.
 
 [1] http://code.google.com/p/ada-asf/
-[2]
+[2] http://libre.adacore.com/tools/aws/
