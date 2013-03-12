@@ -15,10 +15,12 @@
 --                                                                           --
 -------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 
 with AWS.OpenID.Association_Database;
 with AWS.OpenID.Authentication_Database;
+with AWS.OpenID.Log;
 
 private with AWS.OpenID.Security;
 
@@ -68,6 +70,20 @@ package body AWS.OpenID.Manual_Dispatching is
          begin
             return AWS.Response.URL (URL);
          end;
+      exception
+         when E : others =>
+            Log.Error
+              ("Exception in " &
+                 "AWS.OpenID.Manual_Dispatching.Log_In.Service: " &
+                 Ada.Exceptions.Exception_Information (E));
+            if Authentication_Database.Is_Authenticated (Request) then
+               --  For some odd reason we've got both an exception and the user
+               --  is authenticated, which should never happen, so we do a
+               --  pre-cautionary log out of the user. Better safe than sorry.
+               return Log_Out.Service (Request);
+            else
+               return Authentication_Failed (Request);
+            end if;
       end Service;
 
    end Log_In;
@@ -82,27 +98,29 @@ package body AWS.OpenID.Manual_Dispatching is
         (Request : in AWS.Status.Data)
          return AWS.Response.Data
       is
-         Handle         : Ada.Strings.Unbounded.Unbounded_String;
-         Association    : AWS.OpenID.Security.Association;
-         Authentication : AWS.OpenID.Security.Authentication;
-      begin
-         Handle := AWS.OpenID.Security.Handle (Response => Request);
+         use AWS.OpenID;
 
-         if not AWS.OpenID.Association_Database.Has (Handle) then
+         Handle         : Ada.Strings.Unbounded.Unbounded_String;
+         Association    : Security.Association;
+         Authentication : Security.Authentication;
+      begin
+         Handle := Security.Handle (Response => Request);
+
+         if not Association_Database.Has (Handle) then
             return Authentication_Failed (Request);
          end if;
 
-         Association := AWS.OpenID.Association_Database.Look_Up (Handle);
-         Authentication := AWS.OpenID.Security.Verify (Realm   => Realm,
-                                                       Assoc   => Association,
-                                                       Request => Request);
-         AWS.OpenID.Association_Database.Clean_Up;
-         if AWS.OpenID.Security.Authenticated (Authentication) then
+         Association := Association_Database.Look_Up (Handle);
+         Authentication := Security.Verify (Realm   => Realm,
+                                            Assoc   => Association,
+                                            Request => Request);
+
+         if Security.Authenticated (Authentication) then
             return Result : AWS.Response.Data do
                Result :=
                  AWS.Response.URL (Protocol & Host_Name & Logged_In.URI);
 
-               AWS.OpenID.Authentication_Database.Register_Identity
+               Authentication_Database.Register_Identity
                  (Source   => Authentication,
                   Request  => Request,
                   Response => Result);
@@ -110,6 +128,20 @@ package body AWS.OpenID.Manual_Dispatching is
          else
             return Authentication_Failed (Request);
          end if;
+      exception
+         when E : others =>
+            Log.Error
+              ("Exception in " &
+                 "AWS.OpenID.Manual_Dispatching.Validate.Service: " &
+                 Ada.Exceptions.Exception_Information (E));
+            if Authentication_Database.Is_Authenticated (Request) then
+               --  For some odd reason we've got both an exception and the user
+               --  is authenticated, which should never happen, so we do a
+               --  pre-cautionary log out of the user. Better safe than sorry.
+               return Log_Out.Service (Request);
+            else
+               return Authentication_Failed (Request);
+            end if;
       end Service;
 
    end Validate;
@@ -134,6 +166,21 @@ package body AWS.OpenID.Manual_Dispatching is
             Response => Response);
 
          return Response;
+      exception
+         when E : others =>
+            Log.Error
+              ("Exception in " &
+                 "AWS.OpenID.Manual_Dispatching.Log_Out.Service: " &
+                 Ada.Exceptions.Exception_Information (E));
+            if Authentication_Database.Is_Authenticated (Request) then
+               --  This is really bad.
+               Log.Error
+                 ("AWS.OpenID.Manual_Dispatching.Log_Out.Service cannot " &
+                    "log user out");
+               raise;
+            else
+               return Authentication_Failed (Request);
+            end if;
       end Service;
 
    end Log_Out;
