@@ -14,7 +14,7 @@
 --  <http://www.gnu.org/licenses/>.                                          --
 --                                                                           --
 -------------------------------------------------------------------------------
-
+with Ada.Text_IO;
 with AWS.Session;
 with AWS.Status;
 with AWS.Dispatchers.Callback;
@@ -38,6 +38,10 @@ package body OpenID_Handler is
       Provider_Offline      => Provider_Offline'Access,
       Host_Name             => Configuration.Host_Name);
 
+   procedure Increment_Hits
+     (Request : in AWS.Status.Data);
+   --  Add 1 to the "hits" session value.
+
    function Index
      (Request : in AWS.Status.Data)
       return AWS.Response.Data;
@@ -48,9 +52,7 @@ package body OpenID_Handler is
 
    function Logged_Out
      (Request : in AWS.Status.Data)
-      return AWS.Response.Data
-   is (AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
-                          Filename     => "logged_out.html"));
+      return AWS.Response.Data;
 
    function Not_Authenticated
      (Request : in AWS.Status.Data)
@@ -98,8 +100,24 @@ package body OpenID_Handler is
          D.Register (URI    => "/style.css",
                      Action => Style_CSS'Access);
       end return;
-      --  return D;
    end Get_Dispatcher;
+
+   ----------------------
+   --  Increment_Hits  --
+   ----------------------
+
+   procedure Increment_Hits
+     (Request : in AWS.Status.Data)
+   is
+      use AWS.Session;
+      use AWS.Status;
+
+      Session_ID  : constant Id := Session (Request);
+   begin
+      Set (SID   => Session_ID,
+           Key   => "hits",
+           Value => Get (Session_ID, "hits") + 1);
+   end Increment_Hits;
 
    -------------
    --  Index  --
@@ -109,14 +127,11 @@ package body OpenID_Handler is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      Session_ID  : constant AWS.Session.Id := AWS.Status.Session (Request);
    begin
+      Increment_Hits (Request);
+
       if AWS.OpenID.Authentication_Database.Is_Authenticated (Request) then
          return AWS.Response.URL (OpenID.Logged_In.URI);
-      else
-         AWS.Session.Set (SID   => Session_ID,
-                          Key   => "logged_in",
-                          Value => False);
       end if;
 
       return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
@@ -131,19 +146,34 @@ package body OpenID_Handler is
      (Request : in AWS.Status.Data)
       return AWS.Response.Data
    is
-      Session_ID  : constant AWS.Session.Id := AWS.Status.Session (Request);
    begin
-      if AWS.OpenID.Authentication_Database.Is_Authenticated (Request) then
-         AWS.Session.Set (SID   => Session_ID,
-                          Key   => "logged_in",
-                          Value => True);
+      Increment_Hits (Request);
 
+      if AWS.OpenID.Authentication_Database.Is_Authenticated (Request) then
          return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
                                    Filename     => "logged_in.html");
       else
          return AWS.Response.URL ("/");
       end if;
    end Logged_In;
+
+   ------------------
+   --  Logged_Out  --
+   ------------------
+
+   function Logged_Out
+     (Request : in AWS.Status.Data)
+      return AWS.Response.Data
+   is
+      use AWS.OpenID;
+   begin
+      Increment_Hits (Request);
+      Ada.Text_IO.Put_Line ("Referer: " & AWS.Status.Referer (Request));
+      --  if not Authentication_Database.Is_Authenticated (Request) then
+         return AWS.Response.File (Content_Type => AWS.MIME.Text_HTML,
+                                   Filename     => "logged_out.html");
+      --  end if;
+   end Logged_Out;
 
    --------------
    --  Whoops  --
